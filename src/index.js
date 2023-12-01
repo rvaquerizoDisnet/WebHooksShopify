@@ -11,11 +11,15 @@ const crypto = require('crypto');
 // Para manejar xml
 const xml2js = require('xml2js');
 // Para crear un log
-const winston = require('winston');
+const winston = require('winston'); 
+// Para servicio de envio de correo automatico
+const nodemailer = require('nodemailer');
+
 
 const app = express();
-// Puerto (configurar donde más nos convenga)
 const port = 3000;
+//Falta decidir en que puerto estar el webhook
+const portWebhook = 3333;
 
 // Configuración del logger
 const logger = winston.createLogger({
@@ -28,6 +32,17 @@ const logger = winston.createLogger({
   ],
 });
 
+
+// Configuración de nodemailer (debes reemplazar con tus propias credenciales y configuraciones)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'tucorreo@gmail.com',
+    pass: 'tucontraseña',
+  },
+});
+
+
 // Añadir la clave secreta de Shopify para cada cliente
 // Modificar el nombre del cliente por el mismo que añadimos en el array de clientes
 //Datos de ejemplo
@@ -37,25 +52,35 @@ const secretKeys = {
   cliente3: 'clave_secreta_cliente3',
 };
 
-// Array con el nombre de los clientes y sus códigos correspondientes
-//Datos de ejemplo
-const clientes = ['cliente1', 'cliente2', 'cliente3'];
-const codigosClientes = ['11TestPedidos', '12OtroCliente', '13ClienteEjemplo'];
 
-clientes.forEach((cliente, index) => {
-  const codigoCliente = codigosClientes[index];
-  const rutaPedidos = `/${cliente}/webhook/pedidos`;
-  const rutaActualizacionPedidos = `/${cliente}/webhook/actualizacion_pedidos`;
+app.use(bodyParser.text({ type: 'application/xml' }));
+app.use(cors());
+
+// Array de objetos con el nombre de los clientes y sus códigos correspondientes
+//Datos de ejemplo
+const clientes = [
+  { nombre: 'cliente1', codigo: 'codigo_cliente1' },
+  { nombre: 'cliente2', codigo: 'codigo_cliente2' },
+  { nombre: 'cliente3', codigo: 'codigo_cliente3' },
+];
+
+// Configurar los endpoints a los que queremos escuchar
+clientes.forEach(cliente => {
+  const rutaPedidos = `https://disnet.es:${portWebhook}/${cliente.nombre}/webhook/pedidos`;
+  const rutaActualizacionPedidos = `https://disnet.es:${portWebhook}/${cliente.nombre}/webhook/actualizacion_pedidos`;
+
 
   // Middleware para manejar los webhooks de Shopify - Pedido
   app.post(rutaPedidos, (req, res) => {
-    manejarWebhook(codigoCliente, 'pedidos', req, res);
+    manejarWebhook(cliente, 'pedidos', req, res);
   });
 
   // Middleware para manejar los webhooks de Shopify - Actualización de Pedidos
   app.post(rutaActualizacionPedidos, (req, res) => {
-    manejarWebhook(codigoCliente, 'actualizacion_pedidos', req, res);
+    manejarWebhook(cliente, 'actualizacion_pedidos', req, res);
   });
+
+  //Se podrian añadir todos los webhooks que queramos y que hayamos creado en Shopify
 });
 
 // Función para verificar la firma de cada cliente y así poder acceder
@@ -64,31 +89,37 @@ function verificarFirmaWebhook(data, hmacHeader, secret) {
   const contenido = Buffer.from(data, 'utf-8');
   hmac.update(contenido);
   const hashCalculado = hmac.digest('base64');
-
   return hashCalculado === hmacHeader;
 }
 
-async function manejarWebhook(codigoCliente, tipo, req, res) {
+async function manejarWebhook(cliente, tipo, req, res) {
   const data = req.body.toString('utf8');
   const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
 
-  if (verificarFirmaWebhook(data, hmacHeader, secretKeys[codigoCliente])) {
+  if (verificarFirmaWebhook(data, hmacHeader, secretKeys[cliente.nombre])) {
     try {
       const datosJS = await convertirXMLaJS(data);
+
       if (verificarDatos(datosJS)) {
-        const response = await enviarDatosAlWebService(datosJS, codigoCliente, tipo);
-        console.log(`Respuesta del servicio web para ${codigoCliente}/${tipo}:`, response.data);
+        const response = await enviarDatosAlWebService(datosJS, cliente, tipo);
+        console.log(`Respuesta del servicio web para ${cliente.nombre}/${tipo}:`, response.data);
         res.status(200).send('OK');
       } else {
-        logger.error(`Datos incorrectos para ${codigoCliente}/${tipo}`);
+        logger.error(`Datos incorrectos para ${cliente.nombre}/${tipo}`);
+        // Manejo de errores: reintento después de 10 minutos
+        await reintentarDespuesDe(cliente, tipo, 10, 10, data, hmacHeader);
         res.status(400).send('Datos incorrectos');
       }
     } catch (error) {
-      logger.error(`Error al manejar el webhook para ${codigoCliente}/${tipo}:`, error);
+      logger.error(`Error al manejar el webhook para ${cliente.nombre}/${tipo}:`, error);
+      // Manejo de errores: reintento después de 10 minutos
+      await reintentarDespuesDe(cliente, tipo, 10, 10, data, hmacHeader);
       res.status(500).send('Error interno del servidor');
     }
   } else {
-    logger.error(`Firma incorrecta para ${codigoCliente}/${tipo}`);
+    logger.error(`Firma incorrecta para ${cliente.nombre}/${tipo}`);
+    // Manejo de errores: reintento después de 10 minutos
+    await reintentarDespuesDe(cliente, tipo, 10, 10, data, hmacHeader);
     res.status(401).send('Firma incorrecta');
   }
 }
@@ -110,19 +141,71 @@ function verificarDatos(datos) {
   return true;
 }
 
-// Falta cambiar el nombre del cliente por su código
-function enviarDatosAlWebService(datos, codigoCliente, tipo) {
-  // Añadir la URL de nuestro webservice en la constante de abajo
-  const urlWebService = `https://tu-servicio-web.com/${codigoCliente}${tipo}`;
+
+//Envia los datos al webservice
+async function enviarDatosAlWebService(datos, cliente, tipo) {
+  const urlWebService = `https://webservice.disnet.es:30000/${cliente.codigo}${tipo}`;
   return axios.post(urlWebService, { datos });
 }
 
-//Funcion que envie un correo para avisar que esta habiendo un error y asi poder comprobarlo manualmente
-function enviarCorreo(){
+//Es una funcion para reintentar un proceso fallido, normalmente esperamos 10 minutos y lo reintentamos 10 veces.
+async function reintentarDespuesDe(cliente, tipo, intentos, minutosEspera, dataOriginal, hmacHeaderOriginal) {
+  for (let i = 1; i <= intentos; i++) {
+    console.log(`Reintentando ${cliente.nombre}/${tipo}. Intento ${i} de ${intentos}.`);
+    await esperar(minutosEspera * 60 * 1000); // Convertir minutos a milisegundos
 
+    if (verificarFirmaWebhook(dataOriginal, hmacHeaderOriginal, secretKeys[cliente.nombre])) {
+      try {
+        const datosJS = await convertirXMLaJS(dataOriginal);
+        if (verificarDatos(datosJS)) {
+          const response = await enviarDatosAlWebService(datosJS, cliente, tipo);
+          console.log(`Respuesta del servicio web para ${cliente.nombre}/${tipo}:`, response.data);
+          logger.info(`Reintento exitoso para ${cliente.nombre}/${tipo}.`);
+          return;
+        }
+      } catch (error) {
+        logger.error(`Error en el reintento para ${cliente.nombre}/${tipo}:`, error);
+      }
+    } else {
+      logger.error(`Firma incorrecta en el reintento para ${cliente.nombre}/${tipo}.`);
+    }
+  }
+
+  // Si todos los intentos fallan, enviar notificación por correo electrónico
+  await enviarCorreoElectronico(cliente, tipo);
+  logger.error(`Reintento fallido para ${cliente.nombre}/${tipo}. Enviada notificación por correo electrónico.`);
 }
 
-// Middleware escuchando en el puerto que hemos definido arriba (normalmente el 3000)
+
+//Si han fallado los intentos anteriores, envia un correo para avisar.
+async function enviarCorreoElectronico(cliente, tipo) {
+  try {
+    // Cambiar el correo este, por uno real (crearlo)
+    const mailOptions = {
+      from: 'tucorreo@gmail.com',
+      to: 'destinatario@ejemplo.com',
+      subject: `Error en el webhook para ${cliente.nombre}/${tipo}`,
+      text: `Se ha producido un error en el webhook para ${cliente.nombre}/${tipo}.`,
+    };
+
+    // Envía el correo electrónico
+    await transporter.sendMail(mailOptions);
+    console.log(`Correo electrónico de notificación enviado para ${cliente.nombre}/${tipo}.`);
+  } catch (error) {
+    console.error(`Error al enviar el correo electrónico de notificación:`, error);
+  }
+}
+
+function esperar(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });
+
+
+
+function modificarXML(){
+
+}
