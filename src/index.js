@@ -14,6 +14,9 @@ const xml2js = require('xml2js');
 const winston = require('winston'); 
 // Para servicio de envio de correo automatico
 const nodemailer = require('nodemailer');
+const { getDefaultAutoSelectFamily } = require('net');
+const { Queue, Worker } = require('bull');
+require('dotenv').config();
 
 
 const app = express();
@@ -37,8 +40,8 @@ const logger = winston.createLogger({
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'tucorreo@gmail.com',
-    pass: 'tucontraseña',
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
@@ -47,9 +50,9 @@ const transporter = nodemailer.createTransport({
 // Modificar el nombre del cliente por el mismo que añadimos en el array de clientes
 //Datos de ejemplo
 const secretKeys = {
-  cliente1: 'clave_secreta_cliente1',
-  cliente2: 'clave_secreta_cliente2',
-  cliente3: 'clave_secreta_cliente3',
+  cliente1: process.env.SECRET_KEY_CLIENTE1,
+  cliente2: process.env.SECRET_KEY_CLIENTE2,
+  cliente3: process.env.SECRET_KEY_CLIENTE3,
 };
 
 
@@ -64,35 +67,34 @@ const clientes = [
   { nombre: 'cliente3', codigo: 'codigo_cliente3' },
 ];
 
+// Configurar la cola de trabajo
+const workQueue = new Queue('webhook-work');
+
 // Configurar los endpoints a los que queremos escuchar
 clientes.forEach(cliente => {
   const rutaPedidos = `https://disnet.es:${portWebhook}/${cliente.nombre}/webhook/pedidos`;
   const rutaActualizacionPedidos = `https://disnet.es:${portWebhook}/${cliente.nombre}/webhook/actualizacion_pedidos`;
 
 
-  // Middleware para manejar los webhooks de Shopify - Pedido
-  app.post(rutaPedidos, (req, res) => {
-    manejarWebhook(cliente, 'pedidos', req, res);
-  });
+ // Middleware para manejar los webhooks de Shopify - Pedido
+ app.post(rutaPedidos, async (req, res) => {
+  await workQueue.add({ cliente, tipo: 'pedidos', req, res });
+  res.status(200).send('En cola de trabajo');
+});
 
   // Middleware para manejar los webhooks de Shopify - Actualización de Pedidos
-  app.post(rutaActualizacionPedidos, (req, res) => {
-    manejarWebhook(cliente, 'actualizacion_pedidos', req, res);
+  app.post(rutaActualizacionPedidos, async (req, res) => {
+    await workQueue.add({ cliente, tipo: 'actualizacion_pedidos', req, res });
+    res.status(200).send('En cola de trabajo');
   });
 
   //Se podrian añadir todos los webhooks que queramos y que hayamos creado en Shopify
 });
 
-// Función para verificar la firma de cada cliente y así poder acceder
-function verificarFirmaWebhook(data, hmacHeader, secret) {
-  const hmac = crypto.createHmac('sha256', secret);
-  const contenido = Buffer.from(data, 'utf-8');
-  hmac.update(contenido);
-  const hashCalculado = hmac.digest('base64');
-  return hashCalculado === hmacHeader;
-}
 
-async function manejarWebhook(cliente, tipo, req, res) {
+// Procesador para la cola de trabajo
+new Worker('webhook-work', async job => {
+  const { cliente, tipo, req, res } = job.data;
   const data = req.body.toString('utf8');
   const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
 
@@ -106,23 +108,30 @@ async function manejarWebhook(cliente, tipo, req, res) {
         res.status(200).send('OK');
       } else {
         logger.error(`Datos incorrectos para ${cliente.nombre}/${tipo}`);
-        // Manejo de errores: reintento después de 10 minutos
         await reintentarDespuesDe(cliente, tipo, 10, 10, data, hmacHeader);
         res.status(400).send('Datos incorrectos');
       }
     } catch (error) {
       logger.error(`Error al manejar el webhook para ${cliente.nombre}/${tipo}:`, error);
-      // Manejo de errores: reintento después de 10 minutos
       await reintentarDespuesDe(cliente, tipo, 10, 10, data, hmacHeader);
       res.status(500).send('Error interno del servidor');
     }
   } else {
     logger.error(`Firma incorrecta para ${cliente.nombre}/${tipo}`);
-    // Manejo de errores: reintento después de 10 minutos
     await reintentarDespuesDe(cliente, tipo, 10, 10, data, hmacHeader);
     res.status(401).send('Firma incorrecta');
   }
+});
+
+// Función para verificar la firma de cada cliente y así poder acceder
+function verificarFirmaWebhook(data, hmacHeader, secret) {
+  const hmac = crypto.createHmac('sha256', secret);
+  const contenido = Buffer.from(data, 'utf-8');
+  hmac.update(contenido);
+  const hashCalculado = hmac.digest('base64');
+  return hashCalculado === hmacHeader;
 }
+
 
 function convertirXMLaJS(data) {
   return new Promise((resolve, reject) => {
@@ -152,7 +161,7 @@ async function enviarDatosAlWebService(datos, cliente, tipo) {
 async function reintentarDespuesDe(cliente, tipo, intentos, minutosEspera, dataOriginal, hmacHeaderOriginal) {
   for (let i = 1; i <= intentos; i++) {
     console.log(`Reintentando ${cliente.nombre}/${tipo}. Intento ${i} de ${intentos}.`);
-    await esperar(minutosEspera * 60 * 1000); // Convertir minutos a milisegundos
+    await esperar(minutosEspera * 60 * 1000);
 
     if (verificarFirmaWebhook(dataOriginal, hmacHeaderOriginal, secretKeys[cliente.nombre])) {
       try {
@@ -170,6 +179,7 @@ async function reintentarDespuesDe(cliente, tipo, intentos, minutosEspera, dataO
       logger.error(`Firma incorrecta en el reintento para ${cliente.nombre}/${tipo}.`);
     }
   }
+
 
   // Si todos los intentos fallan, enviar notificación por correo electrónico
   await enviarCorreoElectronico(cliente, tipo);
@@ -196,16 +206,14 @@ async function enviarCorreoElectronico(cliente, tipo) {
   }
 }
 
+//Esperar el tiempo en ms, no en segundos, si quieres pasarlo en segundos los tienes que convertir como arriba hemos hecho.
 function esperar(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+//Puerto donde estara escuchando el servidor los webhooks
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });
 
 
-
-function modificarXML(){
-
-}
