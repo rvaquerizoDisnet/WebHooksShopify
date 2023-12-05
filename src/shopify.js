@@ -1,17 +1,21 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const axios = require('axios');
-const { Queue } = require('bull');
+
 const crypto = require('crypto');
 const xml2js = require('xml2js');
+const axios = require('axios');
 const winston = require('winston');
 const nodemailer = require('nodemailer');
+const { Worker, QueueScheduler } = require('bull');
+const { Queue } = require('bull');
+
 require('dotenv').config();
 
-const app = express();
-const port = 3000;
-const portWebhook = 3333;
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
 
 const secretKeys = {
   cliente1: process.env.SECRET_KEY_CLIENTE1,
@@ -24,20 +28,15 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: 'webhook-service' },
   transports: [
-    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/log/error.log', level: 'error' }),
-    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebService/log/combined.log' }),
+    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/error.log', level: 'error' }),
+    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/combined.log' }),
   ],
 });
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
-
 const workQueue = new Queue('webhook-work');
+const scheduler = new QueueScheduler('webhook-work');
+
+const shopifyWebhookUrl = 'https://shopify.disnet.es/';
 
 function initWebhooks(app) {
   const clientes = [
@@ -47,23 +46,33 @@ function initWebhooks(app) {
   ];
 
   clientes.forEach(cliente => {
-    const rutaPedidos = `https://disnet.es:${portWebhook}/${cliente.nombre}/webhook/pedidos`;
-    const rutaActualizacionPedidos = `https://disnet.es:${portWebhook}/${cliente.nombre}/webhook/actualizacion_pedidos`;
+    const rutaPedidos = `https://shopify.disnet.es/`;
+    const rutaActualizacionPedidos = `https://shopify.disnet.es/`;
 
     app.post(rutaPedidos, async (req, res) => {
+      try {
       await workQueue.add({ cliente, tipo: 'pedidos', req, res });
       res.status(200).send('En cola de trabajo');
+    } catch (error) {
+      logger.error('Error al agregar trabajo a la cola:', error);
+      res.status(500).send('Error interno del servidor');
+    }
     });
-
+    
     app.post(rutaActualizacionPedidos, async (req, res) => {
-      await workQueue.add({ cliente, tipo: 'actualizacion_pedidos', req, res });
+      try {
+        await workQueue.add({ cliente, tipo: 'actualizacion_pedidos', req, res });
       res.status(200).send('En cola de trabajo');
+    } catch (error) {
+      logger.error('Error al agregar trabajo a la cola:', error);
+      res.status(500).send('Error interno del servidor');
+    }
     });
   });
 }
 
 function initQueueProcessor() {
-  const workQueue = new Worker('webhook-work', async job => {
+  const processor = new Worker('webhook-work', async job => {
     const { cliente, tipo, req, res } = job.data;
     const data = req.body.toString('utf8');
     const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
@@ -92,6 +101,7 @@ function initQueueProcessor() {
       res.status(401).send('Firma incorrecta');
     }
   });
+  // Puedes agregar event listeners o manejar eventos relacionados con el Worker si es necesario
 }
 
 function verificarFirmaWebhook(data, hmacHeader, secret) {
@@ -106,6 +116,7 @@ function convertirXMLaJS(data) {
   return new Promise((resolve, reject) => {
     xml2js.parseString(data, (err, result) => {
       if (err) {
+        logger.error('Error al convertir XML a JS:', err);
         reject(err);
       } else {
         resolve(result);
@@ -114,13 +125,20 @@ function convertirXMLaJS(data) {
   });
 }
 
+
 function verificarDatos(datos) {
-  return true; // Implementa la lógica de verificación de datos según tus necesidades
+  return false; // Implementa la lógica de verificación de datos según tus necesidades
 }
 
 async function enviarDatosAlWebService(datos, cliente, tipo) {
   const urlWebService = `https://webservice.disnet.es:30000/${cliente.codigo}${tipo}`;
-  return axios.post(urlWebService, { datos });
+  try {
+    const response = await axios.post(urlWebService, { datos });
+    return response;
+  } catch (error) {
+    logger.error(`Error al enviar datos al servicio web para ${cliente.nombre}/${tipo}:`, error);
+    throw error; // Propaga el error para que sea manejado en el lugar apropiado
+  }
 }
 
 async function reintentarDespuesDe(cliente, tipo, intentos, minutosEspera, dataOriginal, hmacHeaderOriginal) {
@@ -169,13 +187,4 @@ function esperar(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Inicializar webhooks
-initWebhooks(app);
-
-// Inicializar cola de trabajo y procesador
-initQueueProcessor();
-
-// Puerto donde estará escuchando el servidor los webhooks
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
-});
+module.exports = { initWebhooks, initQueueProcessor, verificarFirmaWebhook, convertirXMLaJS, verificarDatos, enviarDatosAlWebService, reintentarDespuesDe, enviarCorreoElectronico, esperar };
