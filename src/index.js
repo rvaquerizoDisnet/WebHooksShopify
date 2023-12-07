@@ -1,7 +1,7 @@
 // index.js
 const express = require('express');
 const bodyParser = require('body-parser');
-const apiRouter = require('./api'); 
+const apiRouter = require('./api');
 const shopify = require('./shopify');
 
 const app = express();
@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Montar la API en el servidor principal
+// Montar el router en el servidor principal
 app.use('/', apiRouter);
 
 // Inicializar webhooks con la URL del servidor

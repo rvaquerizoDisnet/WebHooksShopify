@@ -13,8 +13,8 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: 'webhook-service' },
   transports: [
-    // new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/error.log', level: 'error' }),
-    // new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/combined.log' }),
+    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/error.log', level: 'error' }),
+    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/combined.log' }),
   ],
 });
 
