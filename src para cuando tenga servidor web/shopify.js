@@ -88,8 +88,8 @@ function addToQueue(jobData) {
   processQueue();
 }
 
-// Inicia los webhooks en ngrokUrl
-function initWebhooks(app, ngrokUrl) {
+// Inicia los webhooks en serverUrl
+function initWebhooks(app, serverUrl) {
   console.log("Ha entrado en initWebhooks");
   const stores = [
     { name: 'printalot', route: '/shopify-webhook/printalot/orders' },
@@ -98,13 +98,12 @@ function initWebhooks(app, ngrokUrl) {
 
 
   stores.forEach(store => {
-    const rutaWebhook = `${ngrokUrl}${store.route}`;
+    const rutaWebhook = `${serverUrl}${store.route}`;
 
     app.post(rutaWebhook, (req, res) => {
       const jobData = { tipo: 'orders', req, res, store: store.name };
       addToQueue(jobData);
       res.status(200).send('OK');
-      console.log("initWebhooks2");
     });
   });
 
@@ -122,7 +121,6 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
     
     if (jsonData, hmacHeader) {
       const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
-      //Esto esta comentado para no hacer POST todavia, no se como se hace
       //const response = await enviarDatosAlWebService(xmlData, tipo);
       const response = xmlData;
       console.log(`Respuesta del servicio web para ${tipo}:`, response.data);

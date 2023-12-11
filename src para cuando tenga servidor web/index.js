@@ -26,9 +26,10 @@ const server = app.listen(port, async () => {
   try {
     const ngrokUrl = await ngrok.connect(port);
     console.log(`Ngrok URL: ${ngrokUrl}`);
-    
-    // Inicializar webhooks con la URL pública de ngrok
-    shopify.initWebhooks(app, ngrokUrl);
+
+    const serverUrl = 'http://tu-servidor-web.com';
+
+    shopify.initWebhooks(app, serverUrl);
   } catch (error) {
     console.error('Error al iniciar ngrok:', error);
     process.exit(1);
