@@ -193,7 +193,7 @@ function mapJsonToXml(jsonData, store) {
         OrderCustomer: jsonData.email || '',
         ObservAgencia: '',
         Portes: '',
-        Idioma: '',
+        Idioma: 'castellano',
         Destinatario: {
           Empresa: destinatario.company || '',
           Nombre: destinatario.name || '',
@@ -220,6 +220,7 @@ function mapJsonToXml(jsonData, store) {
 }
 
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
+// Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien.
 function obtenerCodigoSesionCliente(store) {
   switch (store) {
     case 'printalot':
