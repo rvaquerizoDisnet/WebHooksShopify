@@ -1,5 +1,3 @@
-// shopify.js
-
 // importaciones necesarias
 const crypto = require('crypto');
 const xml2js = require('xml2js');
@@ -46,17 +44,20 @@ async function handleRetry(job, retryCount) {
 }
 
 
-// Envio de correo automatico al administrador para avisar que despues de 10 intentos un pedido no se ha procesado
+// Envio de correo automatico al administrador para avisar que después de 10 intentos un pedido no se ha procesado
 async function sendErrorEmail(job, retryCount) {
   try {
     const transporter = nodemailer.createTransport({
-      // Configuración del transporte de correo electrónico (SMTP, etc.)
-      // Consulta la documentación de nodemailer para obtener más detalles: https://nodemailer.com/about/
+      service: 'outlook',
+      auth: {
+        user: process.env.EMAIL_USER, // Correo electrónico del remitente
+        pass: process.env.EMAIL_PASSWORD, // Contraseña del remitente
+      },
     });
 
     const mailOptions = {
-      from: 'your-email@example.com',
-      to: 'admin@example.com',
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL, // Correo electrónico del destinatario
       subject: `Error en el trabajo tipo ${job.tipo}`,
       text: `El trabajo ha fallado después de ${retryCount} intentos. Detalles: ${JSON.stringify(job)}`,
     };
@@ -90,7 +91,6 @@ function addToQueue(jobData) {
 
 // Inicia los webhooks en ngrokUrl
 function initWebhooks(app, ngrokUrl) {
-  console.log("Ha entrado en initWebhooks");
   const stores = [
     { name: 'printalot', route: '/shopify-webhook/printalot/orders' },
     // Agrega más tiendas según tus necesidades
@@ -117,14 +117,10 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
   try {
     const jsonData = req.body;
     const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
-    console.log('Request Body:', jsonData);
-    console.log('Received HMAC:', hmacHeader);
     
     if (jsonData, hmacHeader) {
       const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
-      //Esto esta comentado para no hacer POST todavia, no se como se hace
-      //const response = await enviarDatosAlWebService(xmlData, tipo);
-      const response = xmlData;
+      const response = await enviarDatosAlWebService(xmlData, tipo);
       console.log(`Respuesta del servicio web para ${tipo}:`, response.data);
       res.status(200).send('OK');
     } else {
@@ -139,18 +135,14 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
 
 
 // Envio de datos al webservice
-async function enviarDatosAlWebService(data, tipo) {
+async function enviarDatosAlWebService(xmlData, tipo) {
   const urlWebService = 'http://webservice.disnet.es:30000/00GENShopify';
-
   try {
-    const xmlData = convertirJSToXML(mapJsonToXml(data));
-    console.log('XML enviado:', xmlData);
     const response = await axios.post(urlWebService, xmlData, {
       headers: {
         'Content-Type': 'application/xml',
       },
     });
-    console.log('Respuesta del servicio web:', response.data);
     return response;
   } catch (error) {
     logger.error('Error al enviar datos al servicio web:', error);

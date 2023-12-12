@@ -1,5 +1,4 @@
 // index.js
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const ngrok = require('ngrok');
@@ -15,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Montar la API en el servidor principal
 app.use('/', apiRouter);
 
-// Inicializar webhooks
+// Inicializar los endpoints
 shopify.initWebhooks(app);
 
 // Iniciar el servidor principal
@@ -27,7 +26,7 @@ const server = app.listen(port, async () => {
     const ngrokUrl = await ngrok.connect(port);
     console.log(`Ngrok URL: ${ngrokUrl}`);
     
-    // Inicializar webhooks con la URL pública de ngrok
+    // Inicializar los endpoints con la URL pública de ngrok
     shopify.initWebhooks(app, ngrokUrl);
   } catch (error) {
     console.error('Error al iniciar ngrok:', error);
