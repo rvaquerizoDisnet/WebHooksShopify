@@ -176,12 +176,34 @@ function mapJsonToXml(jsonData, store) {
     TipoStock: '',  // Agrega los datos correspondientes
   })) : [];
 
+  // Función para formatear la fecha
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  // Formatear la fecha de pedido
+  const formattedFechaPedido = formatDate(jsonData.created_at);
+
+  // Ajustar dirección
+  let direccion1 = destinatario.address1 || '';
+  let direccion2 = '';
+
+  // Cortar la dirección1 si es mayor a 40 caracteres
+  if (direccion1.length > 40) {
+    direccion2 = direccion1.substring(40);
+    direccion1 = direccion1.substring(0, 40);
+  }
+
   return {
     Pedidos: {
       Sesion_Cliente: obtenerCodigoSesionCliente(store),
       Pedido: {
         OrderNumber: jsonData.order_number || '',
-        FechaPedido: jsonData.created_at || '',
+        FechaPedido: formattedFechaPedido,
         OrderCustomer: jsonData.email || '',
         ObservAgencia: '',
         Portes: '',
@@ -189,8 +211,8 @@ function mapJsonToXml(jsonData, store) {
         Destinatario: {
           Empresa: destinatario.company || '',
           Nombre: destinatario.name || '',
-          Direccion: destinatario.address1 || '',
-          Direccion2: destinatario.address2 || '',
+          Direccion: direccion1,
+          Direccion2: direccion2,
           PaisCod: destinatario.country_code || '',
           PaisNom: destinatario.country || '',
           ProvinciaCod: destinatario.province_code || '',
@@ -201,7 +223,7 @@ function mapJsonToXml(jsonData, store) {
           Phone: destinatario.phone || '',
           Mobile: destinatario.phone || '',
           Email: jsonData.email || '',
-          NumCliente: '',
+          NumCliente: jsonData.number || '',
         },
         Lineas: {
           Linea: lineas,
@@ -211,18 +233,18 @@ function mapJsonToXml(jsonData, store) {
   };
 }
 
+
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
-// Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien.
+// Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 function obtenerCodigoSesionCliente(store) {
   switch (store) {
     case 'printalot':
-      console.log('Cliente: printalot, Código de sesión: 1345');
-      //Codigo de prueba
-      return '1345';
+      console.log('Cliente: printalot');
+      return process.env.PRINTALOT_SESSION_CODE;
     // Agrega más casos según sea necesario
     default:
-      console.log('Cliente desconocido, usando código predeterminado');
-      return 'default_code';  // Código predeterminado si no se encuentra el cliente
+      console.log('No se ha podido obtener el codigo');
+      return 'No se ha podido obtener el codigo';
   }
 }
 
