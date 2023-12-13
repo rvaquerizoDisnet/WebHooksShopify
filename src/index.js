@@ -1,7 +1,6 @@
 // index.js
 const express = require('express');
 const bodyParser = require('body-parser');
-const ngrok = require('ngrok');
 const apiRouter = require('./api');
 const shopify = require('./shopify');
 
@@ -14,36 +13,23 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Montar la API en el servidor principal
 app.use('/', apiRouter);
 
-// Inicializar los endpoints
-shopify.initWebhooks(app);
+// Obtener la URL pública proporcionada (en lugar de usar ngrok)
+const providedUrl = process.env.YOUR_PROVIDED_URL;
+
+// Inicializar los endpoints con la URL pública proporcionada
+shopify.initWebhooks(app, providedUrl);
 
 // Iniciar el servidor principal
-const server = app.listen(port, async () => {
+const server = app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
-
-  // Abrir ngrok y obtener la URL pública
-  try {
-    const ngrokUrl = await ngrok.connect(port);
-    console.log(`Ngrok URL: ${ngrokUrl}`);
-    
-    // Inicializar los endpoints con la URL pública de ngrok
-    shopify.initWebhooks(app, ngrokUrl);
-  } catch (error) {
-    console.error('Error al iniciar ngrok:', error);
-    process.exit(1);
-  }
 });
 
-// Manejar eventos de cierre para cerrar correctamente ngrok
+// Manejar eventos de cierre para cerrar correctamente el servidor
 process.on('SIGTERM', () => {
   if (server) {
     server.close(() => {
       console.log('Servidor cerrado.');
       process.exit(0);
     });
-  }
-  
-  if (ngrok) {
-    ngrok.disconnect();
   }
 });

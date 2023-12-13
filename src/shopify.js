@@ -89,28 +89,25 @@ function addToQueue(jobData) {
   processQueue();
 }
 
-// Inicia los webhooks en ngrokUrl
-function initWebhooks(app, ngrokUrl) {
+// Inicia los webhooks en la URL proporcionada
+function initWebhooks(app, providedUrl) {
   const stores = [
     { name: 'printalot', route: '/shopify-webhook/printalot/orders' },
     // Agrega más tiendas según tus necesidades
   ];
 
-
   stores.forEach(store => {
-    const rutaWebhook = `${ngrokUrl}${store.route}`;
+    const rutaWebhook = `${providedUrl}${store.route}`;
 
     app.post(rutaWebhook, (req, res) => {
       const jobData = { tipo: 'orders', req, res, store: store.name };
       addToQueue(jobData);
       res.status(200).send('OK');
-      console.log("initWebhooks2");
     });
   });
 
   setInterval(processQueue, 1000);
 }
-
 
 // Funcion donde llamamos al resto para hacer comprobacion de datos y el post al webservice
 async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
@@ -163,18 +160,17 @@ function convertirJSToXML(data) {
   }
 }
 
-// Mapea los datos JSON a xml
+// Mapea los datos JSON a XML
 function mapJsonToXml(jsonData, store) {
   const destinatario = jsonData.shipping_address || {};
 
-  const lineas = jsonData.line_items ? jsonData.line_items.map((item, index) => ({
-    CodArticulo: item.sku || `SKU-${index + 1}`,
-    Cantidad: item.quantity || 0,
-    NumeroLinea: index + 1,
-    Lote: '',  // Agrega los datos correspondientes
-    Bloqueado: '',  // Agrega los datos correspondientes
-    TipoStock: '',  // Agrega los datos correspondientes
-  })) : [];
+  const lineas = jsonData.line_items
+    ? jsonData.line_items.map((item, index) => ({
+        CodArticulo: item.sku || `SKU-${index + 1}`,
+        Cantidad: item.quantity || 0,
+        NumeroLinea: index + 1,
+      }))
+    : [];
 
   // Función para formatear la fecha
   function formatDate(dateString) {
@@ -198,6 +194,18 @@ function mapJsonToXml(jsonData, store) {
     direccion1 = direccion1.substring(0, 40);
   }
 
+  // Obtener el código de provincia según el código de país
+  let codigoProvincia = destinatario.province_code || '';
+
+  // Modificar el código de provincia si el país es ES (España)
+  if (destinatario.country_code === 'ES') {
+    // Asignar los dos primeros dígitos del código postal como código de provincia
+    codigoProvincia = destinatario.zip.substring(0, 2);
+  }
+  else{
+    codigoProvincia = destinatario.country_code
+  }
+
   return {
     Pedidos: {
       Sesion_Cliente: obtenerCodigoSesionCliente(store),
@@ -206,7 +214,7 @@ function mapJsonToXml(jsonData, store) {
         FechaPedido: formattedFechaPedido,
         OrderCustomer: jsonData.email || '',
         ObservAgencia: '',
-        Portes: '',
+        Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
           Empresa: destinatario.company || '',
@@ -215,15 +223,14 @@ function mapJsonToXml(jsonData, store) {
           Direccion2: direccion2,
           PaisCod: destinatario.country_code || '',
           PaisNom: destinatario.country || '',
-          ProvinciaCod: destinatario.province_code || '',
+          ProvinciaCod: codigoProvincia,
           ProvinciaNom: destinatario.province || '',
           CodigoPostal: destinatario.zip || '',
           Poblacion: destinatario.city || '',
-          CodigoDestinatario: '',
+          CodigoDestinatario: jsonData.number || '',
           Phone: destinatario.phone || '',
           Mobile: destinatario.phone || '',
           Email: jsonData.email || '',
-          NumCliente: jsonData.number || '',
         },
         Lineas: {
           Linea: lineas,
@@ -232,6 +239,7 @@ function mapJsonToXml(jsonData, store) {
     },
   };
 }
+
 
 
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
