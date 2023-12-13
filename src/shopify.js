@@ -186,7 +186,9 @@ function mapJsonToXml(jsonData, store) {
 
   // Ajustar dirección
   let direccion1 = destinatario.address1 || '';
-  let direccion2 = '';
+
+  // Inicializar direccion2 como nulo
+  let direccion2 = null;
 
   // Cortar la dirección1 si es mayor a 40 caracteres
   if (direccion1.length > 40) {
@@ -203,28 +205,31 @@ function mapJsonToXml(jsonData, store) {
     codigoProvincia = destinatario.zip.substring(0, 2);
   }
   else{
+    //En caso que no sea ES el codigo pais asigna el codigo pais tambien a codigo provincia
     codigoProvincia = destinatario.country_code
   }
 
-  return {
+  // Crear el objeto XML sin incluir Direccion2 si es nulo
+  const xmlObject = {
     Pedidos: {
       Sesion_Cliente: obtenerCodigoSesionCliente(store),
       Pedido: {
         OrderNumber: jsonData.order_number || '',
         FechaPedido: formattedFechaPedido,
         OrderCustomer: jsonData.email || '',
-        ObservAgencia: '',
+        ObservAgencia: 'Sin observaciones',
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
           Empresa: destinatario.company || '',
           Nombre: destinatario.name || '',
           Direccion: direccion1,
-          Direccion2: direccion2,
+          // Incluir Direccion2 solo si no es nulo
+          ...(direccion2 !== null && { Direccion2: direccion2 }),
           PaisCod: destinatario.country_code || '',
-          PaisNom: destinatario.country || '',
+          // PaisNom: destinatario.country || '',
           ProvinciaCod: codigoProvincia,
-          ProvinciaNom: destinatario.province || '',
+          // ProvinciaNom: destinatario.province || '',
           CodigoPostal: destinatario.zip || '',
           Poblacion: destinatario.city || '',
           CodigoDestinatario: jsonData.number || '',
@@ -238,7 +243,10 @@ function mapJsonToXml(jsonData, store) {
       },
     },
   };
+
+  return xmlObject;
 }
+
 
 
 
