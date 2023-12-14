@@ -13,10 +13,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Montar la API en el servidor principal
 app.use('/', apiRouter);
 
-// Obtener la URL pública proporcionada (en lugar de usar ngrok)
+// Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
 
-// Inicializar los endpoints con la URL pública proporcionada
+// Inicializar los endpoints con la URL pública 
 shopify.initWebhooks(app, providedUrl);
 
 // Iniciar el servidor principal
