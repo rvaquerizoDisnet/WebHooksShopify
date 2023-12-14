@@ -35,11 +35,11 @@ async function handleRetry(job, retryCount) {
       await handleWebhook(job, retryCount + 1);
     } else {
       await sendErrorEmail(job, retryCount);
-      logger.error(`El trabajo ha fallado después de ${maxRetries} intentos. Tipo: ${job.tipo}`);
+      logger.error(`El trabajo ha fallado después de ${maxRetries} intentos. Tipo: ${job.tipo}. Detalles: ${JSON.stringify(job)}`);
       console.error(`El trabajo ha fallado después de ${maxRetries} intentos. Tipo: ${job.tipo}`);
     }
   } catch (error) {
-    logger.error('Error en handleRetry:', error);
+    logger.error(`Error en handleRetry para el trabajo tipo ${job.tipo}:`, error);
   }
 }
 
@@ -57,7 +57,7 @@ async function sendErrorEmail(job, retryCount) {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL, // Correo electrónico del destinatario
+      to: [process.env.INFO_EMAIL, process.env.EMAIL_1, process.env.EMAIL_2],
       subject: `Error en el trabajo tipo ${job.tipo}`,
       text: `El trabajo ha fallado después de ${retryCount} intentos. Detalles: ${JSON.stringify(job)}`,
     };
@@ -125,7 +125,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
       throw new Error('Firma incorrecta');
     }
   } catch (error) {
-    logger.error('Error en handleWebhook:', error);
+    logger.error(`Error en handleWebhook para el trabajo tipo ${tipo}. Detalles: ${JSON.stringify({ tipo, retryCount, error })}`);
     await handleRetry({ tipo, req, res, store }, retryCount);
   }
 }
