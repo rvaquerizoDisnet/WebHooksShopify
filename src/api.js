@@ -7,6 +7,12 @@ const shopify = require('./shopify');
 // Middleware para parsear el cuerpo de las solicitudes en formato JSON
 router.use(bodyParser.json());
 
+// Endpoint de prueba
+router.get('/prueba', (req, res) => {
+  console.log('GET request to /prueba/');
+  res.status(200).send('OK');
+});
+
 // Endpoint para solicitudes GET en /shopify-webhook/printalot/orders/
 router.get('/shopify-webhook/printalot/orders/', (req, res) => {
   console.log('GET request to /shopify-webhook/printalot/orders/');
