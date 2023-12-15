@@ -1,6 +1,4 @@
 const express = require('express');
-const https = require('https');
-const fs = require('fs');
 const bodyParser = require('body-parser');
 const apiRouter = require('./api');
 const shopify = require('./shopify');
@@ -17,21 +15,16 @@ app.use('/', apiRouter);
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
 
-// Inicializar los endpoints con la URL pública 
+// Inicializar los endpoints con la URL pública
 shopify.initWebhooks(app, providedUrl);
 
-// Configurar opciones para HTTPS
-const options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/tudominio.com/privkey.pem'), // Ruta al archivo de clave privada generada por Certbot
-  cert: fs.readFileSync('/etc/letsencrypt/live/tudominio.com/fullchain.pem'), // Ruta al archivo de certificado completo generada por Certbot
-}
-
-// Crear servidor HTTPS
-const server = https.createServer(options, app);
+// Configurar CORS
+const cors = require('cors');
+app.use(cors());
 
 // Iniciar el servidor principal
-server.listen(port, () => {
-  console.log(`Servidor escuchando en https://localhost:${port}`);
+const server = app.listen(port, () => {
+  console.log(`Servidor escuchando en http://localhost:${port}`);
 });
 
 // Manejar eventos de cierre para cerrar correctamente el servidor
