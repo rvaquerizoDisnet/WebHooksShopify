@@ -5,6 +5,6 @@ node_modules/
 .env
 
 # Archivos de registro y salida
-*.log
+
 
 # Dependiendo de tu entorno y configuración, puedes agregar más patrones según sea necesario.
