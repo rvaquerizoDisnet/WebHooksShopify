@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const apiRouter = require('./api');
 const shopify = require('./shopify');
-
+const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -19,7 +19,7 @@ const providedUrl = process.env.YOUR_PROVIDED_URL;
 shopify.initWebhooks(app, providedUrl);
 
 // Configurar CORS
-const cors = require('cors');
+
 app.use(cors());
 
 // Iniciar el servidor principal

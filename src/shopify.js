@@ -4,6 +4,7 @@ const xml2js = require('xml2js');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
+const path = require('path');
 
 require('dotenv').config();
 
@@ -14,8 +15,8 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: 'webhook-service' },
   transports: [
-    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/Log/error.log', level: 'error' }),
-    new winston.transports.File({ filename: '//NAS/L/INFORMATICA/WebServices/Shopify/Pedidos/Log/combined.log' }),
+    new winston.transports.File({ filename: path.join(__dirname, '..', 'log', 'error.log'), level: 'error' }),
+    new winston.transports.File({ filename: path.join(__dirname, '..', 'log', 'combined.log') }),
   ],
 });
 
