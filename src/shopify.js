@@ -225,6 +225,7 @@ function mapJsonToXml(jsonData, store) {
     Pedidos: {
       Sesion_Cliente: obtenerCodigoSesionCliente(store),
       Pedido: {
+        //Añadir delante del order number algo para que sea caracteristico de shopify por ejemplo SHO-
         OrderNumber: jsonData.order_number || '',
         FechaPedido: formattedFechaPedido,
         OrderCustomer: jsonData.email || '',
