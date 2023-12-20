@@ -5,6 +5,8 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
+const shopifyAPI = require('./shopifyAPI');
+
 
 require('dotenv').config();
 
@@ -113,17 +115,25 @@ function initWebhooks(app, providedUrl) {
 // Funcion donde llamamos al resto para hacer comprobacion de datos y el post al webservice
 async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
   try {
-    const jsonData = req.body;
-    const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
-    
-    if (jsonData, hmacHeader) {
-      const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
-      const response = await enviarDatosAlWebService(xmlData, tipo);
-      console.log(`Respuesta del servicio web para ${tipo}:`, response.data);
-      res.status(200).send('OK');
+    if (tipo === 'orders') {
+      const jsonData = req.body;
+      const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
+      
+      if (jsonData, hmacHeader) {
+        const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
+        const response = await enviarDatosAlWebService(xmlData, tipo);
+        console.log(`Respuesta del servicio web para ${tipo}:`, response.data);
+        res.status(200).send('OK');
+      } else {
+        logger.error(`Firma incorrecta para ${tipo}`);
+        throw new Error('Firma incorrecta');
+      }
+    }
+    else if (tipo === 'shipments') {
+      // Lógica para el nuevo evento de albaranes
+      // await shopifyAPI.handleShipment(req.body);
     } else {
-      logger.error(`Firma incorrecta para ${tipo}`);
-      throw new Error('Firma incorrecta');
+      console.error(`Tipo de webhook no reconocido: ${tipo}`);
     }
   } catch (error) {
     logger.error(`Error en handleWebhook para el trabajo tipo ${tipo}. Detalles: ${JSON.stringify({ tipo, retryCount, error })}`);
@@ -250,7 +260,6 @@ function mapJsonToXml(jsonData, store) {
 
 
 
-
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 function obtenerCodigoSesionCliente(store) {
@@ -265,5 +274,56 @@ function obtenerCodigoSesionCliente(store) {
   }
 }
 
+// Para pedidos anteriores
+async function sendOrderToWebService(order, store) {
+  try {
+    // Mapea los datos JSON a XML
+    const xmlData = convertirJSToXML(mapJsonToXml(order, store));
+
+    // Envía los datos al webservice
+    await enviarDatosAlWebService(xmlData, 'orders');
+
+    console.log('Datos del pedido enviados al webservice con éxito.');
+  } catch (error) {
+    console.error('Error al enviar datos al webservice:', error);
+    throw error;
+  }
+}
+
+// Modifica la función getUnfulfilledOrders para utilizar la nueva función
+async function getUnfulfilledOrders(store) {
+  try {
+    // Configura la URL de la API de Shopify
+    const shopifyApiUrl = `https://${store}.myshopify.com/admin/api/2021-04/orders.json?status=unfulfilled`;
+
+    // Configura las credenciales de la API de Shopify
+    const shopifyApiKey = shopifyAPI.getShopifyApiKey(store);
+
+    // Realiza la llamada a la API de Shopify
+    const response = await axios.get(shopifyApiUrl, {
+      auth: {
+        username: shopifyApiKey,
+        password: process.env.SHOPIFY_PASSWORD, // Agrega la variable de entorno necesaria
+      },
+    });
+
+    // Obtiene los pedidos desde la respuesta
+    const orders = response.data.orders;
+
+    // Procesa cada pedido y lo envía al webservice
+    for (const order of orders) {
+      await sendOrderToWebService(order, store);
+    }
+
+    console.log(`Proceso manual completado para ${orders.length} pedidos no cumplidos en la tienda ${store}.`);
+  } catch (error) {
+    console.error('Error en getUnfulfilledOrders:', error);
+    throw error;
+  }
+}
+
+
+
+
 //Exporta los modulos
-module.exports = { initWebhooks, handleWebhook };
+module.exports = { initWebhooks, handleWebhook, getUnfulfilledOrders };
