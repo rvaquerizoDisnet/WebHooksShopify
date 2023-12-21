@@ -5,33 +5,34 @@ const router = express.Router();
 const shopify = require('./shopify');
 const shopifyAPI = require('./shopifyAPI');
 
-// Middleware para parsear el cuerpo de las solicitudes en formato JSON
 router.use(bodyParser.json());
 
-// Endpoint de prueba
 router.get('/prueba', (req, res) => {
   console.log('GET request to /prueba/');
   res.status(200).send('OK');
 });
 
-// Endpoint para solicitudes GET en /shopify-webhook/printalot/orders/
-router.get('/shopify-webhook/printalot/orders/', (req, res) => {
-  console.log('GET request to /shopify-webhook/printalot/orders/');
-  res.send('GET request to /shopify-webhook/printalot/orders/');
+// Modifica las rutas para usar ngrok
+const webhookRoute = '/webhooks/shopify';
+router.get(webhookRoute + '/printalot/orders/', (req, res) => {
+  console.log('GET request to ' + webhookRoute + '/printalot/orders/');
+  res.send('GET request to ' + webhookRoute + '/printalot/orders/');
 });
 
-// Endpoint para solicitudes POST en /shopify-webhook/printalot/orders/
-router.post('/shopify-webhook/printalot/orders/', (req, res) => {
-  // Manejo de la solicitud POST
-  console.log('POST request to /shopify-webhook/printalot/orders/', req.body);
+router.post(webhookRoute + '/printalot/orders/', (req, res) => {
+  console.log('POST request to ' + webhookRoute + '/printalot/orders/', req.body);
   res.json({ message: 'POST request received successfully' });
-  // Llama a la función handleWebhook del módulo shopify.js
   shopify.handleWebhook({ tipo: 'orders', req, res, store: 'printalot' });
 });
 
+router.post(webhookRoute + '/shipments/', (req, res) => {
+  console.log('POST request to ' + webhookRoute + '/shipments/', req.body);
+  const storeCode = obtenerCodigoSesionCliente(req.body);
+  shopifyAPI.handleShipment({ tipo: 'shipments', req, res, store: storeCode });
+  res.json({ message: 'Shipment request received successfully' });
+});
 
-
-
+module.exports = router;
 //ShopifyAPI
 
 // Función para obtener el código de Sesion_Cliente según el tipo de tienda
@@ -48,16 +49,6 @@ function obtenerCodigoSesionCliente(reqBody) {
       return 'default'; // O el valor que desees para el caso predeterminado
   }
 }
-
-
-router.post('/shopify-webhook/shipments/', (req, res) => {
-  console.log('POST request to /shopify-webhook/shipments/', req.body);
-   // Obtener el código de Sesion_Cliente
-   const storeCode = obtenerCodigoSesionCliente(req.body);
-  // Llama a la función handleWebhook del módulo shopifyAPI.js
-  shopifyAPI.handleShipment({ tipo: 'shipments', req, res, store: storeCode });
-  res.json({ message: 'Shipment request received successfully' });
-});
 
 
 module.exports = router;

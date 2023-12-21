@@ -15,6 +15,7 @@ app.use('/', apiRouter);
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
 
+
 // Inicializar los endpoints con la URL pública
 shopify.initWebhooks(app, providedUrl);
 
@@ -36,6 +37,3 @@ process.on('SIGTERM', () => {
     });
   }
 });
-
-
-//
