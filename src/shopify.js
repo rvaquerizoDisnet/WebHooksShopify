@@ -100,7 +100,7 @@ function initWebhooks(app, providedUrl) {
   ];
 
   stores.forEach(store => {
-    const rutaWebhook = `${providedUrl}${store.route}`;
+    const rutaWebhook = `${providedUrl}:3000${store.route}`;
 
     app.post(rutaWebhook, (req, res) => {
       const jobData = { tipo: 'orders', req, res, store: store.name };
