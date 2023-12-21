@@ -4,7 +4,7 @@ const apiRouter = require('./api');
 const shopify = require('./shopify');
 const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -14,7 +14,6 @@ app.use('/', apiRouter);
 
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
-
 
 // Inicializar los endpoints con la URL pública
 shopify.initWebhooks(app, providedUrl);
