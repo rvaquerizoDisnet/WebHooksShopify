@@ -13,7 +13,7 @@ router.get('/prueba', (req, res) => {
 });
 
 // Modifica las rutas para usar ngrok
-const webhookRoute = '/webhooks/shopify';
+const webhookRoute = '/shopify-webhook';
 router.get(webhookRoute + '/printalot/orders/', (req, res) => {
   console.log('GET request to ' + webhookRoute + '/printalot/orders/');
   res.send('GET request to ' + webhookRoute + '/printalot/orders/');
