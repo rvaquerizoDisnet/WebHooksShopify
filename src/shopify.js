@@ -1,4 +1,3 @@
-// importaciones necesarias
 const crypto = require('crypto');
 const xml2js = require('xml2js');
 const axios = require('axios');
@@ -7,11 +6,8 @@ const winston = require('winston');
 const path = require('path');
 const shopifyAPI = require('./shopifyAPI');
 
-
 require('dotenv').config();
 
-
-//Archivos para el log
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
@@ -22,14 +18,10 @@ const logger = winston.createLogger({
   ],
 });
 
-
-//Configuracion de la cola de trabajo
 const queue = [];
-
 const maxRetries = 10;
-const retryInterval = 10 * 60 * 1000; // 10 minutos en milisegundos
+const retryInterval = 10 * 60 * 1000;
 
-//Reintentos
 async function handleRetry(job, retryCount) {
   try {
     if (retryCount < maxRetries) {
@@ -46,15 +38,13 @@ async function handleRetry(job, retryCount) {
   }
 }
 
-
-// Envio de correo automatico al administrador para avisar que después de 10 intentos un pedido no se ha procesado
 async function sendErrorEmail(job, retryCount) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'outlook',
       auth: {
-        user: process.env.EMAIL_USER, // Correo electrónico del remitente
-        pass: process.env.EMAIL_PASSWORD, // Contraseña del remitente
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
@@ -72,7 +62,6 @@ async function sendErrorEmail(job, retryCount) {
   }
 }
 
-//Cola de trabajo 
 async function processQueue() {
   while (queue.length > 0) {
     const job = queue.shift();
@@ -86,50 +75,43 @@ async function processQueue() {
   }
 }
 
-// Añade a la cola los procesos
 function addToQueue(jobData) {
   queue.push(jobData);
   processQueue();
 }
 
-// Inicia los webhooks en la URL proporcionada
 function initWebhooks(app, providedUrl) {
   const stores = [
-    { name: 'printalot', route: '/shopify-webhook/printalot/orders' },
+    { name: 'printalot-es', route: '/shopify-webhook/printalot/orders' },
     // Agrega más tiendas según tus necesidades
   ];
 
   stores.forEach(store => {
     const rutaWebhook = `${providedUrl}:3000${store.route}`;
 
-    app.post(rutaWebhook, (req, res) => {
-      const jobData = { tipo: 'orders', req, res, store: store.name };
-      addToQueue(jobData);
-      res.status(200).send('OK');
+    app.post(rutaWebhook, async (req, res) => {
+      try {
+        const jobData = { tipo: 'orders', req, res, store: store.name };
+        await handleWebhook(jobData);
+        res.status(200).send('OK');
+      } catch (error) {
+        logger.error('Error al procesar el webhook:', error);
+        res.status(500).send('Internal Server Error');
+      }
     });
   });
 
   setInterval(processQueue, 1000);
 }
 
-// Funcion donde llamamos al resto para hacer comprobacion de datos y el post al webservice
 async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
   try {
     if (tipo === 'orders') {
-      const jsonData = req.body;
-      const hmacHeader = req.get('X-Shopify-Hmac-Sha256');
-      
-      if (jsonData, hmacHeader) {
-        const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
-        const response = await enviarDatosAlWebService(xmlData, tipo);
-        console.log(`Respuesta del servicio web para ${tipo}:`, response.data);
+      if (!res.headersSent) {
         res.status(200).send('OK');
-      } else {
-        logger.error(`Firma incorrecta para ${tipo}`);
-        throw new Error('Firma incorrecta');
       }
-    }
-    else if (tipo === 'shipments') {
+      await handleOrderWebhook(req.body, store);
+    } else if (tipo === 'shipments') {
       // Lógica para el nuevo evento de albaranes
       // await shopifyAPI.handleShipment(req.body);
     } else {
@@ -141,8 +123,18 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
   }
 }
 
+async function handleOrderWebhook(jsonData, store) {
+  try {
+    const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
+    const response = await enviarDatosAlWebService(xmlData, 'orders');
 
-// Envio de datos al webservice
+    console.log(`Respuesta del servicio web para orders:`, response.data);
+  } catch (error) {
+    logger.error('Error al procesar el webhook de orders:', error);
+    throw error;
+  }
+}
+
 async function enviarDatosAlWebService(xmlData, tipo) {
   const urlWebService = 'http://webservice.disnet.es:30000/00GENShopify';
   try {
@@ -158,7 +150,6 @@ async function enviarDatosAlWebService(xmlData, tipo) {
   }
 }
 
-// Convierte el JS a un XML
 function convertirJSToXML(data) {
   try {
     const builder = new xml2js.Builder();
@@ -225,7 +216,7 @@ function mapJsonToXml(jsonData, store) {
     Pedidos: {
       Sesion_Cliente: obtenerCodigoSesionCliente(store),
       Pedido: {
-        OrderNumber: jsonData.order_number || '',
+        OrderNumber: `#${jsonData.order_number || ''}`,
         FechaPedido: formattedFechaPedido,
         OrderCustomer: jsonData.email || '',
         ObservAgencia: 'Sin observaciones',
@@ -264,8 +255,8 @@ function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 function obtenerCodigoSesionCliente(store) {
   switch (store) {
-    case 'printalot':
-      console.log('Cliente: printalot');
+    case 'printalot-es':
+      console.log('Cliente: printalot-es');
       return process.env.PRINTALOT_SESSION_CODE;
     // Agrega más casos según sea necesario
     default:
@@ -290,40 +281,36 @@ async function sendOrderToWebService(order, store) {
   }
 }
 
-// Modifica la función getUnfulfilledOrders para utilizar la nueva función
-async function getUnfulfilledOrders(store) {
+async function getUnfulfilledOrdersAndSendToWebService(store) {
   try {
-    // Configura la URL de la API de Shopify
-    const shopifyApiUrl = `https://${store}.myshopify.com/admin/api/2021-04/orders.json?status=unfulfilled`;
+    const adminApiAccessToken = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN_PRINTALOT;
 
-    // Configura las credenciales de la API de Shopify
-    const shopifyApiKey = shopifyAPI.getShopifyApiKey(store);
+    const response = await axios.get(
+      `https://${store}.myshopify.com/admin/api/2023-10/orders.json?status=unfulfilled`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': adminApiAccessToken,
+        },
+      }
+    );
 
-    // Realiza la llamada a la API de Shopify
-    const response = await axios.get(shopifyApiUrl, {
-      auth: {
-        username: shopifyApiKey,
-        password: process.env.SHOPIFY_PASSWORD, // Agrega la variable de entorno necesaria
-      },
-    });
+    const unfulfilledOrders = response.data.orders;
+    console.log('Unfulfilled Orders:', unfulfilledOrders);
 
-    // Obtiene los pedidos desde la respuesta
-    const orders = response.data.orders;
-
-    // Procesa cada pedido y lo envía al webservice
-    for (const order of orders) {
+    // Envía cada orden sin cumplir al webservice
+    for (const order of unfulfilledOrders) {
       await sendOrderToWebService(order, store);
     }
 
-    console.log(`Proceso manual completado para ${orders.length} pedidos no cumplidos en la tienda ${store}.`);
+    return unfulfilledOrders;
   } catch (error) {
-    console.error('Error en getUnfulfilledOrders:', error);
+    console.error('Error getting unfulfilled orders or sending to webservice:', error);
     throw error;
   }
 }
 
 
 
-
 //Exporta los modulos
-module.exports = { initWebhooks, handleWebhook, getUnfulfilledOrders };
+module.exports = { initWebhooks, handleWebhook, handleOrderWebhook, sendOrderToWebService, getUnfulfilledOrdersAndSendToWebService };
