@@ -283,7 +283,7 @@ async function sendOrderToWebService(order, store) {
 
 async function getUnfulfilledOrdersAndSendToWebService(store) {
   try {
-    const adminApiAccessToken = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN_PRINTALOT;
+    const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${store.toUpperCase()}`];
 
     const response = await axios.get(
       `https://${store}.myshopify.com/admin/api/2023-10/orders.json?status=unfulfilled`,

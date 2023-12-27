@@ -1,2 +1,0 @@
-{"level":"error","message":"Error en handleWebhook para el trabajo tipo orders. Detalles: {\"tipo\":\"orders\",\"retryCount\":0,\"error\":{\"code\":\"ERR_HTTP_HEADERS_SENT\"}}","service":"webhook-service"}
-{"level":"error","message":"Error en handleWebhook para el trabajo tipo orders. Detalles: {\"tipo\":\"orders\",\"retryCount\":0,\"error\":{\"code\":\"ERR_HTTP_HEADERS_SENT\"}}","service":"webhook-service"}

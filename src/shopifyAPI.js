@@ -1,57 +1,69 @@
-// shopifyAPI.js
 const xml2js = require('xml2js');
 const axios = require('axios');
 require('dotenv').config();
 
 async function handleShipmentAdminApi({ req, res, store }) {
-  let successMessage = 'Shipment request processed successfully';
+  let successMessage = 'Solicitud de envío procesada correctamente';
 
   try {
-    const parsedData = req.body;
+    const xmlData = req.body;
 
-    const orderNumber = parsedData.pedido.ordernumber[0];
-    const trackingNumber = parsedData.pedido.trackingnumber[0];
-
-    if (!orderNumber || !trackingNumber) {
-      return res.status(400).json({ error: 'OrderNumber and TrackingNumber are required in the XML data.' });
+    const pedido = xmlData?.pedido;
+    if (!pedido || !pedido.ordernumber || !pedido.trackingnumber) {
+      return res.status(400).json({ error: 'OrderNumber y TrackingNumber son necesarios en los datos XML.' });
     }
 
-    const adminApiAccessToken = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN_PRINTALOT;
+    const orderNumber = pedido.ordernumber[0];
+    const trackingNumber = pedido.trackingnumber[0];
 
-    if (!adminApiAccessToken) {
-      return res.status(500).json({ error: 'Shopify Admin API access token not found for the specified store.' });
+    const adminApiKey = process.env[`SHOPIFY_API_KEY_${store.toUpperCase()}`];
+    const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${store.toUpperCase()}`];
+
+    if (!adminApiKey || !adminApiAccessToken) {
+      return res.status(500).json({ error: 'API key o token de acceso no configurados correctamente.' });
     }
 
     const shopifyApiUrl = `https://${store}.myshopify.com/admin/api/2023-10/orders.json?status=any&name=${orderNumber}`;
 
+    console.log(shopifyApiUrl)
     const orderResponse = await axios.get(shopifyApiUrl, {
       headers: {
         'X-Shopify-Access-Token': adminApiAccessToken,
+        'Authorization': `Basic ${Buffer.from(`${adminApiKey}:${adminApiAccessToken}`).toString('base64')}`,
+
       },
     });
 
     if (orderResponse.data.orders.length === 0) {
-      successMessage = 'Order not found in the Shopify store';
+      successMessage = 'Pedido no encontrado en la tienda de Shopify';
       return res.status(404).json({ error: successMessage });
     }
 
     const orderId = orderResponse.data.orders[0].id;
+    const locationId = orderResponse.data["orders"][0]["fulfillments"][0]["location_id"];
+
 
     const updateData = {
       order: {
         id: orderId,
         fulfillment_status: 'fulfilled',
-        note_attributes: [
+        fulfillments: [
           {
-            name: 'Delivery Status',
-            value: trackingNumber,
+            location_id: locationId,
+            tracking_company: 'GLS',
+            tracking_number: trackingNumber,
+            tracking_numbers: [trackingNumber],
+            tracking_url: `https://gls-group.eu/EU/en/parcel-tracking?match=${trackingNumber}`,
+            tracking_urls: [`https://gls-group.eu/EU/en/parcel-tracking?match=${trackingNumber}`],
+            status: 'success',
+            service: 'manual',
           },
         ],
       },
     };
 
     const updateUrl = `https://${store}.myshopify.com/admin/api/2023-10/orders/${orderId}.json`;
-
+    console.log(updateUrl)
     const updateResponse = await axios.put(updateUrl, updateData, {
       headers: {
         'X-Shopify-Access-Token': adminApiAccessToken,
@@ -59,22 +71,25 @@ async function handleShipmentAdminApi({ req, res, store }) {
       },
     });
 
+    console.log(updateResponse)
+
     if (updateResponse.status !== 200) {
-      console.error('Failed to update order in the Shopify store.');
-      successMessage = 'Failed to update order in the Shopify store';
+      console.error('Error al actualizar el pedido en la tienda de Shopify.');
+      successMessage = 'Error al actualizar el pedido en la tienda de Shopify';
+    }
+  } catch (error) {
+    console.error('Error al manejar la solicitud de la API de administración de Shopify:', error);
+
+    let errorMessage = 'Error interno del servidor';
+    if (error.response && error.response.status === 401) {
+      errorMessage = 'No autorizado. Clave de API o token de acceso no válidos.';
     }
 
-  } catch (error) {
-    console.error('Error handling Shopify Admin API request:', error.response.data);
-  
-    let errorMessage = 'Internal Server Error';
-    if (error.response && error.response.status === 401) {
-      errorMessage = 'Unauthorized. Invalid API key or access token.';
-    }
-  
     return res.status(500).json({ error: errorMessage });
   } finally {
-    res.json({ message: successMessage });
+    if (!res.headersSent) {
+      res.json({ message: successMessage });
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-/*const express = require('express');
+const express = require('express');
 const bodyParser = require('body-parser');
 const apiRouter = require('./api');
 const shopify = require('./shopify');
@@ -19,7 +19,6 @@ const providedUrl = process.env.YOUR_PROVIDED_URL;
 shopify.initWebhooks(app, providedUrl);
 
 // Configurar CORS
-
 app.use(cors());
 
 // Iniciar el servidor principal
@@ -36,7 +35,8 @@ process.on('SIGTERM', () => {
     });
   }
 });
-*/
+
+/*
 const express = require('express');
 const bodyParser = require('body-parser');
 const apiRouter = require('./api');
@@ -93,3 +93,4 @@ app.use('/', apiRouter);
     console.error('Error al conectar con Ngrok:', error);
   }
 })();
+*/
