@@ -80,6 +80,7 @@ function addToQueue(jobData) {
   processQueue();
 }
 
+// Añadir aqui el nombre de la tienda y su ruta asignada en la api
 function initWebhooks(app, providedUrl) {
   const stores = [
     { name: 'printalot-es', route: '/shopify-webhook/printalot/orders' },
@@ -309,7 +310,6 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     throw error;
   }
 }
-
 
 
 //Exporta los modulos

@@ -38,8 +38,8 @@ router.get(webhookRoute + '/printalot/orders/unfulfilled/', (req, res) => {
 
 router.post(webhookRoute + '/shipments/', (req, res) => {
   console.log('POST request to ' + webhookRoute + '/shipments/', req.body);
-  const storeCode = obtenerCodigoSesionCliente(req.body);
-  shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: storeCode });
+  const store = obtenerCodigoSesionCliente(req.body);
+  shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
 });
 
 
