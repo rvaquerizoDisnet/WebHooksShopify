@@ -39,7 +39,7 @@ ngrok authtoken YOUR_AUTH_TOKEN
  
 5.	Iniciar la Aplicación
 Ejecute la aplicación con el siguiente comando:
-npm start 
+node src/index.js 
 La aplicación se iniciará en el puerto especificado en el archivo .env.
 6.	Obtener la URL Pública
 Una vez que la aplicación esté en ejecución, ngrok generará una URL pública. Copie la URL generada para usarla en la configuración del webhook de Shopify.
