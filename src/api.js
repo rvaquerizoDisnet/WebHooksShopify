@@ -36,16 +36,19 @@ router.get(webhookRoute + '/printalot/orders/unfulfilled/', (req, res) => {
   shopify.getUnfulfilledOrdersAndSendToWebService("printalot-es");
 });
 
+
+// Cuando el ABC haga post se ejecutara esta funcion para modificar la API de shopify
 router.post(webhookRoute + '/shipments/', (req, res) => {
   console.log('POST request to ' + webhookRoute + '/shipments/', req.body);
+  console.dir(req.body, { depth: null });
   const store = obtenerCodigoSesionCliente(req.body);
   shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
 });
 
 
-//ShopifyAPI
+// Funcion para que segun que id customer venga escoja una tienda o otra
 function obtenerCodigoSesionCliente(reqBody) {
-  const idCustomer = reqBody.pedido?.idcustomer?.[0] || '';
+  const idCustomer = reqBody.pedidos?.pedido?.idcustomer?.[0] || '';
   
 
   // Agrega más casos según los tipos de tiendas en tu .env

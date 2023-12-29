@@ -19,6 +19,7 @@ const providedUrl = process.env.YOUR_PROVIDED_URL;
 shopify.initWebhooks(app, providedUrl);
 
 // Configurar CORS
+
 app.use(cors());
 
 // Iniciar el servidor principal
