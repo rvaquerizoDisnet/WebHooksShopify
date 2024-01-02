@@ -4,7 +4,6 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
-const shopifyAPI = require('./shopifyAPI');
 
 require('dotenv').config();
 
@@ -167,6 +166,11 @@ function convertirJSToXML(data) {
 function mapJsonToXml(jsonData, store) {
   const destinatario = jsonData.shipping_address || {};
 
+  // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
+  const notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
+
+
+  // Obtener lineas
   const lineas = jsonData.line_items
     ? jsonData.line_items.map((item, index) => ({
         CodArticulo: item.sku || `SKU-${index + 1}`,
@@ -188,7 +192,7 @@ function mapJsonToXml(jsonData, store) {
   const formattedFechaPedido = formatDate(jsonData.created_at);
 
   // Ajustar dirección
-  let direccion1 = destinatario.address1 || '';
+  let direccion1 = destinatario.address1 || '-';
 
   // Inicializar direccion2 como nulo
   let direccion2 = null;
@@ -200,7 +204,7 @@ function mapJsonToXml(jsonData, store) {
   }
 
   // Obtener el código de provincia según el código de país
-  let codigoProvincia = destinatario.province_code || '';
+  let codigoProvincia = destinatario.province_code || '-';
 
   // Modificar el código de provincia si el país es ES (España)
   if (destinatario.country_code === 'ES') {
@@ -220,7 +224,7 @@ function mapJsonToXml(jsonData, store) {
         OrderNumber: `#${jsonData.order_number || '-'}`,
         FechaPedido: formattedFechaPedido,
         OrderCustomer: `#${jsonData.order_number || '-'}`,
-        ObservAgencia: 'Sin observaciones',
+        ObservAgencia: notasCliente,
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
@@ -230,9 +234,7 @@ function mapJsonToXml(jsonData, store) {
           // Incluir Direccion2 solo si no es nulo
           ...(direccion2 !== null && { Direccion2: direccion2 }),
           PaisCod: destinatario.country_code || '-',
-          // PaisNom: destinatario.country || '',
           ProvinciaCod: codigoProvincia,
-          // ProvinciaNom: destinatario.province || '',
           CodigoPostal: destinatario.zip || '-',
           Poblacion: destinatario.city || '-',
           CodigoDestinatario: jsonData.number || '-',
