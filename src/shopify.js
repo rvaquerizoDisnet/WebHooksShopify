@@ -167,7 +167,12 @@ function mapJsonToXml(jsonData, store) {
   const destinatario = jsonData.shipping_address || {};
 
   // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
-  const notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
+  let notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
+
+  // Add the following lines to handle the case when notasCliente is an empty string
+  if (!notasCliente.trim()) {
+    notasCliente = 'Sin observaciones';
+  }
 
 
   // Obtener lineas
@@ -178,6 +183,15 @@ function mapJsonToXml(jsonData, store) {
         NumeroLinea: index + 1,
       }))
     : [];
+
+    const lineItems = jsonData.line_items;
+
+    // Imprimir todos los elementos en line_items
+    lineItems.forEach((item, index) => {
+      console.log(`Item ${index + 1}:`);
+      console.log(JSON.stringify(item, null, 2));
+      console.log("---------------------------");
+    });
 
   // Función para formatear la fecha
   function formatDate(dateString) {
