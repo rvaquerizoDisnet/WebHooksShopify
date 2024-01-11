@@ -12,8 +12,8 @@ const logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: 'webhook-service' },
   transports: [
-    new winston.transports.File({ filename: path.join(__dirname, '..', 'log', 'error.log'), level: 'error' }),
-    new winston.transports.File({ filename: path.join(__dirname, '..', 'log', 'combined.log') }),
+    new winston.transports.File({ filename: path.join(__dirname, '../..', 'log', 'error.log'), level: 'error' }),
+    new winston.transports.File({ filename: path.join(__dirname, '../..', 'log', 'combined.log') }),
   ],
 });
 
@@ -267,7 +267,6 @@ function mapJsonToXml(jsonData, store) {
 }
 
 
-
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 function obtenerCodigoSesionCliente(store) {
@@ -303,7 +302,7 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${store.toUpperCase()}`];
 
     const response = await axios.get(
-      `https://${store}.myshopify.com/admin/api/2023-10/orders.json?status=unfulfilled`,
+      `https://${store}.myshopify.com/admin/api/2024-01/orders.json?status=unfulfilled`,
       {
         headers: {
           'Content-Type': 'application/json',
