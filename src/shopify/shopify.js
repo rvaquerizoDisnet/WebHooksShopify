@@ -82,7 +82,8 @@ function addToQueue(jobData) {
 // Añadir aqui el nombre de la tienda y su ruta asignada en la api
 function initWebhooks(app, providedUrl) {
   const stores = [
-    { name: 'printalot-es', route: '/shopify-webhook/printalot/orders' },
+    // En el futuro hay que probar esto!!!!! puede ser que se monte en /shopify/shopify/
+    { name: 'printalot-es', route: '/printalot/orders/' },
     // Agrega más tiendas según tus necesidades
   ];
 
@@ -126,7 +127,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
 async function handleOrderWebhook(jsonData, store) {
   try {
     const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
-    const response = await enviarDatosAlWebService(xmlData, 'orders');
+    const response = await enviarDatosAlWebService(xmlData, 'orders', store);
 
     console.log(`Respuesta del servicio web para orders:`, response.data);
   } catch (error) {
@@ -135,8 +136,20 @@ async function handleOrderWebhook(jsonData, store) {
   }
 }
 
-async function enviarDatosAlWebService(xmlData, tipo) {
-  const urlWebService = 'http://webservice.disnet.es:30000/00GENShopify';
+// Define las URL de los servicios web asociadas a cada tienda, este webservice recibe datos para Printalot
+const storeWebServices = {
+  'printalot-es': 'http://webservice.disnet.es:30000/00GENShopify',
+  // Agrega más tiendas según tus necesidades
+  // 'otra-tienda': 'http://otro-webservice.com',
+};
+
+async function enviarDatosAlWebService(xmlData, tipo, store) {
+  const urlWebService = storeWebServices[store];
+
+  if (!urlWebService) {
+    throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
+  }
+
   try {
     const response = await axios.post(urlWebService, xmlData, {
       headers: {
@@ -183,6 +196,41 @@ function mapJsonToXml(jsonData, store) {
         NumeroLinea: index + 1,
       }))
     : [];
+
+    //Codigo para cuando haya mas de una tienda y quieres coger algo de la linea que printalot no necesita
+    /*
+    let lineas;
+
+    if (store === 'printalot-es') {
+      // Lógica específica para la tienda printalot-es
+      lineas = jsonData.line_items
+        ? jsonData.line_items.map((item, index) => ({
+            CodArticulo: item.sku || `SKU-${index + 1}`,
+            Cantidad: item.quantity || 0,
+            NumeroLinea: index + 1,
+          }))
+        : [];
+    } else if (store === 'otra-tienda') {
+      // Lógica específica para otra tienda
+      lineas = jsonData.line_items
+        ? jsonData.line_items.map((item, index) => ({
+            CodArticulo: item.sku || `SKU-${index + 1}`,
+            Cantidad: item.quantity || 0,
+            Color: item.color || 'Sin color', // Ejemplo de campo adicional
+            NumeroLinea: index + 1,
+          }))
+        : [];
+    } else {
+      // Lógica por defecto para otras tiendas (si es necesario)
+      lineas = jsonData.line_items
+        ? jsonData.line_items.map((item, index) => ({
+            CodArticulo: item.sku || `SKU-${index + 1}`,
+            Cantidad: item.quantity || 0,
+            NumeroLinea: index + 1,
+          }))
+        : [];
+    }
+    */
 
     const lineItems = jsonData.line_items;
 

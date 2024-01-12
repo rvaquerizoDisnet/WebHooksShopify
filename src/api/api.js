@@ -22,6 +22,7 @@ router.get('/printalot/orders/', (req, res) => {
 router.post('/printalot/orders/', (req, res) => {
   console.log('POST request to ' + '/printalot/orders/', req.body);
   res.json({ message: 'POST request received successfully' });
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
   shopify.handleWebhook({ tipo: 'orders', req, res, store: 'printalot-es' });
 });
 
@@ -30,15 +31,15 @@ router.post('/printalot/orders/', (req, res) => {
 router.get('/printalot/orders/unfulfilled/', (req, res) => {
   console.log('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
   res.send('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
   shopify.getUnfulfilledOrdersAndSendToWebService("printalot-es");
 });
 
 
 // Cuando el ABC haga post se ejecutara esta funcion para modificar la API de shopify
 router.post( '/shipments/', (req, res) => {
-  console.log('POST request to ' + '/shipments/');
-  // Imprimir información sobre los datos recibidos
-  //console.log('Request Body:', util.inspect(req.body, { depth: null }));
+  console.log('POST request to ' + '/shipments/');ç
+  // Obtenemos el nombre de la store atraves del idcustomer
   const store = obtenerCodigoSesionCliente(req.body);
   shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
 });
