@@ -28,22 +28,9 @@ router.post('/printalot/orders/', (req, res) => {
 
 // Hacer consulta a todos los pedidos anteriores y hacer POST al webservice
 router.get('/printalot/orders/unfulfilled/', (req, res) => {
-  // Obtener el token del localStorage
-  //const token = localStorage.getItem('token');
-
-  // Enviar el token en la cabecera de la solicitud
-  fetch('/shopify/printalot/orders/unfulfilled/', {
-    method: 'GET',
-    /*headers: {
-      'Authorization': `Bearer ${token}`
-    }*/
-  })
-    .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
-
-  console.log('GET request to ' + '/printalot/orders/unfulfilled/');
-  res.send('GET request to ' + '/printalot/orders/unfulfilled/');
+  console.log('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
+  res.send('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
+  shopify.getUnfulfilledOrdersAndSendToWebService("printalot-es");
 });
 
 

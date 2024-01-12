@@ -314,14 +314,20 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     const unfulfilledOrders = response.data.orders;
     console.log('Unfulfilled Orders:', unfulfilledOrders);
 
-    // Envía cada orden sin cumplir al webservice
+    // Verifica si hay pedidos no cumplidos antes de intentar enviar al webservice
+    if (unfulfilledOrders.length === 0) {
+      console.log('No hay pedidos no cumplidos para enviar al webservice.');
+      return [];
+    }
+
+    // Envía cada orden no cumplida al webservice
     for (const order of unfulfilledOrders) {
       await sendOrderToWebService(order, store);
     }
 
     return unfulfilledOrders;
   } catch (error) {
-    console.error('Error getting unfulfilled orders or sending to webservice:', error);
+    console.error('Error al obtener pedidos no cumplidos o enviar al webservice:', error);
     throw error;
   }
 }
