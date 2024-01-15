@@ -32,7 +32,7 @@ router.get('/printalot/orders/unfulfilled/', (req, res) => {
   console.log('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
   res.send('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
   // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
-  shopify.getUnfulfilledOrdersAndSendToWebService("printalot-es");
+  shopify.getUnfulfilledOrdersAndSendToWebService('printalot-es');
 });
 
 

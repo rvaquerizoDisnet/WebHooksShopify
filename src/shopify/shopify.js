@@ -138,12 +138,13 @@ async function handleOrderWebhook(jsonData, store) {
 
 // Define las URL de los servicios web asociadas a cada tienda, este webservice recibe datos para Printalot
 const storeWebServices = {
-  'printalot-es': 'http://webservice.disnet.es:30000/00GENShopify',
+  'printalot-es': 'http://192.168.21.15:30000/00GENShopify',
   // Agrega más tiendas según tus necesidades
   // 'otra-tienda': 'http://otro-webservice.com',
 };
 
-async function enviarDatosAlWebService(xmlData, tipo, store) {
+async function enviarDatosAlWebService(xmlData, store) {
+  console.log('Valor de store en enviarDatosAlWebService:', store);
   const urlWebService = storeWebServices[store];
 
   if (!urlWebService) {
@@ -331,12 +332,13 @@ function obtenerCodigoSesionCliente(store) {
 
 // Para pedidos anteriores
 async function sendOrderToWebService(order, store) {
+  console.log('Store en sendOrderToWebService:', store);
   try {
     // Mapea los datos JSON a XML
     const xmlData = convertirJSToXML(mapJsonToXml(order, store));
 
     // Envía los datos al webservice
-    await enviarDatosAlWebService(xmlData, 'orders');
+    await enviarDatosAlWebService(xmlData, 'printalot-es');
 
     console.log('Datos del pedido enviados al webservice con éxito.');
   } catch (error) {
@@ -346,6 +348,7 @@ async function sendOrderToWebService(order, store) {
 }
 
 async function getUnfulfilledOrdersAndSendToWebService(store) {
+  console.log('Valor de store en getUnfulfilledOrdersAndSendToWebService:', store);
   try {
     const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${store.toUpperCase()}`];
 
@@ -369,6 +372,7 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     }
 
     // Envía cada orden no cumplida al webservice
+    console.log('Store en getUnfulfilledOrdersAndSendToWebService:', store);
     for (const order of unfulfilledOrders) {
       await sendOrderToWebService(order, store);
     }
