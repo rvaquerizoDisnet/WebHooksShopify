@@ -1,20 +1,7 @@
-# WebHooksShopify
+# Middleware
 
-Documentación Middleware de Shopify
-Contenido
-Documentación Middleware de Shopify	1
-Introducción	2
-Instalación	2
-Configuración del Webhook en Shopify	3
-Funcionamiento	3
-Estructura del código	4
-
-
-
-
- 
 Introducción
-Este sistema consiste en una aplicación dividida en tres archivos principales: api.js, shopify.js, y index.js. La aplicación actúa como un middleware para gestionar solicitudes POST provenientes de un webhook de Shopify. La lógica de tratamiento de datos y el manejo de errores se encuentran en shopify.js, mientras que api.js define los endpoints donde Shopify hará un POST y utiliza la lógica proporcionada por shopify.js. El archivo index.js es el punto de entrada que inicia la aplicación y se encarga de abrir una conexión ngrok (actualmente estoy utilizando ngrok como entorno de pruebas y desarrollo, pero la intención es alojarlo en un servidor) para proporcionar una URL pública.
+Este sistema consiste en una aplicación middleware entre un SGA y diferentes aplicaciones online, primero estamos trabajando con Shopify.
 
 Instalación 
 A continuación, se detallan los pasos para instalar y configurar la aplicación en un servidor.

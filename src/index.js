@@ -10,35 +10,35 @@ const shopify = require('./shopify/shopify');
 const { errorHandlingMiddleware } = require('./autenticacion/errorHandlingMiddleware');
 require('dotenv').config();
 
+
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Configurar CORS
-app.use(cors());
-
-// Middleware para parsear JSON y XML
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(xmlparser());
 
-// Middleware para manejo de errores
-app.use(errorHandlingMiddleware);
-
-// Montar las rutas
+// Montar la API en el servidor principal
 app.use('/shopify', apiRouter);
 app.use('/gls', glsRouter);
 app.use('/users', usersRouter);
 app.use('/', homeRouter);
 
-// Conectar a la base de datos
-//connectToDatabase();
+app.use(errorHandlingMiddleware);
 
+
+
+connectToDatabase();
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
 
 // Inicializar los endpoints con la URL pública
 shopify.initWebhooks(app, providedUrl);
+
+
+
+// Configurar CORS
+app.use(cors());
 
 // Iniciar el servidor principal
 const server = app.listen(port, () => {

@@ -88,7 +88,7 @@ function initWebhooks(app, providedUrl) {
   ];
 
   stores.forEach(store => {
-    const rutaWebhook = `${providedUrl}:3000${store.route}`;
+    const rutaWebhook = `${providedUrl} + ${store.route}`;
 
     app.post(rutaWebhook, async (req, res) => {
       try {
