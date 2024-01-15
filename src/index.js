@@ -28,7 +28,7 @@ app.use(errorHandlingMiddleware);
 
 
 
-connectToDatabase();
+//connectToDatabase();
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
 
