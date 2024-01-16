@@ -82,17 +82,16 @@ function addToQueue(jobData) {
 // Añadir aqui el nombre de la tienda y su ruta asignada en la api
 function initWebhooks(app, providedUrl) {
   const stores = [
-    // En el futuro hay que probar esto!!!!! puede ser que se monte en /shopify/shopify/
     { name: 'printalot-es', route: '/printalot/orders/' },
     // Agrega más tiendas según tus necesidades
   ];
-
   stores.forEach(store => {
     const rutaWebhook = `${providedUrl}${store.route} `;
-
     app.post(rutaWebhook, async (req, res) => {
       try {
         const jobData = { tipo: 'orders', req, res, store: store.name };
+        console.log("StoreNAME" + store.name)
+        console.log("JObData"+jobData)
         await handleWebhook(jobData);
         res.status(200).send('OK');
       } catch (error) {
@@ -101,7 +100,6 @@ function initWebhooks(app, providedUrl) {
       }
     });
   });
-
   setInterval(processQueue, 1000);
 }
 
@@ -111,6 +109,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
       if (!res.headersSent) {
         res.status(200).send('OK');
       }
+      console.log("HandleWEBHHOK" + store)
       await handleOrderWebhook(req.body, store);
     } else if (tipo === 'shipments') {
       // Lógica para el nuevo evento de albaranes
@@ -127,6 +126,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
 async function handleOrderWebhook(jsonData, store) {
   try {
     const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
+    console.log("HAndleOrderWebhook: "+ store)
     const response = await enviarDatosAlWebService(xmlData, store);
 
     console.log(`Respuesta del servicio web para orders:`, response.data);
