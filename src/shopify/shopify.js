@@ -88,7 +88,7 @@ function initWebhooks(app, providedUrl) {
   ];
 
   stores.forEach(store => {
-    const rutaWebhook = `${providedUrl} + ${store.route}`;
+    const rutaWebhook = `${providedUrl}${store.route} `;
 
     app.post(rutaWebhook, async (req, res) => {
       try {
@@ -338,7 +338,7 @@ async function sendOrderToWebService(order, store) {
     const xmlData = convertirJSToXML(mapJsonToXml(order, store));
 
     // Envía los datos al webservice
-    await enviarDatosAlWebService(xmlData, 'printalot-es');
+    await enviarDatosAlWebService(xmlData, store);
 
     console.log('Datos del pedido enviados al webservice con éxito.');
   } catch (error) {
