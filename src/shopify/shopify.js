@@ -291,7 +291,7 @@ function mapJsonToXml(jsonData, store) {
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
-          Empresa: destinatario.company || '-',
+          Empresa: destinatario.company || destinatario.name || '-',
           Nombre: destinatario.name || '-',
           Direccion: direccion1,
           // Incluir Direccion2 solo si no es nulo
