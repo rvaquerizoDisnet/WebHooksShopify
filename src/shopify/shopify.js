@@ -192,7 +192,7 @@ function mapJsonToXml(jsonData, store) {
   // Obtener lineas
   const lineas = jsonData.line_items
     ? jsonData.line_items.map((item, index) => ({
-        CodArticulo: item.sku || `SKU-${index + 1}`,
+        CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
         Cantidad: item.quantity || 0,
         NumeroLinea: index + 1,
       }))
