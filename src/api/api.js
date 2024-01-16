@@ -15,7 +15,7 @@ router.use(xmlparser());
 
 router.get('/printalot/orders/', (req, res) => {
   console.log('GET request to ' + '/printalot/orders/');
-  res.send('GET request to ' + '/printalot/orders/');
+  res.send('GET request to ' + '/printalot/orders/ actualizado');
 });
 
 
