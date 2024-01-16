@@ -127,7 +127,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
 async function handleOrderWebhook(jsonData, store) {
   try {
     const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
-    const response = await enviarDatosAlWebService(xmlData, 'orders', store);
+    const response = await enviarDatosAlWebService(xmlData, store);
 
     console.log(`Respuesta del servicio web para orders:`, response.data);
   } catch (error) {
