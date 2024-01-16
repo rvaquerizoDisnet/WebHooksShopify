@@ -38,7 +38,7 @@ router.get('/printalot/orders/unfulfilled/', (req, res) => {
 
 // Cuando el ABC haga post se ejecutara esta funcion para modificar la API de shopify
 router.post( '/shipments/', (req, res) => {
-  console.log('POST request to ' + '/shipments/');ç
+  console.log('POST request to ' + '/shipments/');
   // Obtenemos el nombre de la store atraves del idcustomer
   const store = obtenerCodigoSesionCliente(req.body);
   shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
