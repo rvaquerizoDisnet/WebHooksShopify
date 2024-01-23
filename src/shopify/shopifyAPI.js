@@ -31,6 +31,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             const orderNumber = pedido.ordernumber[0];
             const trackingNumber = pedido.trackingnumber[0] + "";
+            
 
             const orders = await shopify.order.list({ name: orderNumber, status: 'any' });
 
@@ -46,6 +47,8 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Buscar el pedido por el OrderNumber
             const currentOrder = orders.find(order => order.name === orderNumber);
+            const shippingAddress = currentOrder.shipping_address;
+            const zipCode = shippingAddress.zip;
 
             // Comprobamos que el pedido exista
             if (!currentOrder) {
@@ -81,7 +84,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 ],
                 tracking_info: {
                     number: trackingNumber,
-                    url: `https://gls-group.eu/EU/en/parcel-tracking?match=${trackingNumber}`,
+                    url: `https://mygls.gls-spain.es/e/${trackingNumber}/${zipCode}/en}`,
                     company: 'GLS'
                 },
                 notify_customer: true,
