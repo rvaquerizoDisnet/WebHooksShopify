@@ -69,38 +69,78 @@ async function actualizarBaseDeDatos(codigo, peso, volumen) {
 
 
 async function parsearPesoDesdeXML(xmlData) {
-    let peso;
-
     try {
         // Parsear el XML a objeto JavaScript
         const parsedData = await xml2js.parseStringPromise(xmlData);
 
-        // Acceder a la información del peso (ajusta la ruta según la estructura de tu XML)
-        peso = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['kgs'][0];
-        console.log("Peso" + peso)
+        // Verificar si la propiedad específica está presente
+        if (
+            parsedData &&
+            parsedData['soap:Envelope'] &&
+            parsedData['soap:Envelope']['soap:Body'] &&
+            parsedData['soap:Envelope']['soap:Body'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['kgs']
+        ) {
+            // Acceder a la información del peso
+            const peso = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['kgs'][0];
+            console.log("Peso: " + peso);
+            return peso;
+        } else {
+            // Mostrar un mensaje de error si la propiedad no está presente
+            console.error('La estructura del objeto parsedData no es la esperada. No se pudo encontrar la propiedad "kgs".');
+            return null;
+        }
     } catch (error) {
         console.error('Error al parsear el peso desde XML:', error);
+        return null;
     }
-
-    return peso;
 }
 
 async function parsearVolumenDesdeXML(xmlData) {
-    let volumen;
-
     try {
         // Parsear el XML a objeto JavaScript
         const parsedData = await xml2js.parseStringPromise(xmlData);
 
-        // Acceder a la información del volumen (ajusta la ruta según la estructura de tu XML)
-        volumen = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['vol'][0];
-        console.log(volumen)
+        // Verificar si la propiedad específica está presente
+        if (
+            parsedData &&
+            parsedData['soap:Envelope'] &&
+            parsedData['soap:Envelope']['soap:Body'] &&
+            parsedData['soap:Envelope']['soap:Body'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['vol']
+        ) {
+            // Acceder a la información del volumen
+            const volumen = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['vol'][0];
+            console.log("Volumen: " + volumen);
+            return volumen;
+        } else {
+            // Mostrar un mensaje de error si la propiedad no está presente
+            console.error('La estructura del objeto parsedData no es la esperada. No se pudo encontrar la propiedad "vol".');
+            return null;
+        }
     } catch (error) {
         console.error('Error al parsear el volumen desde XML:', error);
+        return null;
     }
-
-    return volumen;
 }
+
+
 
 
 module.exports = { consultarPedidoGLS };
