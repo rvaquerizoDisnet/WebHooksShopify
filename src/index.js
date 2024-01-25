@@ -105,7 +105,7 @@ app.use(errorHandlingMiddleware);
 
     //GLS consulta pedido
     const uidClientePrueba = "6BAB7A53-3B6D-4D5A-9450-702D2FAC0B11";
-    const codigoPedido = "103291"; 
+    const codigoPedido = "1234561007"; 
     await consultarPedidoGLS(uidClientePrueba, codigoPedido);
 
     // Iniciar el servidor principal
