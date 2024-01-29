@@ -27,6 +27,7 @@ router.post('/printalot/orders/', (req, res) => {
 });
 
 
+
 // Hacer consulta a todos los pedidos anteriores y hacer POST al webservice
 router.get('/printalot/orders/unfulfilled/', (req, res) => {
   console.log('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
@@ -35,6 +36,22 @@ router.get('/printalot/orders/unfulfilled/', (req, res) => {
   shopify.getUnfulfilledOrdersAndSendToWebService('printalot-es');
 });
 
+
+//Tienda nueva
+router.post('/tienda/orders/', (req, res) => {
+  console.log('POST request to ' + '/tienda/orders/', req.body);
+  res.json({ message: 'POST request received successfully' });
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
+  shopify.handleWebhook({ tipo: 'orders', req, res, store: 'tienda' });
+});
+
+// Hacer consulta a todos los pedidos anteriores y hacer POST al webservice
+router.get('/tienda/orders/unfulfilled/', (req, res) => {
+  console.log('GET request to ' + 'shopify' + '/tienda/orders/unfulfilled/');
+  res.send('GET request to ' + 'shopify' + '/tienda/orders/unfulfilled/');
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
+  shopify.getUnfulfilledOrdersAndSendToWebService('tienda');
+});
 
 // Cuando el ABC haga post se ejecutara esta funcion para modificar la API de shopify
 router.post( '/shipments/', (req, res) => {
@@ -45,19 +62,23 @@ router.post( '/shipments/', (req, res) => {
 });
 
 
+
 // Funcion para que segun que id customer venga escoja una tienda o otra
 function obtenerCodigoSesionCliente(reqBody) {
   const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
   // Verifica si PRINTALOT_IDCUSTOMER está presente en el arreglo
   const isPrintalotCustomer = idCustomerArray.includes(process.env.PRINTALOT_IDCUSTOMER);
+  const isTiendaCustomer = idCustomerArray.includes(process.env.TIENDA_IDCUSTOMER);
   // Agrega más casos según los tipos de tiendas en tu .env
   if (isPrintalotCustomer) {
     return 'printalot-es';
   }
+  else if (isTiendaCustomer) {
+    return 'tienda';
+  }
   // Agrega más casos según sea necesario
   return 'default';
 }
-
 
 
 module.exports = router;

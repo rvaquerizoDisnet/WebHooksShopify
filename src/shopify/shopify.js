@@ -84,6 +84,7 @@ function initWebhooks(app, providedUrl) {
   const stores = [
     { name: 'printalot-es', route: '/printalot/orders/' },
     // Agrega más tiendas según tus necesidades
+    { name: 'tienda', route: '/tienda/orders/' },
   ];
   stores.forEach(store => {
     const rutaWebhook = `${providedUrl}${store.route} `;
@@ -140,7 +141,7 @@ async function handleOrderWebhook(jsonData, store) {
 const storeWebServices = {
   'printalot-es': 'http://192.168.21.15:30000/00GENShopify',
   // Agrega más tiendas según tus necesidades
-  // 'otra-tienda': 'http://otro-webservice.com',
+  'tienda': 'http://192.168.21.15:30000/00TIENDA',
 };
 
 async function enviarDatosAlWebService(xmlData, store) {
@@ -279,6 +280,16 @@ function mapJsonToXml(jsonData, store) {
     codigoProvincia = destinatario.country_code
   }
 
+
+   // Asignación del campo Empresa y Nombre
+   let nombreDestinatario = destinatario.name || '-';
+   let empresaDestinatario = destinatario.company || '-';
+ 
+   // Si la empresa es '-' y el nombre no lo es, asigna el nombre a la empresa
+   if (empresaDestinatario === '-') {
+     empresaDestinatario = nombreDestinatario;
+   }
+
   // Crear el objeto XML sin incluir Direccion2 si es nulo
   const xmlObject = {
     Pedidos: {
@@ -291,8 +302,8 @@ function mapJsonToXml(jsonData, store) {
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
-          Empresa: destinatario.company || destinatario.name || '-',
-          Nombre: destinatario.name || '-',
+          Empresa: empresaDestinatario,
+          Nombre: nombreDestinatario,
           Direccion: direccion1,
           // Incluir Direccion2 solo si no es nulo
           ...(direccion2 !== null && { Direccion2: direccion2 }),
@@ -324,6 +335,9 @@ function obtenerCodigoSesionCliente(store) {
       console.log('Cliente: printalot-es');
       return process.env.PRINTALOT_SESSION_CODE;
     // Agrega más casos según sea necesario
+    case 'tienda':
+      console.log('Cliente: tienda');
+      return process.env.TIENDA_SESSION_CODE;
     default:
       console.log('No se ha podido obtener el codigo');
       return 'No se ha podido obtener el codigo';
