@@ -9,7 +9,7 @@ const config = {
   encrypt: true,
   trustServerCertificate: true,
   options: {
-    enableArithAbort: true, 
+    enableArithAbort: true,
   },
   pool: {
     min: 0,
@@ -24,6 +24,7 @@ const connectToDatabase = async () => {
   try {
     await pool.connect();
     console.log('Conexión exitosa a la base de datos.');
+    return pool;
   } catch (error) {
     console.error('Error al conectar a la base de datos:', error.message);
     throw error;
