@@ -39,14 +39,14 @@ async function consultarPedidoGLS(uidCliente, codigo) {
         });
 
         const xmlData = response.data;
-        console.log('Respuesta XML de GLS:', xmlData);
+        //console.log('Respuesta XML de GLS:', xmlData);
 
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
         const volumen = await parsearVolumenDesdeXML(xmlData);
 
-        console.log('Peso:', peso);
-        console.log('Volumen:', volumen);
+        //console.log('Peso:', peso);
+        //console.log('Volumen:', volumen);
 
         // Actualizar la base de datos si es necesario
         await actualizarBaseDeDatos(codigo, peso, volumen);
@@ -72,7 +72,7 @@ async function actualizarBaseDeDatos(codigo, peso, volumen) {
 
         // Consultar valores actuales
         const queryConsulta = `
-            SELECT nFree7, nFree8, cfree4
+            SELECT nFree7, nFree8
             FROM CabeceraPedidoTest
             WHERE OrderNumber = '1234561007';
         `;
@@ -89,18 +89,16 @@ async function actualizarBaseDeDatos(codigo, peso, volumen) {
 
         const pesoActual = resultConsulta.recordset[0]?.nFree7;
         const volumenActual = resultConsulta.recordset[0]?.nFree8;
-        const cfree4Actual = resultConsulta.recordset[0]?.cfree4;
 
-        console.log('Antes de la actualización - Peso:', pesoActual, 'Volumen:', volumenActual, 'Cfree4:', cfree4Actual);
+        console.log('Antes de la actualización - Peso:', pesoActual, 'Volumen:', volumenActual);
 
         // Verificar si la actualización es necesaria
         if (peso !== null && volumen !== null) {
             // Tomar el primer elemento de cada arreglo y convertir ',' a '.' antes de parsear
-            // Tomar el primer elemento de cada arreglo y convertir ',' a '.' antes de parsear
-        const pesoNumerico = parseFloat(peso[0]?.replace(',', '.') || 0.00000000).toFixed(8);
-        const volumenNumerico = parseFloat(volumen[0]?.replace(',', '.') || 0.00000000).toFixed(8);
-        console.log('Tipo de dato del volumen antes de la actualización:', typeof volumenNumerico);
-
+            const pesoNumerico = parseFloat(peso[0]?.replace(',', '.')) || 0.0;
+            const volumenNumerico = parseFloat(volumen[0]?.replace(',', '.')) || 0.0;
+            console.log('Tipo de dato del volumen antes de la actualización:', typeof volumenNumerico);
+            console.log('Valores a insertar - Peso:', peso, 'Volumen:', volumen);
 
 
             if (!isNaN(pesoNumerico) && !isNaN(volumenNumerico)) {
@@ -108,18 +106,16 @@ async function actualizarBaseDeDatos(codigo, peso, volumen) {
 
                 const query = `
                     UPDATE CabeceraPedidoTest
-                    SET nFree7 = @peso, nFree8 = @volumen, cfree4 = 'TextoSimple'
+                    SET nFree7 = @peso, nFree8 = @volumen
                     WHERE OrderNumber = '1234561007';
                 `;
 
                 // Añadir parámetros a la solicitud
-                request.input('peso', sql.Decimal(18, 8), pesoNumerico);
-                request.input('volumen', sql.Decimal(18, 8), volumenNumerico);
+                request.input('peso', sql.Decimal(18, 8), peso);
+                request.input('volumen', sql.Decimal(18, 8), volumen);
 
-                console.log('Valores a insertar - Peso:', pesoNumerico, 'Volumen:', volumenNumerico);
 
                 const resultUpdate = await request.query(query);
-                
 
                 if (resultUpdate.rowsAffected[0] === 0) {
                     console.log('La actualización no afectó a ninguna fila.');
@@ -131,7 +127,7 @@ async function actualizarBaseDeDatos(codigo, peso, volumen) {
                 const resultConsultaActualizado = await requestConsulta.query(queryConsulta);
 
                 // Mostrar cómo están los campos después de la actualización
-                console.log('Después de la actualización - Peso:', resultConsultaActualizado.recordset[0]?.nFree7, 'Volumen:', resultConsultaActualizado.recordset[0]?.nFree8, 'Cfree4:', resultConsultaActualizado.recordset[0]?.cfree4);
+                console.log('Después de la actualización - Peso:', resultConsultaActualizado.recordset[0]?.nFree7, 'Volumen:', resultConsultaActualizado.recordset[0]?.nFree8);
             } else {
                 console.log('Los valores de peso y/o volumen no son numéricos válidos. No se puede realizar la actualización.');
             }
@@ -170,10 +166,10 @@ async function parsearPesoDesdeXML(xmlData) {
             parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp']
         ) {
             const expediciones = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'];
-            console.log("Expediciones:", expediciones);
-            
-            const peso = parseFloat(expediciones[0]?.['kgs'][0]?.replace(',', '.')) || 0.00000000;
-            console.log("Peso: ", peso);
+            //console.log("Expediciones:", expediciones);
+
+            const peso = parseFloat(expediciones[0]?.['kgs'][0]?.replace(',', '.')) || 0.0;
+            console.log("Peso parseado:", peso);
             return peso;
         } else {
             // Mostrar un mensaje de error si la propiedad no está presente
@@ -210,7 +206,7 @@ async function parsearVolumenDesdeXML(xmlData) {
         ) {
             // Acceder a la información del volumen
             const expediciones = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'];
-            const volumen = parseFloat(expediciones[0]?.['vol'][0]?.replace(',', '.')) || 0.00000000;
+            const volumen = parseFloat(expediciones[0]?.['vol'][0]?.replace(',', '.')) || 0.0;
 
             // Después de la línea que obtiene el volumen desde el XML
             console.log('Volumen parseado:', volumen);
