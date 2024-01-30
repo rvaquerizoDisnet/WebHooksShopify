@@ -74,6 +74,16 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 quantity: item.quantity
             }));
 
+            const company = obtenerNombreCompania(store);
+            let url = ''
+            if (company === 'GLS') {
+                url = `https://mygls.gls-spain.es/e/${trackingNumber}/${zipCode}/en`;
+            } else if (company === 'Correos') {
+                url = `https://www.correos.es/es/es/herramientas/localizador/envios/detalle?tracking-number=${trackingNumber}`;
+            } else {
+                url = `https://mygls.gls-spain.es/e/${trackingNumber}/${zipCode}/en`;
+            }
+
             // Payload para updatear el pedido
             const updateParams = {
                 line_items_by_fulfillment_order: [
@@ -84,8 +94,8 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 ],
                 tracking_info: {
                     number: trackingNumber,
-                    url: `https://mygls.gls-spain.es/e/${trackingNumber}/${zipCode}/en}`,
-                    company: 'GLS'
+                    url: url,
+                    company: company
                 },
                 notify_customer: true,
                 origin_address: null,
@@ -118,5 +128,18 @@ async function handleShipmentAdminApi({ req, res, store }) {
         }
     }
 }
+
+function obtenerNombreCompania(store) {
+    switch (store) {
+        case 'printalot-es':
+            return 'GLS';
+        case 'tienda':
+            return 'CORREOS';
+        default:
+            return 'gls';
+    }
+}
+
+
 
 module.exports = { handleShipmentAdminApi };
