@@ -121,13 +121,12 @@ async function actualizarBaseDeDatos(codigo, peso, volumen) {
                     console.log('La actualización no afectó a ninguna fila.');
                 }
 
-                console.log('Base de datos actualizada correctamente.');
-
                 // Consultar los valores actualizados después de la actualización
                 const resultConsultaActualizado = await requestConsulta.query(queryConsulta);
 
                 // Mostrar cómo están los campos después de la actualización
                 console.log('Después de la actualización - Peso:', resultConsultaActualizado.recordset[0]?.nFree7, 'Volumen:', resultConsultaActualizado.recordset[0]?.nFree8);
+                console.log('Base de datos actualizada correctamente.');
             } else {
                 console.log('Los valores de peso y/o volumen no son numéricos válidos. No se puede realizar la actualización.');
             }
