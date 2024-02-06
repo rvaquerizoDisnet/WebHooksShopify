@@ -1,4 +1,4 @@
-const fs = require('fs');
+/*const fs = require('fs');
 const axios = require('axios');
 const sql = require('mssql');
 const { connectToDatabase, closeDatabaseConnection } = require('../utils/database');
@@ -7,7 +7,7 @@ const cron = require('node-cron');
 require('dotenv').config();
 
 // Programa las tareas cron
-cron.schedule('*/30 * * * *', async () => {
+//cron.schedule('30 * * * *', async () => {
     // Consultar pedidos cada 30 minutos
     console.log('Ejecutando consulta a GLS cada 30 minutos...');
 
@@ -223,3 +223,4 @@ async function parsearVolumenDesdeXML(xmlData) {
 }
 
 module.exports = { consultarPedidoGLS, consultarPedidoPeriodico };
+*/
