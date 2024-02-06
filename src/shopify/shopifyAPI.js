@@ -16,9 +16,10 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
         // Configuracion para el acceso a la API
         const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${store.toUpperCase()}`];
+        const apiKey = process.env[`SHOPIFY_API_KEY_${store.toUpperCase()}`];
         const shopify = new Shopify({
             shopName: `${store}.myshopify.com`,
-            apiKey: process.env.SHOPIFY_API_KEY_PRINTALOT_ES,
+            apiKey: apiKey,
             password: adminApiAccessToken,
             apiVersion: '2024-01',
         });
@@ -133,8 +134,8 @@ function obtenerNombreCompania(store) {
     switch (store) {
         case 'printalot-es':
             return 'GLS';
-        case 'tienda':
-            return 'CORREOS';
+        case 'ami-iyok':
+            return 'GLS';
         default:
             return 'gls';
     }

@@ -83,8 +83,7 @@ function addToQueue(jobData) {
 function initWebhooks(app, providedUrl) {
   const stores = [
     { name: 'printalot-es', route: '/printalot/orders/' },
-    // Agrega más tiendas según tus necesidades
-    { name: 'tienda', route: '/tienda/orders/' },
+    { name: 'ami-iyok', route: '/ami-iyok/orders/' },
   ];
   stores.forEach(store => {
     const rutaWebhook = `${providedUrl}${store.route} `;
@@ -140,8 +139,7 @@ async function handleOrderWebhook(jsonData, store) {
 // Define las URL de los servicios web asociadas a cada tienda, este webservice recibe datos para Printalot
 const storeWebServices = {
   'printalot-es': 'http://192.168.21.15:30000/00GENShopify',
-  // Agrega más tiendas según tus necesidades
-  'tienda': 'http://192.168.21.15:30000/00TIENDA',
+  'ami-iyok': 'http://192.168.21.15:30000/17AMIShopify',
 };
 
 async function enviarDatosAlWebService(xmlData, store) {
@@ -335,9 +333,9 @@ function obtenerCodigoSesionCliente(store) {
       console.log('Cliente: printalot-es');
       return process.env.PRINTALOT_SESSION_CODE;
     // Agrega más casos según sea necesario
-    case 'tienda':
-      console.log('Cliente: tienda');
-      return process.env.TIENDA_SESSION_CODE;
+    case 'ami-iyok':
+      console.log('Cliente: ami-iyok');
+      return process.env.AMI-IYOK_SESSION_CODE;
     default:
       console.log('No se ha podido obtener el codigo');
       return 'No se ha podido obtener el codigo';

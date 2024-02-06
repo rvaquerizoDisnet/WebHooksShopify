@@ -38,19 +38,19 @@ router.get('/printalot/orders/unfulfilled/', (req, res) => {
 
 
 //Tienda nueva
-router.post('/tienda/orders/', (req, res) => {
-  console.log('POST request to ' + '/tienda/orders/', req.body);
+router.post('/ami-iyok/orders/', (req, res) => {
+  console.log('POST request to ' + '/ami-iyok/orders/', req.body);
   res.json({ message: 'POST request received successfully' });
   // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
-  shopify.handleWebhook({ tipo: 'orders', req, res, store: 'tienda' });
+  shopify.handleWebhook({ tipo: 'orders', req, res, store: 'ami-iyok' });
 });
 
 // Hacer consulta a todos los pedidos anteriores y hacer POST al webservice
-router.get('/tienda/orders/unfulfilled/', (req, res) => {
-  console.log('GET request to ' + 'shopify' + '/tienda/orders/unfulfilled/');
-  res.send('GET request to ' + 'shopify' + '/tienda/orders/unfulfilled/');
+router.get('/ami-iyok/orders/unfulfilled/', (req, res) => {
+  console.log('GET request to ' + 'shopify' + '/ami-iyok/orders/unfulfilled/');
+  res.send('GET request to ' + 'shopify' + '/ami-iyok/orders/unfulfilled/');
   // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
-  shopify.getUnfulfilledOrdersAndSendToWebService('tienda');
+  shopify.getUnfulfilledOrdersAndSendToWebService('ami-iyok');
 });
 
 // Cuando el ABC haga post se ejecutara esta funcion para modificar la API de shopify
@@ -61,6 +61,14 @@ router.post( '/shipments/', (req, res) => {
   shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
 });
 
+router.post( '/ami-iyok/shipments/', (req, res) => {
+  console.log('POST request to ' + '/shipments/');
+  // Obtenemos el nombre de la store atraves del idcustomer
+  const store = obtenerCodigoSesionCliente(req.body);
+  shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
+});
+
+
 
 
 // Funcion para que segun que id customer venga escoja una tienda o otra
@@ -68,15 +76,14 @@ function obtenerCodigoSesionCliente(reqBody) {
   const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
   // Verifica si PRINTALOT_IDCUSTOMER está presente en el arreglo
   const isPrintalotCustomer = idCustomerArray.includes(process.env.PRINTALOT_IDCUSTOMER);
-  const isTiendaCustomer = idCustomerArray.includes(process.env.TIENDA_IDCUSTOMER);
+  const isAmiiyokCustomer = idCustomerArray.includes(process.env.AMI-IYOK_IDCUSTOMER);
   // Agrega más casos según los tipos de tiendas en tu .env
   if (isPrintalotCustomer) {
     return 'printalot-es';
   }
-  else if (isTiendaCustomer) {
-    return 'tienda';
+  else if (isAmiiyokCustomer) {
+    return 'ami-iyok';
   }
-  // Agrega más casos según sea necesario
   return 'default';
 }
 
