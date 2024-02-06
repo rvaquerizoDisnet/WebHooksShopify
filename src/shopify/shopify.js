@@ -110,6 +110,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
         res.status(200).send('OK');
       }
       console.log("HandleWEBHHOK" + store)
+      console.log("")      
       await handleOrderWebhook(req.body, store);
     } else if (tipo === 'shipments') {
       // Lógica para el nuevo evento de albaranes
@@ -349,6 +350,7 @@ async function sendOrderToWebService(order, store) {
     // Mapea los datos JSON a XML
     const xmlData = convertirJSToXML(mapJsonToXml(order, store));
 
+    console.log("enviar datos:" + store)
     // Envía los datos al webservice
     await enviarDatosAlWebService(xmlData, store);
 
