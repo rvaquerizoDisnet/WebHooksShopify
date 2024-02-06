@@ -112,6 +112,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
       console.log("HandleWEBHHOK" + store)
       console.log("")      
       await handleOrderWebhook(req.body, store);
+      console.log("Producto enviado a HAndleOrderWebhook")
     } else if (tipo === 'shipments') {
       // Lógica para el nuevo evento de albaranes
       // await shopifyAPI.handleShipment(req.body);
@@ -129,7 +130,7 @@ async function handleOrderWebhook(jsonData, store) {
     const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
     console.log("HAndleOrderWebhook: "+ store)
     const response = await enviarDatosAlWebService(xmlData, store);
-
+    console.log("Producto enviado a enviarDatosAlWebService")
     console.log(`Respuesta del servicio web para orders:`, response.data);
   } catch (error) {
     logger.error('Error al procesar el webhook de orders:', error);
@@ -336,7 +337,7 @@ function obtenerCodigoSesionCliente(store) {
     // Agrega más casos según sea necesario
     case 'ami-iyok':
       console.log('Cliente: ami-iyok');
-      return process.env.AMI-IYOK_SESSION_CODE;
+      return process.env.AMI_IYOK_SESSION_CODE;
     default:
       console.log('No se ha podido obtener el codigo');
       return 'No se ha podido obtener el codigo';
@@ -364,8 +365,9 @@ async function sendOrderToWebService(order, store) {
 async function getUnfulfilledOrdersAndSendToWebService(store) {
   console.log('Valor de store en getUnfulfilledOrdersAndSendToWebService:', store);
   try {
-    const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${store.toUpperCase()}`];
-
+    const formattedStore = store.toUpperCase().replace(/-/g, '_');
+    console.log("formated: " + formattedStore)
+    const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${formattedStore}`];
     const response = await axios.get(
       `https://${store}.myshopify.com/admin/api/2024-01/orders.json?status=unfulfilled`,
       {

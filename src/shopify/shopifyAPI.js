@@ -15,8 +15,10 @@ async function handleShipmentAdminApi({ req, res, store }) {
         }
 
         // Configuracion para el acceso a la API
-        const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${store.toUpperCase()}`];
-        const apiKey = process.env[`SHOPIFY_API_KEY_${store.toUpperCase()}`];
+        const formattedStore = store.toUpperCase().replace(/-/g, '_');
+        console.log("formated: " + formattedStore)
+        const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${formattedStore}`];
+        const apiKey = process.env[`SHOPIFY_API_KEY_${formattedStore}`];
         const shopify = new Shopify({
             shopName: `${store}.myshopify.com`,
             apiKey: apiKey,
