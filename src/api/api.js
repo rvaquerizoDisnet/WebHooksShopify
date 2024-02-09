@@ -76,7 +76,7 @@ function obtenerCodigoSesionCliente(reqBody) {
   const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
   // Verifica si PRINTALOT_IDCUSTOMER está presente en el arreglo
   const isPrintalotCustomer = idCustomerArray.includes(process.env.PRINTALOT_IDCUSTOMER);
-  const isAmiiyokCustomer = idCustomerArray.includes(process.env.AMI-IYOK_IDCUSTOMER);
+  const isAmiiyokCustomer = idCustomerArray.includes(process.env.AMI_IYOK_IDCUSTOMER);
   // Agrega más casos según los tipos de tiendas en tu .env
   if (isPrintalotCustomer) {
     return 'printalot-es';

@@ -183,24 +183,24 @@ function mapJsonToXml(jsonData, store) {
 
   // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
   let notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
-
   // Add the following lines to handle the case when notasCliente is an empty string
   if (!notasCliente.trim()) {
     notasCliente = 'Sin observaciones';
   }
 
-
+  notasCliente = 'Sin observaciones';
   // Obtener lineas
-  const lineas = jsonData.line_items
+   /*const lineas = jsonData.line_items
     ? jsonData.line_items.map((item, index) => ({
         CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
-        Cantidad: item.quantity || 0,
+        Cantidad: item.quantity || 1,
         NumeroLinea: index + 1,
       }))
     : [];
+*/
 
     //Codigo para cuando haya mas de una tienda y quieres coger algo de la linea que printalot no necesita
-    /*
+   
     let lineas;
 
     if (store === 'printalot-es') {
@@ -212,16 +212,22 @@ function mapJsonToXml(jsonData, store) {
             NumeroLinea: index + 1,
           }))
         : [];
-    } else if (store === 'otra-tienda') {
-      // Lógica específica para otra tienda
-      lineas = jsonData.line_items
-        ? jsonData.line_items.map((item, index) => ({
-            CodArticulo: item.sku || `SKU-${index + 1}`,
-            Cantidad: item.quantity || 0,
-            Color: item.color || 'Sin color', // Ejemplo de campo adicional
-            NumeroLinea: index + 1,
-          }))
-        : [];
+      } else if (store === 'ami-iyok') {
+        // Lógica específica para la tienda ami-iyok
+        lineas = jsonData.line_items
+          ? jsonData.line_items.map((item, index) => ({
+              CodArticulo: item.sku || `SKU-${index + 1}`,
+              Cantidad: item.quantity || 0,
+              NumeroLinea: index + 1,
+            })).concat([
+              { CodArticulo: 'SACHDRYSKIN', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 1 },
+              { CodArticulo: 'SACHEYESER', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 2 },
+              { CodArticulo: 'SACHGREEN', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 3 },
+              { CodArticulo: 'SACHHIBIS', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 4 },
+              { CodArticulo: 'SACHIYOK', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 5 },
+              { CodArticulo: 'SACHSTOP', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 6 }
+            ])
+          : [];
     } else {
       // Lógica por defecto para otras tiendas (si es necesario)
       lineas = jsonData.line_items
@@ -232,8 +238,7 @@ function mapJsonToXml(jsonData, store) {
           }))
         : [];
     }
-    */
-
+    
     const lineItems = jsonData.line_items;
 
     // Imprimir todos los elementos en line_items
