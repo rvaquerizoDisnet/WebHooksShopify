@@ -58,14 +58,22 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Buscar el pedido por el OrderNumber
             const currentOrder = orders.find(order => order.name === orderNumber);
-            const shippingAddress = currentOrder.shipping_address;
-            const zipCode = shippingAddress.zip;
-
+            
             // Comprobamos que el pedido exista
             if (!currentOrder) {
                 console.error(`Pedido no encontrado en la tienda de Shopify para OrderNumber: ${orderNumber}`);
                 continue;
             }
+
+            // Verificar si el pedido tiene la dirección de envío
+            if (!currentOrder.shipping_address) {
+                console.error(`Pedido encontrado en la tienda de Shopify para OrderNumber: ${orderNumber}, pero no tiene una dirección de envío.`);
+                continue;
+            }
+
+            // Obtener la dirección de envío del pedido
+            const shippingAddress = currentOrder.shipping_address;
+            const zipCode = shippingAddress.zip;
 
             // Guardamos los datos
             const orderId = currentOrder.id;
@@ -150,7 +158,5 @@ function obtenerNombreCompania(store) {
             return 'gls';
     }
 }
-
-
 
 module.exports = { handleShipmentAdminApi };
