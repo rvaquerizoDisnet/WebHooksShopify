@@ -220,12 +220,7 @@ function mapJsonToXml(jsonData, store) {
               Cantidad: item.quantity || 0,
               NumeroLinea: index + 1,
             })).concat([
-              { CodArticulo: 'SACHDRYSKIN', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 1 },
-              { CodArticulo: 'SACHEYESER', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 2 },
-              { CodArticulo: 'SACHGREEN', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 3 },
-              { CodArticulo: 'SACHHIBIS', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 4 },
-              { CodArticulo: 'SACHIYOK', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 5 },
-              { CodArticulo: 'SACHSTOP', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 6 }
+              { CodArticulo: 'SACHETKIT', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 1 }
             ])
           : [];
     } else {
