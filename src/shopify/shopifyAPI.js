@@ -57,13 +57,13 @@ async function handleShipmentAdminApi({ req, res, store }) {
             
             // Comprobamos que el pedido exista
             if (!currentOrder) {
-                console.error(`Pedido no encontrado en la tienda de Shopify para OrderNumber: ${orderNumber}`);
+                console.error(`Pedido no encontrado en la tienda de Shopify para OrderNumber: ${orderNumber} o ${yearOrderNumber}`);
                 continue;
             }
 
             // Verificar si el pedido tiene la dirección de envío
             if (!currentOrder.shipping_address) {
-                console.error(`Pedido encontrado en la tienda de Shopify para OrderNumber: ${orderNumber}, pero no tiene una dirección de envío.`);
+                console.error(`Pedido encontrado en la tienda de Shopify para OrderNumber: ${orderNumber} o ${yearOrderNumber}, pero no tiene una dirección de envío.`);
                 continue;
             }
 
@@ -77,7 +77,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Si el pedido ya tiene una locationID es decir ya tiene el fulfillment creado, continuamos sin hacer nada mas.
             if (locationId) {
-                console.log(`Pedido con OrderNumber ${orderNumber} ya tiene un location_id asignado. No se realizarán acciones adicionales.`);
+                console.log(`Pedido con OrderNumber ${orderNumber} o ${yearOrderNumber} ya tiene un location_id asignado. No se realizarán acciones adicionales.`);
                 continue;
             }
 
