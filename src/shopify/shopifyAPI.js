@@ -34,15 +34,12 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const orderNumber = pedido.ordernumber[0];
             const trackingNumber = pedido.trackingnumber[0] + "";
         
-            // Verificar si el orderNumber ya tiene el formato con el año actual
-            const isYearFormat = /^\#\d{8}$/.test(orderNumber);
         
             let yearOrderNumber = orderNumber;
-            if (!isYearFormat) {
-                // Concatenar el año actual con el orderNumber
-                const currentYear = new Date().getFullYear();
-                yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
-            }
+    
+            const currentYear = new Date().getFullYear();
+            yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
+            
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
             const ordersByOrderNumber = await shopify.order.list({ name: orderNumber, status: 'any' });
