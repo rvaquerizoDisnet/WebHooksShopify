@@ -43,11 +43,12 @@ async function handleShipmentAdminApi({ req, res, store }) {
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
             const ordersByOrderNumber = await shopify.order.list({ name: orderNumber, status: 'any' });
+            console.log("ordersByOrderNumber ", ordersByOrderNumber)
             const ordersByYearAndOrderNumber = await shopify.order.list({ name: yearOrderNumber, status: 'any' });
-        
+            console.log("ordersByYearAndOrderNumber ", ordersByYearAndOrderNumber)
             // Concatenar los resultados de ambas búsquedas
             const orders = ordersByOrderNumber.concat(ordersByYearAndOrderNumber);
-        
+            console.log("orders ", orders)
             if (orders.length === 0) {
                 console.error(`Pedido no encontrado en la tienda de Shopify para OrderNumber: ${orderNumber}`);
                 continue;
