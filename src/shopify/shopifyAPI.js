@@ -69,8 +69,13 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Obtener la dirección de envío del pedido
             const shippingAddress = currentOrder.shipping_address;
-            console.log(shippingAddress)
             const zipCode = shippingAddress.zip;
+            const countryCode = shippingAddress.country_code;
+
+            if (countryCode != 'ES') {
+                console.log(`Pedido con OrderNumber ${orderNumber} o ${yearOrderNumber} no se cerrara porque no es un pedido nacional.`);
+                continue;
+            }
 
             // Guardamos los datos
             const orderId = currentOrder.id;
