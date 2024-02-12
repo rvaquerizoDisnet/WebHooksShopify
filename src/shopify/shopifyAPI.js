@@ -36,12 +36,14 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const trackingNumber = pedido.trackingnumber[0] + "";
             
 
-            const orders = await shopify.order.list({ name: orderNumber, status: 'any' });
 
-            if (!orderNumber || !trackingNumber) {
-                console.error('Error de validación: OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.');
-                return res.status(400).json({ error: 'OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.' });
-            }
+            const currentYear = new Date().getFullYear();
+            const yearOrderNumber  = `#${year}${orderNumber.slice(1)}`;
+
+            const ordersByOrderNumber = await shopify.order.list({ name: orderNumber, status: 'any' });
+            const ordersByYearAndOrderNumber = await shopify.order.list({ name: yearOrderNumber, status: 'any' });
+
+            const orders = ordersByOrderNumber.concat(ordersByYearAndOrderNumber);
 
             if (orders.length === 0) {
                 console.error(`Pedido no encontrado en la tienda de Shopify para OrderNumber: ${orderNumber}`);
