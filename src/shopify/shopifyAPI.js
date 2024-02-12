@@ -69,6 +69,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Obtener la dirección de envío del pedido
             const shippingAddress = currentOrder.shipping_address;
+            console.log(shippingAddress)
             const zipCode = shippingAddress.zip;
 
             // Guardamos los datos
