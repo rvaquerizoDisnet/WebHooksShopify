@@ -52,7 +52,8 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
 
             // Buscar el pedido por el OrderNumber
-            const currentOrder = orders.find(order => order.name === orderNumber);
+            const currentOrder = orders.find(order => order.name === orderNumber || order.name === yearOrderNumber);
+
             
             // Comprobamos que el pedido exista
             if (!currentOrder) {
