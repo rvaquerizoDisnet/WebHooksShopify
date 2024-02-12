@@ -29,7 +29,7 @@
     "mssql": "^10.0.1",
     "ngrok": "^5.0.0-beta.2",
     "node-cron": "^3.0.3",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^6.9.9",
     "path": "^0.12.7",
     "raw-body": "^2.5.2",
     "secure-compare": "^3.0.1",
