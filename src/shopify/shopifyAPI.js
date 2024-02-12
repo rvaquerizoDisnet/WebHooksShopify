@@ -16,7 +16,6 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
         // Configuracion para el acceso a la API
         const formattedStore = store.toUpperCase().replace(/-/g, '_');
-        console.log("formated: " + formattedStore)
         const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${formattedStore}`];
         const apiKey = process.env[`SHOPIFY_API_KEY_${formattedStore}`];
         const shopify = new Shopify({
@@ -31,20 +30,27 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 console.error('Error de validación: OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.');
                 return res.status(400).json({ error: 'OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.' });
             }
-
+        
             const orderNumber = pedido.ordernumber[0];
             const trackingNumber = pedido.trackingnumber[0] + "";
-            
-
-
-            const currentYear = new Date().getFullYear();
-            const yearOrderNumber  = `#${year}${orderNumber.slice(1)}`;
-
+        
+            // Verificar si el orderNumber ya tiene el formato con el año actual
+            const isYearFormat = /^\#\d{8}$/.test(orderNumber);
+        
+            let yearOrderNumber = orderNumber;
+            if (!isYearFormat) {
+                // Concatenar el año actual con el orderNumber
+                const currentYear = new Date().getFullYear();
+                yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
+            }
+        
+            // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
             const ordersByOrderNumber = await shopify.order.list({ name: orderNumber, status: 'any' });
             const ordersByYearAndOrderNumber = await shopify.order.list({ name: yearOrderNumber, status: 'any' });
-
+        
+            // Concatenar los resultados de ambas búsquedas
             const orders = ordersByOrderNumber.concat(ordersByYearAndOrderNumber);
-
+        
             if (orders.length === 0) {
                 console.error(`Pedido no encontrado en la tienda de Shopify para OrderNumber: ${orderNumber}`);
                 continue;
