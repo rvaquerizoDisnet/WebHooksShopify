@@ -3,24 +3,169 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inicio</title>
+  <title>Home</title>
   <!-- Agregamos Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     body {
       background-color: #ffffff; /* Blanco */
       color: #000000; /* Negro */
+      padding-top: 56px; /* Altura del navbar para evitar que el contenido se superponga */
     }
-    h1 {
+    h2 {
       color: #ff0000; /* Rojo */
+    }
+    .container {
+      margin-top: 20px;
+    }
+    .btn-group {
+      margin-top: 20px;
+      display: flex; /* Hace que los botones se distribuyan horizontalmente */
+      justify-content: space-between; /* Añade espacio entre los botones */
+    }
+    .btn {
+      width: 45%; /* Establece el ancho de los botones al 45% del contenedor */
+      margin: 5px; /* Añade margen entre los botones */
+      /* Agrega otros estilos que desees mantener */
+    }
+    .logout{
+      width: 100%;
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #f8f9fa; /* Gris claro */
+      text-align: center;
+      padding: 10px;
+    }
+
+    .login{
+      width: auto;
     }
   </style>
 </head>
 <body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <a class="navbar-brand" href="/">Disnet</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+        </li>
+        <!-- Agrega aquí los enlaces a otros endpoints GET del middleware -->
+      </ul>
+    </div>
+ <!-- Botón de logout -->
+ <form action="/users/logout" method="post" id="logoutForm" style="display: none;">
+  <input type="hidden" name="token" id="logoutToken" value="">
+  <button type="submit" class="btn btn-danger logout" id="btnLogout">Logout</button>
+</form>
+<!-- Botón de login -->
+<button type="button" class="btn btn-primary login" id="btnLogin" onclick="redirectToLogin()">Login</button>
+  
+  </nav>
+
   <div class="container">
-    <h1>Bienvenido, <%= usuario.nombre %></h1>
+    <h2>Bienvenido al Home</h2>
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-primary" onclick="redirectToShopify()">Shopify</button>
+      <button type="button" class="btn btn-primary" onclick="redirectToGLS()"">GLS</button>
+    </div>
   </div>
-  <!-- Agregamos Bootstrap JS al final del cuerpo -->
+    <footer>
+      <p>Disnet - Todos los derechos reservados</p>
+    </footer>
+
+    <script> 
+    document.getElementById('btnLogout').addEventListener('click', function() { 
+      // Obtener el valor de la cookie 'token' 
+      const token = getCookie2('token'); 
+      // Asignar el valor al campo oculto en el formulario 
+      document.getElementById('logoutToken').value = token; 
+      // Enviar el formulario 
+      document.getElementById('logoutForm').submit(); 
+    });
+
+
+    function redirectToShopify() {
+      const token = getCookie2('token');
+        fetch("/shopify/clientes/", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/shopify/clientes/';
+          } else {
+            console.error('Hubo un problema al acceder a la ruta:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Error al realizar la solicitud:', error);
+        });
+    }
+
+    function redirectToGLS() {
+      const token = getCookie2('token');
+        fetch("/gls/", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/gls/';
+          } else {
+            console.error('Hubo un problema al acceder a la ruta:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Error al realizar la solicitud:', error);
+        });
+    }
+
+    function redirectToLogin() {
+      window.location.href = '/users/login/';
+    }
+
+  function getCookie2(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+
+  function toggleLogoutButton() {
+      const token = getCookie2('token');
+      const logoutForm = document.getElementById('logoutForm');
+      const loginButton = document.getElementById('btnLogin');
+      const logoutButton = document.getElementById('btnLogout');
+
+      if (token) {
+        // Si hay un token, el usuario está autenticado, muestra el botón de logout y oculta el de login
+        logoutForm.style.display = 'block';
+        loginButton.style.display = 'none';
+      } else {
+        // Si no hay un token, el usuario no está autenticado, muestra el botón de login y oculta el de logout
+        logoutForm.style.display = 'none';
+        loginButton.style.display = 'block';
+      }
+    }
+
+    // Llama a la función al cargar la página para determinar qué botón mostrar
+    window.onload = toggleLogoutButton;
+
+    // Evento de clic en el botón de logout para enviar el formulario
+    document.getElementById('btnLogout').addEventListener('click', function() {
+      const token = getCookie('token');
+      document.getElementById('logoutToken').value = token;
+      document.getElementById('logoutForm').submit();
+    });
+    
+    </script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

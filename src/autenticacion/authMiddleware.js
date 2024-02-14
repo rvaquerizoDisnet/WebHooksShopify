@@ -1,27 +1,51 @@
 // authMiddleware.js
 const jwt = require('jsonwebtoken');
 
-const protegerRuta = (rolesPermitidos) => {
-  return (req, res, next) => {
-    const token = req.header('Authorization');
-
-    if (!token) {
-      return res.redirect('/users/redirectLogin?mensaje=Debes iniciar sesión para acceder a esta página.');
-    }
-
+const verificarUsuarioLogueado = (req, res, next) => {
+  const token = req.body.token || req.header('Authorization');
+  if (token) {
     try {
+      console.log('Verificando token:', token); // Agrega este registro
+      console.log('Clave secreta:', process.env.JWT_SECRET); // Agrega este registro
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      if (rolesPermitidos.includes(decoded.usuario.rol)) {
-        req.usuario = decoded.usuario;
-        next();
-      } else {
-        res.status(403).json({ mensaje: 'Acceso prohibido. No tienes los permisos necesarios.' });
-      }
+      req.usuario = decoded;
+      next();
     } catch (error) {
-      res.status(401).json({ mensaje: 'Token no válido.' });
+      console.error('Error al verificar el token:', error.message);
+      res.status(401).json({ mensaje: 'Token inválido' });
     }
-  };
+  } else {
+    res.redirect('/users/login?error=Inicie sesión de nuevo, ha habido un error.');
+  }
 };
 
-module.exports = { protegerRuta };
+
+const verificarUsuarioLogueado2 = (req, res, next) => {
+  let token = req.headers['authorization'];
+
+  console.log("Token: " + token)
+  if (token) {
+    token = token.replace('Bearer ', '');
+    console.log("Token2: " + token)
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.usuario = decoded;
+      console.log(req.usuario)
+      next();
+    } catch (error) {
+      console.error('Error al verificar el token:', error.message);
+      res.status(401).json({ mensaje: 'Token inválido' });
+    }
+  } else {
+    // Enviar un mensaje de error en formato JSON
+    res.status(401).json({ mensaje: 'Token no proporcionado' });
+  }
+};
+
+
+
+
+
+
+module.exports = { verificarUsuarioLogueado, verificarUsuarioLogueado2 };
+

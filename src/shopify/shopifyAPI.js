@@ -1,5 +1,6 @@
 const Shopify = require('shopify-api-node');
 require('dotenv').config();
+const db = require('../utils/database');
 
 async function handleShipmentAdminApi({ req, res, store }) {
     let successMessage = 'Solicitud de envío procesada correctamente';
@@ -14,10 +15,10 @@ async function handleShipmentAdminApi({ req, res, store }) {
             return res.status(400).json({ error: 'Pedidos no encontrados o no es una lista en los datos XML.' });
         }
 
-        // Configuracion para el acceso a la API
-        const formattedStore = store.toUpperCase().replace(/-/g, '_');
-        const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${formattedStore}`];
-        const apiKey = process.env[`SHOPIFY_API_KEY_${formattedStore}`];
+        // Configuración para el acceso a la API
+        const adminApiAccessToken = await getAdminApiAccessTokenFromDB(store, 'SHOPIFY_ADMIN_API_ACCESS_TOKEN');
+        const apiKey = await getApiKeyFromDB(store, 'SHOPIFY_API_KEY');
+        
         const shopify = new Shopify({
             shopName: `${store}.myshopify.com`,
             apiKey: apiKey,
@@ -70,12 +71,6 @@ async function handleShipmentAdminApi({ req, res, store }) {
             // Obtener la dirección de envío del pedido
             const shippingAddress = currentOrder.shipping_address;
             const zipCode = shippingAddress.zip;
-            const countryCode = shippingAddress.country_code;
-
-            if (countryCode != 'ES') {
-                console.log(`Pedido con OrderNumber ${orderNumber} o ${yearOrderNumber} no se cerrara porque no es un pedido nacional.`);
-                continue;
-            }
 
             // Guardamos los datos
             const orderId = currentOrder.id;
@@ -150,15 +145,80 @@ async function handleShipmentAdminApi({ req, res, store }) {
     }
 }
 
-function obtenerNombreCompania(store) {
-    switch (store) {
-        case 'printalot-es':
-            return 'GLS';
-        case 'ami-iyok':
-            return 'GLS';
-        default:
-            return 'gls';
+async function obtenerNombreCompania(store) {
+    try {
+        const pool = await db.connectToDatabase();
+        const request = pool.request();
+    
+        const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+            .query('SELECT TransportCompany FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
+        
+        const { TransportCompany } = result.recordset[0];
+    
+        await db.closeDatabaseConnection(pool);
+    
+        if (!TransportCompany) {
+            console.log(`No se ha podido obtener la compañía de transporte para la tienda: ${store}`);
+            throw new Error('No se ha podido obtener la compañía de transporte');
+        }
+    
+        return TransportCompany;
+    } catch (error) {
+        console.error('Error al obtener la compañía de transporte desde la base de datos:', error);
+        throw error;
     }
 }
+
+async function getAdminApiAccessTokenFromDB(store) {
+    try {
+      const pool = await db.connectToDatabase();
+      const request = pool.request();
+  
+      const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+        .query('SELECT AccessToken FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
+      
+      const { AccessToken } = result.recordset[0];
+  
+      await db.closeDatabaseConnection(pool);
+  
+      if (!AccessToken) {
+        console.log(`No se ha podido obtener el AccessToken para la tienda: ${store}`);
+        throw new Error('No se ha podido obtener el AccessToken');
+      }
+  
+      return AccessToken;
+    } catch (error) {
+      console.error('Error al obtener el AccessToken desde la base de datos:', error);
+      throw error;
+    }
+  }
+
+
+  async function getApiKeyFromDB(store) {
+    try {
+      const pool = await db.connectToDatabase();
+      const request = pool.request();
+  
+      const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+        .query('SELECT ApiKey FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
+      
+      const { ApiKey } = result.recordset[0];
+  
+      await db.closeDatabaseConnection(pool);
+  
+      if (!ApiKey) {
+        console.log(`No se ha podido obtener la API Key para la tienda: ${store}`);
+        throw new Error('No se ha podido obtener la API Key');
+      }
+  
+      return ApiKey;
+    } catch (error) {
+      console.error('Error al obtener la API Key desde la base de datos:', error);
+      throw error;
+    }
+  }
+  
+
+
 
 module.exports = { handleShipmentAdminApi };

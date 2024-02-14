@@ -2,19 +2,15 @@
 const jwt = require('jsonwebtoken');
 
 const generarToken = (usuario) => {
-  const horaActual = new Date();
-  const horaExpiracion = new Date(horaActual);
-  horaExpiracion.setHours(horaActual.getHours() + 1); // Expira en 1 hora
-
-  const token = jwt.sign({ usuario, exp: Math.floor(horaExpiracion.getTime() / 1000) }, process.env.JWT_SECRET);
-  return token;
+  return jwt.sign({ usuario }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 const verificarToken = (req, res, next) => {
-  const token = req.header('Authorization');
-
+  const token = req.cookies.token;
+  const errorMessage = encodeURIComponent('Se requiere iniciar sesión para acceder a esta ruta.');
+  const errorMessage2 = encodeURIComponent('Su sesión a expirado, vuelva a iniciar sesión.');
   if (!token) {
-    return res.status(401).json({ mensaje: 'Acceso no autorizado. Token no proporcionado.' });
+    res.redirect(`/users/login?error=${errorMessage}`);
   }
 
   try {
@@ -22,7 +18,7 @@ const verificarToken = (req, res, next) => {
     req.usuario = decoded.usuario;
     next();
   } catch (error) {
-    res.status(401).json({ mensaje: 'Token no válido.' });
+    res.redirect(`/users/login?error=${errorMessage2}`);
   }
 };
 

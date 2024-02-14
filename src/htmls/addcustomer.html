@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Cliente</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    form {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333333;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: #333333;
+      position: relative;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #cccccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button[type="button"] {
+      background-color: #ff4444;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+
+    button[type="button"]:hover {
+      background-color: #ff3333;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #f8f9fa;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .close-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #333333;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: auto !important;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js/dist/tippy.css">
+
+</head>
+<body>
+  <form id="addClientForm">
+   <button class="close-button" type="button" onclick="window.history.back()">X</button>
+    <h2>Agregar Cliente</h2>
+
+    <label id="endpointLabel" for="NombreEndpoint">Nombre de la tienda:
+      <span class="info-icon" data-tippy-content="Ingrese el nombre de la tienda exacto al de Shopify.">ℹ️</span>
+    </label>
+    <input type="text" id="NombreEndpoint" name="NombreEndpoint" required>
+
+    <label id="urlLabel" for="UrlWebService">Endpoint del WebService:
+      <span class="info-icon" data-tippy-content="Ingrese el endpoint del Webservice a donde se envia los pedidos. Solo el endpoint no la direcction entera. Por ejemplo si en ABC la URL es 'http://192.168.21.15/00GenShopify' solo necesitamos el 00GenShopify.">ℹ️</span>
+    </label>
+    <input type="text" id="UrlWebService" name="UrlWebService" required>
+
+    <label id="apiKeyLabel" for="ApiKey">API Key:
+      <span class="info-icon" data-tippy-content="Ingrese el API Key, esto lo encontraras en las settings de la tienda en shopify.">ℹ️</span>
+    </label>
+    <input type="text" id="ApiKey" name="ApiKey" required>
+
+    <label id="apiSecretLabel" for="ApiSecret">API Secret:
+      <span class="info-icon" data-tippy-content="Ingrese el API Secret, esto lo encontraras en las settings de la tienda en shopify.">ℹ️</span>
+    </label>
+    <input type="text" id="ApiSecret" name="ApiSecret" required>
+
+    <label id="accessTokenLabel" for="AccessToken">Access Token:
+      <span class="info-icon" data-tippy-content="Ingrese el Access Token, esto lo encontraras en las settings de la tienda en shopify.">ℹ️</span>
+    </label>
+    <input type="text" id="AccessToken" name="AccessToken" required>
+
+    <label id="idCustomerLabel" for="IdCustomer">ID del Cliente:
+      <span class="info-icon" data-tippy-content="Ingrese eL Id del cliente en ABC, es un número.">ℹ️</span>
+    </label>
+    <input type="number" id="IdCustomer" name="IdCustomer" required>
+
+    <label id="sessionCodeLabel" for="SessionCode">Código de Sesión:
+      <span class="info-icon" data-tippy-content="Ingrese el Código de Sesión del cliente en ABC, es una cadena de caracteres.">ℹ️</span>
+    </label>
+    <input type="text" id="SessionCode" name="SessionCode" required>
+
+    <label id="transportCompanyLabel" for="SessionCode">Compañia de transporte:
+      <span class="info-icon" data-tippy-content="Ingrese la Compañia de transporte que utilizara habitualmente este cliente, se utilizara para cerrar el pedido.">ℹ️</span>
+    </label>
+    <input type="text" id="TransportCompany" name="TransportCompany" required>
+    
+    <button type="button" onclick="submitForm()">Agregar Cliente</button>
+    <a href="/nuevo-cliente/info">¿Cómo agregar un cliente?</a>
+  </form>
+
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <script>
+   function getCookie2(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  function submitForm() {
+      const form = document.getElementById('addClientForm');
+      const formData = new FormData(form);
+      const token = getCookie2('token');
+
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        jsonData[key] = value;
+      });
+      
+      fetch("/nuevo-cliente/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(jsonData)
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = '/nuevo-cliente/';
+        } else {
+          console.error('Hubo un problema al acceder a la ruta:', response.statusText);
+        }
+      })
+      .catch(error => {
+        console.error('Error al realizar la solicitud:', error);
+      });
+    }
+    tippy('.info-icon', {
+      animation: 'scale', 
+      theme: 'light',
+    });
+  </script>
+</body>
+</html>
