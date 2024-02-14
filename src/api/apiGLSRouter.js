@@ -1,84 +1,62 @@
+// apiGLSRouter.js
 const express = require('express');
-const bodyParser = require('body-parser');
-const path = require('path');
-const { insertIntoDB, updateClientInDB, deleteClientFromDB } = require('../utils/insertClientGLS');
-const { verificarToken } = require('../autenticacion/authenticationMiddleware');
-const { connectToDatabase } = require('../utils/database');
-
 const router = express.Router();
+const glsService = require('../gls/glsService');
+const { verificarToken } = require('../autenticacion/authenticationMiddleware');
+const { handleValidationErrors } = require('../autenticacion/validationMiddleware');
+const { protegerRuta } = require('../autenticacion/authMiddleware');
+const path = require('path');
+const fs = require('fs');
 
-// Configuración de body-parser
-router.use(bodyParser.urlencoded({ extended: true }));
-router.use(bodyParser.json());
 
-// Ruta GET para servir el formulario HTML
-router.get('/', verificarToken, (req, res) => {
-  // Construye la ruta absoluta al archivo gls.html
-  const htmlFilePath = path.join(__dirname, '../htmls/gls.html');
-  // Envía el archivo como respuesta
-  res.sendFile(htmlFilePath);
+router.get('/modify-shipment', protegerRuta(['admin', 'gls']), (req, res) => {
+  // Obtener el token del localStorage
+  const token = localStorage.getItem('token');
+
+  // Enviar el token en la cabecera de la solicitud
+  fetch('/gls/modify-shipment', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
+
+  const formPath = path.join(__dirname, '../htmls/form.html');
+  const formContent = fs.readFileSync(formPath, 'utf8');
+  res.send(formContent);
 });
 
-// Ruta GET para abrir el formulario HTML addcustomergls.html
-router.get('/nuevo-cliente', verificarToken, (req, res) => {
-  // Construye la ruta absoluta al archivo addcustomergls.html
-  const htmlFilePath = path.join(__dirname, '../htmls/addcustomergls.html');
-  // Envía el archivo como respuesta
-  res.sendFile(htmlFilePath);
-});
+router.post('/modify-shipment', protegerRuta(['admin', 'gls']), handleValidationErrors, (req, res) => {
+  // Obtener el token del localStorage
+  const token = localStorage.getItem('token');
 
-// Ruta POST para procesar el formulario
-router.post('/post', verificarToken, async (req, res) => {
-  const { Nombre, uid_cliente, departamento_exp } = req.body;
-  try {
-    await insertIntoDB(Nombre, uid_cliente, departamento_exp);
-    res.redirect(`/gls/`);
-  } catch (error) {
-    console.error('Error al agregar el cliente:', error);
-    res.status(500).send('Error interno del servidor.');
-  }
-});
+  // Enviar el token en la cabecera de la solicitud
+  fetch('/gls/modify-shipment', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(req.body)
+  })
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
 
-router.get('/clientes', verificarToken, async (req, res) => {
-  try {
-    const pool = await connectToDatabase();
-    const request = pool.request();
-    const query = `
-      SELECT * FROM MiddlewareGLS;
-    `;
-    const result = await request.query(query);
-    res.json(result.recordset);
-  } catch (error) {
-    console.error('Error al obtener clientes de la base de datos:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-});
+  console.log('POST request to /gls/modify-shipment', req.body);
 
-// Ruta PUT para editar un cliente
-router.put('/clientes/:id/edit', verificarToken, async (req, res) => {
-  const clientId = req.params.id;
-  const { Nombre, uid_cliente, departamento_exp } = req.body;
-
-  try {
-    await updateClientInDB(Nombre, uid_cliente, departamento_exp, clientId);
-    res.send('Cliente actualizado correctamente');
-  } catch (error) {
-    console.error('Error al editar el cliente:', error);
-    res.status(500).send('Error interno del servidor.');
-  }
-});
-
-// Ruta DELETE para eliminar un cliente
-router.delete('/clientes/:id', verificarToken, async (req, res) => {
-  const clientId = req.params.id;
-
-  try {
-    await deleteClientFromDB(clientId);
-    res.send('Cliente eliminado correctamente');
-  } catch (error) {
-    console.error('Error al eliminar el Cliente:', error);
-    res.status(500).send('Error interno del servidor.');
-  }
+  // Resto del código para modificar el envío
+  glsService.modifyShipment(req.body)
+    .then((response) => {
+      res.json({ message: 'Shipment modified successfully', response });
+    })
+    .catch((error) => {
+      console.error('Error modifying shipment:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
 });
 
 module.exports = router;

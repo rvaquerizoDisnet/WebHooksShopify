@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { pool, connectToDatabase } = require('../utils/database');
 
+// Esta función verifica la existencia de un usuario en la base de datos
 const verificarExistenciaUsuario = async (username) => {
   try {
     await connectToDatabase();
@@ -11,7 +12,7 @@ const verificarExistenciaUsuario = async (username) => {
     const result = await pool
       .request()
       .input('username', mssql.VarChar, username)
-      .query('SELECT * FROM MiddlewareUsuarios WHERE username = @username');
+      .query('SELECT * FROM Usuarios WHERE username = @username');
 
     return result.recordset.length > 0;
   } catch (error) {
@@ -20,7 +21,8 @@ const verificarExistenciaUsuario = async (username) => {
   }
 };
 
-const registrarUsuario = async (username, password, rol = 'admin') => {
+// Esta función registra un nuevo usuario en la base de datos
+const registrarUsuario = async (username, password, rol) => {
   try {
     await connectToDatabase();
 
@@ -31,9 +33,10 @@ const registrarUsuario = async (username, password, rol = 'admin') => {
       .input('username', mssql.VarChar, username)
       .input('hashContrasena', mssql.VarChar, hashContrasena)
       .input('rol', mssql.VarChar, rol)
-      .query('INSERT INTO MiddlewareUsuarios (username, password, rol) VALUES (@username, @hashContrasena, @rol)');
+      .query('INSERT INTO Usuarios (username, password, rol) VALUES (@username, @hashContrasena, @rol)');
   } catch (error) {
-    res.redirect('/users/register?error=Registrese de nuevo, ha ocurrido un error.'); 
+    console.error('Error al registrar usuario:', error.message);
+    throw error;
   }
 };
 
@@ -44,7 +47,7 @@ const iniciarSesion = async (username, password) => {
     const result = await pool
       .request()
       .input('username', mssql.VarChar, username)
-      .query('SELECT password, rol FROM MiddlewareUsuarios WHERE username = @username');
+      .query('SELECT password, rol FROM Usuarios WHERE username = @username');
 
     if (result.recordset.length > 0) {
       const hashContrasenaDB = result.recordset[0].password;
@@ -54,7 +57,7 @@ const iniciarSesion = async (username, password) => {
         const token = jwt.sign({
           username,
           rol: result.recordset[0].rol
-        }, process.env.JWT_SECRET, { algorithm: 'HS256' });
+        }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         return token;
       }
@@ -62,7 +65,8 @@ const iniciarSesion = async (username, password) => {
 
     return null;
   } catch (error) {
-    res.redirect('/users/login?error=Inicie sesión de nuevo, ha ocurrido un error.'); 
+    console.error('Error al iniciar sesión:', error.message);
+    throw error;
   }
 };
 

@@ -5,17 +5,12 @@ const router = express.Router();
 const shopify = require('../shopify/shopify');
 const shopifyAPI = require('../shopify/shopifyAPI');
 const xmlparser = require('express-xml-bodyparser');
+const { protegerRuta } = require('../autenticacion/authMiddleware')
 const util = require('util');
-const db = require('../utils/database');
-const path = require('path')
+
 router.use(bodyParser.json());
 router.use(xmlparser());
-const { verificarToken } = require('../autenticacion/authenticationMiddleware');
 
-router.get('/clientes/', verificarToken, (req, res) => {
-  // Utiliza el método sendFile para enviar el archivo HTML
-  res.sendFile(path.join(__dirname, '../htmls/shopify.html'));
-});
 
 
 router.get('/printalot/orders/', (req, res) => {
@@ -24,84 +19,73 @@ router.get('/printalot/orders/', (req, res) => {
 });
 
 
-async function initDynamicEndpoints() {
-  const stores = await obtenerConfiguracionesTiendas();
-  stores.forEach(store => {
-    const rutaWebhook = `/${store.NombreEndpoint}/`;
-
-    // Configurar el endpoint para manejar pedidos POST
-    router.post(`${rutaWebhook}orders`, async (req, res) => {
-      try {
-        const jobData = { tipo: 'orders', req, res, store: store.NombreEndpoint };
-        await shopify.handleWebhook(jobData);
-        res.status(200).send('OK');
-      } catch (error) {
-        console.error('Error al procesar el webhook:', error);
-        res.status(500).send('Internal Server Error');
-      }
-    });
-
-    // Configurar el endpoint para obtener pedidos no cumplidos
-    router.get(`${rutaWebhook}orders/unfulfilled`, async (req, res) => {
-      try {
-        await shopify.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
-        res.status(200).send('OK');
-      } catch (error) {
-        console.error('Error al obtener pedidos no cumplidos o enviar al webservice:', error);
-        res.status(500).send('Internal Server Error');
-      }
-    });
-
-    // Configurar el endpoint para manejar envíos POST
-    router.post(`${rutaWebhook}shipments`, async (req, res) => {
-      try {
-        const store = await obtenerCodigoSesionCliente(req.body);
-        await shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
-      } catch (error) {
-        console.error('Error al procesar el envío:', error);
-        res.status(500).send('Internal Server Error');
-      }
-    });
-  });
-}
+router.post('/printalot/orders/', (req, res) => {
+  console.log('POST request to ' + '/printalot/orders/', req.body);
+  res.json({ message: 'POST request received successfully' });
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
+  shopify.handleWebhook({ tipo: 'orders', req, res, store: 'printalot-es' });
+});
 
 
 
-// Función para obtener la configuración de la tienda desde la base de datos
-async function obtenerConfiguracionesTiendas() {
-  const query = 'SELECT * FROM MiddlewareShopify';
-  const result = await db.executeQuery(query);
-  return result.recordset;
-}
+// Hacer consulta a todos los pedidos anteriores y hacer POST al webservice
+router.get('/printalot/orders/unfulfilled/', (req, res) => {
+  console.log('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
+  res.send('GET request to ' + 'shopify' + '/printalot/orders/unfulfilled/');
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
+  shopify.getUnfulfilledOrdersAndSendToWebService('printalot-es');
+});
+
+
+//Tienda nueva
+router.post('/ami-iyok/orders/', (req, res) => {
+  console.log('POST request to ' + '/ami-iyok/orders/', req.body);
+  res.json({ message: 'POST request received successfully' });
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
+  shopify.handleWebhook({ tipo: 'orders', req, res, store: 'ami-iyok' });
+});
+
+// Hacer consulta a todos los pedidos anteriores y hacer POST al webservice
+router.get('/ami-iyok/orders/unfulfilled/', (req, res) => {
+  console.log('GET request to ' + 'shopify' + '/ami-iyok/orders/unfulfilled/');
+  res.send('GET request to ' + 'shopify' + '/ami-iyok/orders/unfulfilled/');
+  // Lamar al metodo y pasar como parametro la tienda(es importante que el nombre da la tienda coincida con el nombre en la URL de la tienda de shopify, porque lo utilizaremos para formar la URL)
+  shopify.getUnfulfilledOrdersAndSendToWebService('ami-iyok');
+});
+
+// Cuando el ABC haga post se ejecutara esta funcion para modificar la API de shopify
+router.post( '/shipments/', (req, res) => {
+  console.log('POST request to ' + '/shipments/');
+  // Obtenemos el nombre de la store atraves del idcustomer
+  const store = obtenerCodigoSesionCliente(req.body);
+  shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
+});
+
+router.post( '/ami-iyok/shipments/', (req, res) => {
+  console.log('POST request to ' + '/shipments/');
+  // Obtenemos el nombre de la store atraves del idcustomer
+  const store = obtenerCodigoSesionCliente(req.body);
+  shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store: store });
+});
 
 
 
-// Función para obtener el nombre de la tienda desde la base de datos por IdCustomer
-async function obtenerCodigoSesionCliente(reqBody) {
-  try {
-    const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
 
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
-
-    const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareShopify');
-    const tiendas = result.recordset;
-
-    await db.closeDatabaseConnection(pool);
-
-    for (const idCustomer of idCustomerArray) {
-      const tienda = tiendas.find(t => t.IdCustomer == idCustomer);
-
-      if (tienda) {
-        return tienda.NombreEndpoint;
-      }
-    }
-
-    return 'default';
-  } catch (error) {
-    console.error('Error al obtener la tienda desde la base de datos por IdCustomer:', error);
-    throw error;
+// Funcion para que segun que id customer venga escoja una tienda o otra
+function obtenerCodigoSesionCliente(reqBody) {
+  const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
+  // Verifica si PRINTALOT_IDCUSTOMER está presente en el arreglo
+  const isPrintalotCustomer = idCustomerArray.includes(process.env.PRINTALOT_IDCUSTOMER);
+  const isAmiiyokCustomer = idCustomerArray.includes(process.env.AMI_IYOK_IDCUSTOMER);
+  // Agrega más casos según los tipos de tiendas en tu .env
+  if (isPrintalotCustomer) {
+    return 'printalot-es';
   }
+  else if (isAmiiyokCustomer) {
+    return 'ami-iyok';
+  }
+  return 'default';
 }
 
-module.exports = { router, initDynamicEndpoints, obtenerConfiguracionesTiendas };
+
+module.exports = router;

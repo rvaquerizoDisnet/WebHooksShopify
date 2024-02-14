@@ -4,7 +4,6 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
-const db = require('../utils/database');
 
 require('dotenv').config();
 
@@ -81,41 +80,28 @@ function addToQueue(jobData) {
 }
 
 // Añadir aqui el nombre de la tienda y su ruta asignada en la api
-async function initWebhooks(app, providedUrl) {
-  try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
-
-    // Hacer una consulta a la base de datos para obtener la información de las tiendas
-    const result = await request.query('SELECT NombreEndpoint FROM MiddlewareShopify');
-    const stores = result.recordset;
-
-    // Configurar los webhooks para cada tienda
-    stores.forEach(store => {
-      const ruta = `${providedUrl}${store.NombreEndpoint}/orders/`;
-      app.post(ruta, async (req, res) => {
-        try {
-          const jobData = { tipo: 'orders', req, res, store: store.NombreEndpoint };
-          await handleWebhook(jobData);
-          res.status(200).send('OK');
-        } catch (error) {
-          logger.error('Error al procesar el webhook:', error);
-          res.status(500).send('Internal Server Error');
-        }
-      });
+function initWebhooks(app, providedUrl) {
+  const stores = [
+    { name: 'printalot-es', route: '/printalot/orders/' },
+    { name: 'ami-iyok', route: '/ami-iyok/orders/' },
+  ];
+  stores.forEach(store => {
+    const rutaWebhook = `${providedUrl}${store.route} `;
+    app.post(rutaWebhook, async (req, res) => {
+      try {
+        const jobData = { tipo: 'orders', req, res, store: store.name };
+        console.log("StoreNAME" + store.name)
+        console.log("JObData"+jobData)
+        await handleWebhook(jobData);
+        res.status(200).send('OK');
+      } catch (error) {
+        logger.error('Error al procesar el webhook:', error);
+        res.status(500).send('Internal Server Error');
+      }
     });
-
-    // Establecer un intervalo para procesar la cola
-    setInterval(processQueue, 1000);
-
-    // Cerrar la conexión a la base de datos después de configurar los webhooks
-    await db.closeDatabaseConnection(pool);
-  } catch (error) {
-    console.error('Error al inicializar los webhooks:', error);
-    throw error;
-  }
+  });
+  setInterval(processQueue, 1000);
 }
-
 
 async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
   try {
@@ -123,7 +109,10 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
       if (!res.headersSent) {
         res.status(200).send('OK');
       }
+      console.log("HandleWEBHHOK" + store)
+      console.log("")      
       await handleOrderWebhook(req.body, store);
+      console.log("Producto enviado a HAndleOrderWebhook")
     } else if (tipo === 'shipments') {
       // Lógica para el nuevo evento de albaranes
       // await shopifyAPI.handleShipment(req.body);
@@ -141,7 +130,7 @@ async function handleOrderWebhook(jsonData, store) {
     const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
     console.log("HAndleOrderWebhook: "+ store)
     const response = await enviarDatosAlWebService(xmlData, store);
-
+    console.log("Producto enviado a enviarDatosAlWebService")
     console.log(`Respuesta del servicio web para orders:`, response.data);
   } catch (error) {
     logger.error('Error al procesar el webhook de orders:', error);
@@ -149,40 +138,26 @@ async function handleOrderWebhook(jsonData, store) {
   }
 }
 
+// Define las URL de los servicios web asociadas a cada tienda, este webservice recibe datos para Printalot
+const storeWebServices = {
+  'printalot-es': 'http://192.168.21.15:30000/00GENShopify',
+  'ami-iyok': 'http://192.168.21.15:30000/17AMIShopify',
+};
+
 async function enviarDatosAlWebService(xmlData, store) {
+  console.log('Valor de store en enviarDatosAlWebService:', store);
+  const urlWebService = storeWebServices[store];
+
+  if (!urlWebService) {
+    throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
+  }
+
   try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
-
-    // Hacer una consulta a la base de datos para obtener la URL del servicio web de la tienda
-    // Cambiar urlwebservice por solo el nombre del webservice de abc y construir la ruta con la ip y la url
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT UrlWebService FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
-    
-    const urlWebService = result.recordset[0]?.UrlWebService;
-    
-    // Verificar si urlWebService tiene un valor
-    if (urlWebService) {
-      // Concatenar la variable de entorno al principio
-      const urlWebServiceConVariableEntorno = process.env.webserviceABC + urlWebService;
-      console.log(urlWebServiceConVariableEntorno);
-    } else {
-      console.error('No se encontró un UrlWebService en la base de datos.');
-    }
-
-    // Cerrar la conexión a la base de datos después de obtener la URL
-    await db.closeDatabaseConnection(pool);
-
-    if (!urlWebService) {
-      throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
-    }
-
     const response = await axios.post(urlWebService, xmlData, {
       headers: {
         'Content-Type': 'application/xml',
       },
     });
-
     return response;
   } catch (error) {
     logger.error('Error al enviar datos al servicio web:', error);
@@ -208,22 +183,57 @@ function mapJsonToXml(jsonData, store) {
 
   // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
   let notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
-
   // Add the following lines to handle the case when notasCliente is an empty string
   if (!notasCliente.trim()) {
     notasCliente = 'Sin observaciones';
   }
 
-
+  notasCliente = 'Sin observaciones';
   // Obtener lineas
-  const lineas = jsonData.line_items
+   /*const lineas = jsonData.line_items
     ? jsonData.line_items.map((item, index) => ({
         CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
-        Cantidad: item.quantity || 0,
+        Cantidad: item.quantity || 1,
         NumeroLinea: index + 1,
       }))
     : [];
+*/
 
+    //Codigo para cuando haya mas de una tienda y quieres coger algo de la linea que printalot no necesita
+   
+    let lineas;
+
+    if (store === 'printalot-es') {
+      // Lógica específica para la tienda printalot-es
+      lineas = jsonData.line_items
+        ? jsonData.line_items.map((item, index) => ({
+            CodArticulo: item.sku || `SKU-${index + 1}`,
+            Cantidad: item.quantity || 0,
+            NumeroLinea: index + 1,
+          }))
+        : [];
+      } else if (store === 'ami-iyok') {
+        // Lógica específica para la tienda ami-iyok
+        lineas = jsonData.line_items
+          ? jsonData.line_items.map((item, index) => ({
+              CodArticulo: item.sku || `SKU-${index + 1}`,
+              Cantidad: item.quantity || 0,
+              NumeroLinea: index + 1,
+            })).concat([
+              { CodArticulo: 'SACHETKIT', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 1 }
+            ])
+          : [];
+    } else {
+      // Lógica por defecto para otras tiendas (si es necesario)
+      lineas = jsonData.line_items
+        ? jsonData.line_items.map((item, index) => ({
+            CodArticulo: item.sku || `SKU-${index + 1}`,
+            Cantidad: item.quantity || 0,
+            NumeroLinea: index + 1,
+          }))
+        : [];
+    }
+    
     const lineItems = jsonData.line_items;
 
     // Imprimir todos los elementos en line_items
@@ -269,6 +279,7 @@ function mapJsonToXml(jsonData, store) {
     //En caso que no sea ES el codigo pais asigna el codigo pais tambien a codigo provincia
     codigoProvincia = destinatario.country_code
   }
+
 
    // Asignación del campo Empresa y Nombre
    let nombreDestinatario = destinatario.name || '-';
@@ -318,33 +329,20 @@ function mapJsonToXml(jsonData, store) {
 
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
-async function obtenerCodigoSesionCliente(store) {
-  try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
-
-    // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT SessionCode FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
-    
-    const sessionCode = result.recordset[0]?.SessionCode;
-
-    // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    await db.closeDatabaseConnection(pool);
-
-    if (!sessionCode) {
-      console.log('No se ha podido obtener el SessionCode para la tienda:', store);
-      return 'No se ha podido obtener el SessionCode';
-    }
-
-    console.log(`Cliente: ${store}`);
-    return sessionCode;
-  } catch (error) {
-    console.error('Error al obtener el SessionCode desde la base de datos:', error);
-    throw error;
+function obtenerCodigoSesionCliente(store) {
+  switch (store) {
+    case 'printalot-es':
+      console.log('Cliente: printalot-es');
+      return process.env.PRINTALOT_SESSION_CODE;
+    // Agrega más casos según sea necesario
+    case 'ami-iyok':
+      console.log('Cliente: ami-iyok');
+      return process.env.AMI_IYOK_SESSION_CODE;
+    default:
+      console.log('No se ha podido obtener el codigo');
+      return 'No se ha podido obtener el codigo';
   }
 }
-
 
 // Para pedidos anteriores
 async function sendOrderToWebService(order, store) {
@@ -353,6 +351,7 @@ async function sendOrderToWebService(order, store) {
     // Mapea los datos JSON a XML
     const xmlData = convertirJSToXML(mapJsonToXml(order, store));
 
+    console.log("enviar datos:" + store)
     // Envía los datos al webservice
     await enviarDatosAlWebService(xmlData, store);
 
@@ -366,8 +365,9 @@ async function sendOrderToWebService(order, store) {
 async function getUnfulfilledOrdersAndSendToWebService(store) {
   console.log('Valor de store en getUnfulfilledOrdersAndSendToWebService:', store);
   try {
-    const adminApiAccessToken = await obtenerAccessTokenTienda(store);
-
+    const formattedStore = store.toUpperCase().replace(/-/g, '_');
+    console.log("formated: " + formattedStore)
+    const adminApiAccessToken = process.env[`SHOPIFY_ADMIN_API_ACCESS_TOKEN_${formattedStore}`];
     const response = await axios.get(
       `https://${store}.myshopify.com/admin/api/2024-01/orders.json?status=unfulfilled`,
       {
@@ -396,33 +396,6 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     return unfulfilledOrders;
   } catch (error) {
     console.error('Error al obtener pedidos no cumplidos o enviar al webservice:', error);
-    throw error;
-  }
-}
-
-// Función para obtener el AccessToken desde la base de datos por NombreEndpoint
-async function obtenerAccessTokenTienda(store) {
-  try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
-
-    // Hacer una consulta a la base de datos para obtener el AccessToken de la tienda
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT AccessToken FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
-    
-    const accessToken = result.recordset[0]?.AccessToken;
-
-    // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    await db.closeDatabaseConnection(pool);
-
-    if (!accessToken) {
-      console.log('No se ha podido obtener el AccessToken para la tienda:', store);
-      throw new Error('No se ha podido obtener el AccessToken');
-    }
-
-    return accessToken;
-  } catch (error) {
-    console.error('Error al obtener el AccessToken desde la base de datos:', error);
     throw error;
   }
 }
