@@ -1,4 +1,3 @@
-// database.js
 const mssql = require('mssql');
 require('dotenv').config();
 
@@ -24,6 +23,7 @@ const pool = new mssql.ConnectionPool(config);
 const connectToDatabase = async () => {
   try {
     await pool.connect();
+    console.log('Conexión exitosa a la base de datos.');
     return pool;
   } catch (error) {
     console.error('Error al conectar a la base de datos:', error.message);
@@ -34,17 +34,15 @@ const connectToDatabase = async () => {
 const closeDatabaseConnection = async () => {
   try {
     await pool.close();
+    console.log('Conexión cerrada correctamente.');
   } catch (error) {
     console.error('Error al cerrar la conexión:', error.message);
   }
 };
 
-const executeQuery = async (query) => {
-  const pool = await connectToDatabase();
-  const request = pool.request();
-  const result = await request.query(query);
+process.on('SIGTERM', async () => {
   await closeDatabaseConnection();
-  return result;
-};
+  process.exit(0);
+});
 
-module.exports = { connectToDatabase, closeDatabaseConnection, executeQuery, pool, sql: mssql };
+module.exports = { connectToDatabase, closeDatabaseConnection, pool };
