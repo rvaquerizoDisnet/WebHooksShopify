@@ -90,7 +90,8 @@ async function initWebhooks(app, providedUrl) {
     const result = await request.query('SELECT NombreEndpoint FROM MiddlewareWooCommerce');
     console.log("Result:", result)
     const stores = result.recordset;
-    console.log("Stores:" + stores)
+    console.log("Stores:", stores);
+
 
     // Configurar los webhooks para cada tienda
     stores.forEach(store => {
