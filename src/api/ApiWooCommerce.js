@@ -87,6 +87,7 @@ router.delete('/clientes/:id', verificarToken, async (req, res) => {
 
 
 async function initDynamicEndpoints() {
+  console.log("Ha llegado a initDynamicEndpoints")
   const stores = await obtenerConfiguracionesTiendas();
   console.log("Configuraciones de tiendas:", stores);
   stores.forEach(store => {
