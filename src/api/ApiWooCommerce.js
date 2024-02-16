@@ -88,6 +88,7 @@ router.delete('/clientes/:id', verificarToken, async (req, res) => {
 
 async function initDynamicEndpoints() {
   const stores = await obtenerConfiguracionesTiendas();
+  console.log("Configuraciones de tiendas:", stores);
   stores.forEach(store => {
     const webhookRoute = `/${store.NombreEndpoint}/`;
 
@@ -131,13 +132,18 @@ async function initDynamicEndpoints() {
 async function obtenerConfiguracionesTiendas() {
   try {
     const query = 'SELECT * FROM MiddlewareWooCommerce';
+    console.log("Query:", query); // Agregar esta línea para verificar la consulta SQL
+    
     const result = await db.executeQuery(query);
+    console.log("Resultado de la consulta:", result); // Agregar esta línea para verificar el resultado de la consulta
+
     return result.recordset;
   } catch (error) {
     console.error('Error al obtener la configuración de las tiendas de WooCommerce:', error);
     throw error;
   }
 }
+
 
 // Función para obtener el nombre de la tienda desde la base de datos por IdCustomer
 async function obtenerCodigoSesionCliente(reqBody) {
