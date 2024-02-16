@@ -49,6 +49,13 @@ app.use((err, req, res, next) => {
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
 
+shopify.initWebhooks(app, providedUrl);
+
+apiRouter.initDynamicEndpoints();  
+
+woocommerce.initWebhooks(app, providedUrl);
+
+woocommerceRouter.initDynamicEndpoints();
 
 // Configurar CORS
 app.use(cors());
@@ -59,21 +66,14 @@ const server = app.listen(port, async () => {
   try {
     // Conectarse a la base de datos al iniciar el servidor
     const pool = await connectToDatabase();
-
+    console.log(`Servidor escuchando en http://localhost:${port}`);
 
   } catch (error) {
     console.error('Error al iniciar el servidor:', error.message);
     process.exit(1);
   }
 });
-shopify.initWebhooks(app, providedUrl);
 
-apiRouter.initDynamicEndpoints();  
-
-woocommerce.initWebhooks(app, providedUrl);
-
-woocommerceRouter.initDynamicEndpoints();
-console.log(`Servidor escuchando en http://localhost:${port}`);
 
 // Manejar eventos de cierre para cerrar correctamente el servidor
 process.on('SIGTERM', () => {
