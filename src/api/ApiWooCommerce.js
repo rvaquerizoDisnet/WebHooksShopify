@@ -104,7 +104,7 @@ async function initDynamicEndpoints() {
     });
 
     // Configurar el endpoint para obtener pedidos no cumplidos
-    router.get(`${rutaWebhook}orders/unfulfilled`, async (req, res) => {
+    router.get(`${webhookRoute}orders/unfulfilled`, async (req, res) => {
         try {
             await woocommerce.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
             res.status(200).send('OK');
@@ -115,7 +115,7 @@ async function initDynamicEndpoints() {
         });
     
         // Configurar el endpoint para manejar envíos POST
-        router.post(`${rutaWebhook}shipments`, async (req, res) => {
+        router.post(`${webhookRoute}shipments`, async (req, res) => {
         try {
             const store = await obtenerCodigoSesionCliente(req.body);
             await woocommerceAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
