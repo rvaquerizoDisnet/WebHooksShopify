@@ -131,7 +131,6 @@ async function initDynamicEndpoints() {
 }
 
 async function obtenerConfiguracionesTiendas() {
-  try {
     const query = 'SELECT * FROM MiddlewareWooCommerce';
     console.log("Query:", query); // Agregar esta línea para verificar la consulta SQL
     
@@ -139,10 +138,7 @@ async function obtenerConfiguracionesTiendas() {
     console.log("Resultado de la consulta:", result); // Agregar esta línea para verificar el resultado de la consulta
 
     return result.recordset;
-  } catch (error) {
-    console.error('Error al obtener la configuración de las tiendas de WooCommerce:', error);
-    throw error;
-  }
+  
 }
 
 
