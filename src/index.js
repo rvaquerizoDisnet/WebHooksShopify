@@ -59,21 +59,21 @@ const server = app.listen(port, async () => {
   try {
     // Conectarse a la base de datos al iniciar el servidor
     const pool = await connectToDatabase();
-    // Inicializar los endpoints con la URL pública
-    shopify.initWebhooks(app, providedUrl);
 
-    apiRouter.initDynamicEndpoints();  
-
-    woocommerce.initWebhooks(app, providedUrl);
-
-    woocommerceRouter.initDynamicEndpoints();
-    console.log(`Servidor escuchando en http://localhost:${port}`);
 
   } catch (error) {
     console.error('Error al iniciar el servidor:', error.message);
     process.exit(1);
   }
 });
+shopify.initWebhooks(app, providedUrl);
+
+apiRouter.initDynamicEndpoints();  
+
+woocommerce.initWebhooks(app, providedUrl);
+
+woocommerceRouter.initDynamicEndpoints();
+console.log(`Servidor escuchando en http://localhost:${port}`);
 
 // Manejar eventos de cierre para cerrar correctamente el servidor
 process.on('SIGTERM', () => {
