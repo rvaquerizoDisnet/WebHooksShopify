@@ -25,26 +25,6 @@ app.use(bodyParser.text({ type: 'application/xml' }));
 
 app.use(cookieParser());
 
-const obtenerRutasDinamicas = async () => {
-  const dynamicRoutes = [];
-
-  const stores = await obtenerConfiguracionesTiendas();
-
-  stores.forEach(store => {
-    const rutaWebhook = `/${store.NombreEndpoint}/orders`;
-    dynamicRoutes.push(rutaWebhook);
-    const rutaShipments = `/${store.NombreEndpoint}/shipments/`;
-    dynamicRoutes.push(rutaShipments);
-  });
-
-  return dynamicRoutes;
-};
-
-const getProtectedRoutes = async () => {
-  const protectedRoutes = await obtenerRutasDinamicas();
-  return protectedRoutes;
-};
-
 
 app.use('/shopify', apiRouter.router);
 app.use('/gls', glsRouter);
@@ -68,7 +48,6 @@ app.use((err, req, res, next) => {
 
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
-
 
 
 // Configurar CORS

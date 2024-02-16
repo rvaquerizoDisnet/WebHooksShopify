@@ -88,7 +88,9 @@ async function initWebhooks(app, providedUrl) {
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
     const result = await request.query('SELECT NombreEndpoint FROM MiddlewareWooCommerce');
+    console.log("Result:", result)
     const stores = result.recordset;
+    console.log("Stores:" + stores)
 
     // Configurar los webhooks para cada tienda
     stores.forEach(store => {
