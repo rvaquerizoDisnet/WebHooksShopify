@@ -1,4 +1,5 @@
-/*const fs = require('fs');
+const { execSync } = require('child_process');
+const fs = require('fs');
 const axios = require('axios');
 const sql = require('mssql');
 const { connectToDatabase, closeDatabaseConnection } = require('../utils/database');
@@ -6,20 +7,67 @@ const xml2js = require('xml2js');
 const cron = require('node-cron');
 require('dotenv').config();
 
-// Programa las tareas cron
-//cron.schedule('30 * * * *', async () => {
-    // Consultar pedidos cada 30 minutos
-    console.log('Ejecutando consulta a GLS cada 30 minutos...');
 
-    // Configurar los valores de uidCliente y codigo
-    const uidCliente = process.env.UID_CLIENTE;
-    const codigo = "2ab821a4-a5c9-46e9-9fd1-1226af825585";
 
-    await consultarPedidoPeriodico(uidCliente, codigo);
+/*cron.schedule('0 7 * * *', async () => {
+    // Ejecutar consultas a las 7:00
+    console.log('Ejecutando consulta a GLS a las 7:00');
+
+    try {
+        // Conectar a la base de datos
+        const pool = await connectToDatabase();
+
+        // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
+        const query = `
+            SELECT uid_cliente, departamento_exp
+            FROM MiddlewareGLS;
+        `;
+        const result = await pool.query(query);
+
+        // Recorrer los resultados y realizar las consultas a GLS para cada registro
+        for (const row of result.recordset) {
+            await consultarPedidosGLSYActualizar(pool, row.uid_cliente, row.departamento_exp);
+        }
+
+        // Cerrar la conexión a la base de datos
+        await closeDatabaseConnection();
+    } catch (error) {
+        console.error('Error al ejecutar la consulta a GLS:', error);
+    }
 });
 
+*/
+
+
+// Función para consultar pedidos a GLS y actualizar la base de datos
+async function consultarPedidosGLSYActualizar(pool, uidCliente, departamentoExp) {
+    try {
+        // Obtener la fecha de ayer
+        const fechaAyer = new Date();
+        fechaAyer.setDate(fechaAyer.getDate() - 1);
+        const fechaAyerStr = fechaAyer.toISOString().split('T')[0]; // Formato de fecha YYYY-MM-DD
+
+        // Conectar al archivo Access
+        // Leer el archivo access que esta en la ruta /shares/GLS/data/expediciones.mdb
+
+        // Consultar los registros del día anterior con el departamento_exp correspondiente
+        const pedidosDiaAnterior = await connection.query(`SELECT referencia_exp, departamento_exp, identificador_exp FROM tabla_access WHERE fechaTransmision_exp = '${fechaAyerStr}' AND departamento_exp = '${departamentoExp}'`);
+
+        // Realizar consulta al webservice de GLS para cada pedido
+        for (const pedido of pedidosDiaAnterior) {
+            await consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
+        }
+
+        console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
+    } catch (error) {
+        console.error('Error al consultar pedidos y actualizar la base de datos:', error);
+    }
+}
+
+
+
 // Función para consultar pedidos
-async function consultarPedidoGLS(uidCliente, codigo) {
+async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
     const url = process.env.GLS_URL;
     const xmlBody = `
         <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
@@ -39,110 +87,68 @@ async function consultarPedidoGLS(uidCliente, codigo) {
         });
 
         const xmlData = response.data;
-        //console.log('Respuesta XML de GLS:', xmlData);
-
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
         const volumen = await parsearVolumenDesdeXML(xmlData);
 
-        //console.log('Peso:', peso);
-        //console.log('Volumen:', volumen);
-
-        // Actualizar la base de datos si es necesario
-        await actualizarBaseDeDatos(codigo, peso, volumen);
+        await actualizarBaseDeDatos(OrderNumber, peso, volumen);
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
         throw error;
     }
 }
 
-// Función para consultar pedidos cada 30 minutos
-async function consultarPedidoPeriodico(uidCliente, codigo) {
-    // Lógica para consultar pedidos
-    // Por ejemplo, puedes llamar a consultarPedidoGLS con los parámetros necesarios
-    await consultarPedidoGLS(uidCliente, codigo);
-}
 
-// Función para actualizar la base de datos
-async function actualizarBaseDeDatos(codigo, peso, volumen) {
+async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
     let pool;
     try {
         // Conectar a la base de datos
         pool = await connectToDatabase();
 
-        // Consultar valores actuales
-        const queryConsulta = `
-            SELECT nFree7, nFree8
-            FROM CabeceraPedidoTest
-            WHERE OrderNumber = '1234561007';
+        // Consultar el IdOrder relacionado con el OrderNumber
+        const queryConsultaIdOrder = `
+            SELECT IdOrder
+            FROM OrderHeader
+            WHERE OrderNumber = @OrderNumber;
         `;
 
-        const requestConsulta = pool.request();
+        const requestConsultaIdOrder = pool.request();
+        requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber);
 
-        const resultConsulta = await requestConsulta.query(queryConsulta);
+        const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
 
-        const existeFila = resultConsulta.recordset.length > 0;
-        if (!existeFila) {
-            console.log('La fila con OrderNumber no existe en la base de datos.');
+        if (resultConsultaIdOrder.recordset.length === 0) {
+            console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
             return;
         }
 
-        const pesoActual = resultConsulta.recordset[0]?.nFree7;
-        const volumenActual = resultConsulta.recordset[0]?.nFree8;
+        const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
 
-        console.log('Antes de la actualización - Peso:', pesoActual, 'Volumen:', volumenActual);
+        // Actualizar la tabla DeliveryNoteHeader con el IdOrder correspondiente
+        const requestUpdate = pool.request();
+        const queryUpdate = `
+            UPDATE DeliveryNoteHeader
+            SET Weight = @peso, Displacement = @volumen
+            WHERE IdOrder = @IdOrder;
+        `;
 
-        // Verificar si la actualización es necesaria
-        if (peso !== null && volumen !== null) {
-            // Tomar el primer elemento de cada arreglo y convertir ',' a '.' antes de parsear
-            const pesoNumerico = parseFloat(peso[0]?.replace(',', '.')) || 0.0;
-            const volumenNumerico = parseFloat(volumen[0]?.replace(',', '.')) || 0.0;
-            console.log('Tipo de dato del volumen antes de la actualización:', typeof volumenNumerico);
-            console.log('Valores a insertar - Peso:', peso, 'Volumen:', volumen);
+        requestUpdate.input('peso', sql.Decimal(18, 8), peso);
+        requestUpdate.input('volumen', sql.Decimal(18, 8), volumen);
+        requestUpdate.input('IdOrder', sql.Int, IdOrder);
 
+        await requestUpdate.query(queryUpdate);
 
-            if (!isNaN(pesoNumerico) && !isNaN(volumenNumerico)) {
-                const request = pool.request();
-
-                const query = `
-                    UPDATE CabeceraPedidoTest
-                    SET nFree7 = @peso, nFree8 = @volumen
-                    WHERE OrderNumber = '1234561007';
-                `;
-
-                // Añadir parámetros a la solicitud
-                request.input('peso', sql.Decimal(18, 8), peso);
-                request.input('volumen', sql.Decimal(18, 8), volumen);
-
-
-                const resultUpdate = await request.query(query);
-
-                if (resultUpdate.rowsAffected[0] === 0) {
-                    console.log('La actualización no afectó a ninguna fila.');
-                }
-
-                // Consultar los valores actualizados después de la actualización
-                const resultConsultaActualizado = await requestConsulta.query(queryConsulta);
-
-                // Mostrar cómo están los campos después de la actualización
-                console.log('Después de la actualización - Peso:', resultConsultaActualizado.recordset[0]?.nFree7, 'Volumen:', resultConsultaActualizado.recordset[0]?.nFree8);
-                console.log('Base de datos actualizada correctamente.');
-            } else {
-                console.log('Los valores de peso y/o volumen no son numéricos válidos. No se puede realizar la actualización.');
-            }
-        } else {
-            console.log('Los valores de peso y volumen no son válidos o están ausentes. No es necesaria la actualización.');
-        }
+        console.log('Base de datos actualizada correctamente.');
     } catch (error) {
         console.error('Error al actualizar la base de datos:', error.message);
     } finally {
-        // Cerrar la conexión (si se ha creado)
         if (pool) {
             await pool.close();
             console.log('Conexión cerrada correctamente.');
         }
     }
 }
+
 
 // Función para parsear el peso desde XML
 async function parsearPesoDesdeXML(xmlData) {
@@ -165,8 +171,6 @@ async function parsearPesoDesdeXML(xmlData) {
             parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp']
         ) {
             const expediciones = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'];
-            //console.log("Expediciones:", expediciones);
-
             const peso = parseFloat(expediciones[0]?.['kgs'][0]?.replace(',', '.')) || 0.0;
             console.log("Peso parseado:", peso);
             return peso;
@@ -203,13 +207,9 @@ async function parsearVolumenDesdeXML(xmlData) {
             parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0] &&
             parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp']
         ) {
-            // Acceder a la información del volumen
             const expediciones = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'];
             const volumen = parseFloat(expediciones[0]?.['vol'][0]?.replace(',', '.')) || 0.0;
-
-            // Después de la línea que obtiene el volumen desde el XML
             console.log('Volumen parseado:', volumen);
-
             return volumen;
         } else {
             // Mostrar un mensaje de error si la propiedad no está presente
@@ -222,5 +222,4 @@ async function parsearVolumenDesdeXML(xmlData) {
     }
 }
 
-module.exports = { consultarPedidoGLS, consultarPedidoPeriodico };
-*/
+module.exports = { consultarPedidoGLS };

@@ -1,27 +1,25 @@
-// authMiddleware.js
+// authenticationMiddleware.js
 const jwt = require('jsonwebtoken');
 
-const protegerRuta = (rolesPermitidos) => {
-  return (req, res, next) => {
-    const token = req.header('Authorization');
-
-    if (!token) {
-      return res.redirect('/users/redirectLogin?mensaje=Debes iniciar sesión para acceder a esta página.');
-    }
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      if (rolesPermitidos.includes(decoded.usuario.rol)) {
-        req.usuario = decoded.usuario;
-        next();
-      } else {
-        res.status(403).json({ mensaje: 'Acceso prohibido. No tienes los permisos necesarios.' });
-      }
-    } catch (error) {
-      res.status(401).json({ mensaje: 'Token no válido.' });
-    }
-  };
+const generarToken = (usuario) => {
+  return jwt.sign({ usuario }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
-module.exports = { protegerRuta };
+const verificarToken = (req, res, next) => {
+  const token = req.cookies.token;
+  const errorMessage = encodeURIComponent('Se requiere iniciar sesión para acceder a esta ruta.');
+  const errorMessage2 = encodeURIComponent('Su sesión a expirado, vuelva a iniciar sesión.');
+  if (!token) {
+    res.redirect(`/users/login?error=${errorMessage}`);
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.usuario = decoded.usuario;
+    next();
+  } catch (error) {
+    res.redirect(`/users/login?error=${errorMessage2}`);
+  }
+};
+
+module.exports = { generarToken, verificarToken };

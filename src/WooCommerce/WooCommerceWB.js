@@ -87,7 +87,7 @@ async function initWebhooks(app, providedUrl) {
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
-    const result = await request.query('SELECT NombreEndpoint FROM MiddlewareShopify');
+    const result = await request.query('SELECT NombreEndpoint FROM MiddlewareWooCommerce');
     const stores = result.recordset;
 
     // Configurar los webhooks para cada tienda
@@ -125,8 +125,6 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
       }
       await handleOrderWebhook(req.body, store);
     } else if (tipo === 'shipments') {
-      // Lógica para el nuevo evento de albaranes
-      // await shopifyAPI.handleShipment(req.body);
     } else {
       console.error(`Tipo de webhook no reconocido: ${tipo}`);
     }
@@ -139,7 +137,6 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
 async function handleOrderWebhook(jsonData, store) {
   try {
     const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
-    console.log("HAndleOrderWebhook: "+ store)
     const response = await enviarDatosAlWebService(xmlData, store);
 
     console.log(`Respuesta del servicio web para orders:`, response.data);
@@ -154,10 +151,8 @@ async function enviarDatosAlWebService(xmlData, store) {
     const pool = await db.connectToDatabase();
     const request = pool.request();
 
-    // Hacer una consulta a la base de datos para obtener la URL del servicio web de la tienda
-    // Cambiar urlwebservice por solo el nombre del webservice de abc y construir la ruta con la ip y la url
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT UrlWebService FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
+      .query('SELECT UrlWebService FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
     
     const urlWebService = result.recordset[0]?.UrlWebService;
     
@@ -202,36 +197,21 @@ function convertirJSToXML(data) {
   }
 }
 
-// Mapea los datos JSON a XML
+// Cambir esto cuando sepamos como es la estructura de datos
 function mapJsonToXml(jsonData, store) {
-  const destinatario = jsonData.shipping_address || {};
+  const destinatario = jsonData.shipping || {};
 
-  // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
-  let notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
 
-  // Add the following lines to handle the case when notasCliente is an empty string
-  if (!notasCliente.trim()) {
-    notasCliente = 'Sin observaciones';
-  }
+  // Obtener los detalles del pedido
+  const lineItems = jsonData.line_items || [];
 
-  notasCliente = 'Sin observaciones';
-  // Obtener lineas
-  const lineas = jsonData.line_items
-    ? jsonData.line_items.map((item, index) => ({
-        CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
-        Cantidad: item.quantity || 0,
-        NumeroLinea: index + 1,
-      }))
-    : [];
+  // Mapear los elementos de la línea de artículos
+  const mappedLineItems = lineItems.map((item, index) => ({
+    CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
+    Cantidad: item.quantity || 0,
+    NumeroLinea: index + 1,
+  }));
 
-    const lineItems = jsonData.line_items;
-
-    // Imprimir todos los elementos en line_items
-    lineItems.forEach((item, index) => {
-      console.log(`Item ${index + 1}:`);
-      console.log(JSON.stringify(item, null, 2));
-      console.log("---------------------------");
-    });
 
   // Función para formatear la fecha
   function formatDate(dateString) {
@@ -258,10 +238,10 @@ function mapJsonToXml(jsonData, store) {
   }
 
   // Obtener el código de provincia según el código de país
-  let codigoProvincia = destinatario.province_code || '-';
+  let codigoProvincia = destinatario.state || '-';
 
   // Modificar el código de provincia si el país es ES (España)
-  if (destinatario.country_code === 'ES') {
+  if (destinatario.country === 'ES') {
     // Asignar los dos primeros dígitos del código postal como código de provincia
     codigoProvincia = destinatario.zip.substring(0, 2);
   }
@@ -284,10 +264,10 @@ function mapJsonToXml(jsonData, store) {
     Pedidos: {
       Sesion_Cliente: obtenerCodigoSesionCliente(store),
       Pedido: {
-        OrderNumber: `#${jsonData.order_number || '-'}`,
+        OrderNumber: `#${jsonData.number || 'No encontrado'}`,
         FechaPedido: formattedFechaPedido,
-        OrderCustomer: `#${jsonData.order_number || '-'}`,
-        ObservAgencia: notasCliente,
+        OrderCustomer: `#${jsonData.number || 'No encontrado'}`,
+        ObservAgencia: 'Sin observaciones',
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
@@ -296,14 +276,14 @@ function mapJsonToXml(jsonData, store) {
           Direccion: direccion1,
           // Incluir Direccion2 solo si no es nulo
           ...(direccion2 !== null && { Direccion2: direccion2 }),
-          PaisCod: destinatario.country_code || '-',
+          PaisCod: destinatario.country || 'No encontrado',
           ProvinciaCod: codigoProvincia,
-          CodigoPostal: destinatario.zip || '-',
-          Poblacion: destinatario.city || '-',
-          CodigoDestinatario: jsonData.number || '-',
-          Phone: destinatario.phone || '-',
-          Mobile: destinatario.phone || '-',
-          Email: jsonData.email || '-',
+          CodigoPostal: destinatario.postcode || 'No encontrado',
+          Poblacion: destinatario.city || 'No encontrado',
+          CodigoDestinatario: jsonData.number || 'No encontrado',
+          Phone: jsonData.billing.phone || 'No proporcionado',
+          Mobile: jsonData.billing.phone || 'No proporcionado',
+          Email: jsonData.billing.email || 'No proporcionado',
         },
         Lineas: {
           Linea: lineas,
@@ -325,7 +305,7 @@ async function obtenerCodigoSesionCliente(store) {
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT SessionCode FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
+      .query('SELECT SessionCode FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
     
     const sessionCode = result.recordset[0]?.SessionCode;
 
@@ -365,8 +345,9 @@ async function sendOrderToWebService(order, store) {
 
 async function getUnfulfilledOrdersAndSendToWebService(store) {
   console.log('Valor de store en getUnfulfilledOrdersAndSendToWebService:', store);
-  try {
-    const adminApiAccessToken = await obtenerAccessTokenTienda(store);
+  /*try {
+    //Cambiar esto para obtenerSecretsTienda
+    const adminApiAccessToken = await obtenerSecretsTienda(store);
 
     const response = await axios.get(
       `https://${store}.myshopify.com/admin/api/2024-01/orders.json?status=unfulfilled`,
@@ -397,35 +378,36 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
   } catch (error) {
     console.error('Error al obtener pedidos no cumplidos o enviar al webservice:', error);
     throw error;
-  }
+  }*/
 }
 
-// Función para obtener el AccessToken desde la base de datos por NombreEndpoint
-async function obtenerAccessTokenTienda(store) {
-  try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
-
-    // Hacer una consulta a la base de datos para obtener el AccessToken de la tienda
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT AccessToken FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
-    
-    const accessToken = result.recordset[0]?.AccessToken;
-
-    // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    await db.closeDatabaseConnection(pool);
-
-    if (!accessToken) {
-      console.log('No se ha podido obtener el AccessToken para la tienda:', store);
-      throw new Error('No se ha podido obtener el AccessToken');
+async function obtenerSecretsTienda(store) {
+    try {
+      const pool = await db.connectToDatabase();
+      const request = pool.request();
+  
+      // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
+      const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+        .query('SELECT ApiSecret, ApiKey FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
+      
+      const ApiSecret = result.recordset[0]?.ApiSecret;
+      const ApiKey = result.recordset[0]?.ApiKey;
+  
+      // Cerrar la conexión a la base de datos después de obtener la información necesaria
+      await db.closeDatabaseConnection(pool);
+  
+      if (!ApiSecret || !ApiKey) {
+        console.log('No se ha podido obtener el ApiKey o el ApiSecret para la tienda:', store);
+        throw new Error('No se ha podido obtener el Secrets');
+      }
+  
+      return { ApiSecret, ApiKey };
+    } catch (error) {
+      console.error('Error al obtener los Secrets desde la base de datos:', error);
+      throw error;
     }
-
-    return accessToken;
-  } catch (error) {
-    console.error('Error al obtener el AccessToken desde la base de datos:', error);
-    throw error;
   }
-}
+  
 
 
 //Exporta los modulos
