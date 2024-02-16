@@ -95,7 +95,7 @@ async function initDynamicEndpoints() {
     router.post(`${webhookRoute}orders`, async (req, res) => {
       try {
         const jobData = { tipo: 'orders', req, res, store: store.NombreEndpoint };
-        await woocommerce.handleWebhook(jobData);
+        //await woocommerce.handleWebhook(jobData);
         res.status(200).send('OK');
       } catch (error) {
         console.error('Error al procesar el webhook:', error);
@@ -106,7 +106,7 @@ async function initDynamicEndpoints() {
     // Configurar el endpoint para obtener pedidos no cumplidos
     router.get(`${webhookRoute}orders/unfulfilled`, async (req, res) => {
         try {
-            await woocommerce.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
+            //await woocommerce.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
             res.status(200).send('OK');
         } catch (error) {
             console.error('Error al obtener pedidos no cumplidos o enviar al webservice:', error);
@@ -118,7 +118,7 @@ async function initDynamicEndpoints() {
         router.post(`${webhookRoute}shipments`, async (req, res) => {
         try {
             const store = await obtenerCodigoSesionCliente(req.body);
-            await woocommerceAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
+            //await woocommerceAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
         } catch (error) {
             console.error('Error al procesar el envío:', error);
             res.status(500).send('Internal Server Error');
