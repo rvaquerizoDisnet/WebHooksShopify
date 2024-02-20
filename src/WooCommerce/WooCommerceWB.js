@@ -5,8 +5,6 @@ const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
 const db = require('../utils/database');
-const mssql = require('mssql');
-
 
 require('dotenv').config();
 
@@ -82,18 +80,17 @@ function addToQueue(jobData) {
   processQueue();
 }
 
-// Añadir aqui el nombre de la tienda y su ruta asignada en la api
 async function initWebhooks(app, providedUrl) {
   try {
     const pool = await db.connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
-    const result = await request.query('SELECT NombreEndpoint FROM MiddlewareShopify');
+    const result = await request.query('SELECT NombreEndpoint FROM MiddlewareWooCommerce');
     const stores = result.recordset;
 
-    // Configurar los webhooks para cada tienda
-    stores.forEach(store => {
+    // Configurar los webhooks para cada tienda usando un bucle for...of
+    for (const store of stores) {
       const ruta = `${providedUrl}${store.NombreEndpoint}/orders/`;
       app.post(ruta, async (req, res) => {
         try {
@@ -105,7 +102,7 @@ async function initWebhooks(app, providedUrl) {
           res.status(500).send('Internal Server Error');
         }
       });
-    });
+    }
 
     // Establecer un intervalo para procesar la cola
     setInterval(processQueue, 1000);
@@ -119,6 +116,7 @@ async function initWebhooks(app, providedUrl) {
 }
 
 
+
 async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
   try {
     if (tipo === 'orders') {
@@ -127,8 +125,6 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
       }
       await handleOrderWebhook(req.body, store);
     } else if (tipo === 'shipments') {
-      // Lógica para el nuevo evento de albaranes
-      // await shopifyAPI.handleShipment(req.body);
     } else {
       console.error(`Tipo de webhook no reconocido: ${tipo}`);
     }
@@ -140,8 +136,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
 
 async function handleOrderWebhook(jsonData, store) {
   try {
-    const xmlData = convertirJSToXML(jsonData, store);
-    console.log("HAndleOrderWebhook: "+ store)
+    const xmlData = convertirJSToXML(mapJsonToXml(jsonData, store));
     const response = await enviarDatosAlWebService(xmlData, store);
 
     console.log(`Respuesta del servicio web para orders:`, response.data);
@@ -156,40 +151,33 @@ async function enviarDatosAlWebService(xmlData, store) {
     const pool = await db.connectToDatabase();
     const request = pool.request();
 
-    // Hacer una consulta a la base de datos para obtener la URL del servicio web de la tienda
-    // Cambiar urlwebservice por solo el nombre del webservice de abc y construir la ruta con la ip y la url
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT UrlWebService FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
+      .query('SELECT UrlWebService FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
     
     const urlWebService = result.recordset[0]?.UrlWebService;
-
     
-    
-    let urlWebServiceConVariableEntorno;
-
+    // Verificar si urlWebService tiene un valor
     if (urlWebService) {
       // Concatenar la variable de entorno al principio
-      urlWebServiceConVariableEntorno = process.env.webserviceABC + urlWebService;
+      const urlWebServiceConVariableEntorno = process.env.webserviceABC + urlWebService;
       console.log(urlWebServiceConVariableEntorno);
     } else {
       console.error('No se encontró un UrlWebService en la base de datos.');
     }
-    
+
     // Cerrar la conexión a la base de datos después de obtener la URL
     await db.closeDatabaseConnection(pool);
-    
-    if (!urlWebServiceConVariableEntorno) {
+
+    if (!urlWebService) {
       throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
     }
-    
-    const response = await axios.post(urlWebServiceConVariableEntorno, xmlData, {
+
+    const response = await axios.post(urlWebService, xmlData, {
       headers: {
         'Content-Type': 'application/xml',
       },
     });
 
-    console.log('Respuesta del servicio web:', response.data);
-    
     return response;
   } catch (error) {
     logger.error('Error al enviar datos al servicio web:', error);
@@ -197,11 +185,10 @@ async function enviarDatosAlWebService(xmlData, store) {
   }
 }
 
-async function convertirJSToXML(data, store) {
+function convertirJSToXML(data) {
   try {
-    const xmlObject = await mapJsonToXml(data, store);
     const builder = new xml2js.Builder();
-    const xml = builder.buildObject(xmlObject);
+    const xml = builder.buildObject(data);
     console.log('XML convertido:', xml);
     return xml;
   } catch (error) {
@@ -210,43 +197,21 @@ async function convertirJSToXML(data, store) {
   }
 }
 
-// Mapea los datos JSON a XML
-async function mapJsonToXml(jsonData, store) {
-  const sc = await obtenerCodigoSesionCliente(store)
-  console.log('sc', sc)
-  const destinatario = jsonData.shipping_address || {};
+// Cambir esto cuando sepamos como es la estructura de datos
+function mapJsonToXml(jsonData, store) {
+  const destinatario = jsonData.shipping || {};
 
-  // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
-  let notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
 
-  // Add the following lines to handle the case when notasCliente is an empty string
-  if (!notasCliente.trim()) {
-    notasCliente = 'Sin observaciones';
-  }
+  // Obtener los detalles del pedido
+  const lineItems = jsonData.line_items || [];
 
-  notasCliente = 'Sin observaciones';
+  // Mapear los elementos de la línea de artículos
+  const mappedLineItems = lineItems.map((item, index) => ({
+    CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
+    Cantidad: item.quantity || 0,
+    NumeroLinea: index + 1,
+  }));
 
-  let lineas;
-  // Obtener lineas
-  if (store == 'ami-iyok'){
-    lineas = jsonData.line_items
-    ? jsonData.line_items.map((item, index) => ({
-        CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
-        Cantidad: item.quantity || 0,
-        NumeroLinea: index + 1,
-      })).concat([{
-        CodArticulo: 'SACHETKIT', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 1
-      }])
-    : [];
-  }else{
-    lineas = jsonData.line_items
-    ? jsonData.line_items.map((item, index) => ({
-        CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
-        Cantidad: item.quantity || 0,
-        NumeroLinea: index + 1,
-      }))
-    : [];
-  }
 
   // Función para formatear la fecha
   function formatDate(dateString) {
@@ -273,10 +238,10 @@ async function mapJsonToXml(jsonData, store) {
   }
 
   // Obtener el código de provincia según el código de país
-  let codigoProvincia = destinatario.province_code || '-';
+  let codigoProvincia = destinatario.state || '-';
 
   // Modificar el código de provincia si el país es ES (España)
-  if (destinatario.country_code === 'ES') {
+  if (destinatario.country === 'ES') {
     // Asignar los dos primeros dígitos del código postal como código de provincia
     codigoProvincia = destinatario.zip.substring(0, 2);
   }
@@ -297,12 +262,12 @@ async function mapJsonToXml(jsonData, store) {
   // Crear el objeto XML sin incluir Direccion2 si es nulo
   const xmlObject = {
     Pedidos: {
-      Sesion_Cliente: sc,
+      Sesion_Cliente: obtenerCodigoSesionCliente(store),
       Pedido: {
-        OrderNumber: `#${jsonData.order_number || '-'}`,
+        OrderNumber: `#${jsonData.number || 'No encontrado'}`,
         FechaPedido: formattedFechaPedido,
-        OrderCustomer: `#${jsonData.order_number || '-'}`,
-        ObservAgencia: notasCliente,
+        OrderCustomer: `#${jsonData.number || 'No encontrado'}`,
+        ObservAgencia: 'Sin observaciones',
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
@@ -311,14 +276,14 @@ async function mapJsonToXml(jsonData, store) {
           Direccion: direccion1,
           // Incluir Direccion2 solo si no es nulo
           ...(direccion2 !== null && { Direccion2: direccion2 }),
-          PaisCod: destinatario.country_code || '-',
+          PaisCod: destinatario.country || 'No encontrado',
           ProvinciaCod: codigoProvincia,
-          CodigoPostal: destinatario.zip || '-',
-          Poblacion: destinatario.city || '-',
-          CodigoDestinatario: jsonData.number || '-',
-          Phone: destinatario.phone || '-',
-          Mobile: destinatario.phone || '-',
-          Email: jsonData.email || '-',
+          CodigoPostal: destinatario.postcode || 'No encontrado',
+          Poblacion: destinatario.city || 'No encontrado',
+          CodigoDestinatario: jsonData.number || 'No encontrado',
+          Phone: jsonData.billing.phone || 'No proporcionado',
+          Mobile: jsonData.billing.phone || 'No proporcionado',
+          Email: jsonData.billing.email || 'No proporcionado',
         },
         Lineas: {
           Linea: lineas,
@@ -334,18 +299,15 @@ async function mapJsonToXml(jsonData, store) {
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
-  console.log("Store en obtenerCodigoSesionCliente:" + store)
   try {
     const pool = await db.connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT SessionCode FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
-
+      .query('SELECT SessionCode FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
     
     const sessionCode = result.recordset[0]?.SessionCode;
-    console.log("sessionCode en obtenerCodigoSesionCliente:" + sessionCode)
 
     // Cerrar la conexión a la base de datos después de obtener la información necesaria
     await db.closeDatabaseConnection(pool);
@@ -356,7 +318,6 @@ async function obtenerCodigoSesionCliente(store) {
     }
 
     console.log(`Cliente: ${store}`);
-    console.log(`sessionCode: ${sessionCode}`)
     return sessionCode;
   } catch (error) {
     console.error('Error al obtener el SessionCode desde la base de datos:', error);
@@ -370,7 +331,7 @@ async function sendOrderToWebService(order, store) {
   console.log('Store en sendOrderToWebService:', store);
   try {
     // Mapea los datos JSON a XML
-    const xmlData = convertirJSToXML(order, store);
+    const xmlData = convertirJSToXML(mapJsonToXml(order, store));
 
     // Envía los datos al webservice
     await enviarDatosAlWebService(xmlData, store);
@@ -384,8 +345,9 @@ async function sendOrderToWebService(order, store) {
 
 async function getUnfulfilledOrdersAndSendToWebService(store) {
   console.log('Valor de store en getUnfulfilledOrdersAndSendToWebService:', store);
-  try {
-    const adminApiAccessToken = await obtenerAccessTokenTienda(store);
+  /*try {
+    //Cambiar esto para obtenerSecretsTienda
+    const adminApiAccessToken = await obtenerSecretsTienda(store);
 
     const response = await axios.get(
       `https://${store}.myshopify.com/admin/api/2024-01/orders.json?status=unfulfilled`,
@@ -398,7 +360,7 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     );
 
     const unfulfilledOrders = response.data.orders;
-
+    console.log('Unfulfilled Orders:', unfulfilledOrders);
 
     // Verifica si hay pedidos no cumplidos antes de intentar enviar al webservice
     if (unfulfilledOrders.length === 0) {
@@ -416,35 +378,36 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
   } catch (error) {
     console.error('Error al obtener pedidos no cumplidos o enviar al webservice:', error);
     throw error;
-  }
+  }*/
 }
 
-// Función para obtener el AccessToken desde la base de datos por NombreEndpoint
-async function obtenerAccessTokenTienda(store) {
-  try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
-
-    // Hacer una consulta a la base de datos para obtener el AccessToken de la tienda
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
-      .query('SELECT AccessToken FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
-    
-    const accessToken = result.recordset[0]?.AccessToken;
-
-    // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    await db.closeDatabaseConnection(pool);
-
-    if (!accessToken) {
-      console.log('No se ha podido obtener el AccessToken para la tienda:', store);
-      throw new Error('No se ha podido obtener el AccessToken');
+async function obtenerSecretsTienda(store) {
+    try {
+      const pool = await db.connectToDatabase();
+      const request = pool.request();
+  
+      // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
+      const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+        .query('SELECT ApiSecret, ApiKey FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
+      
+      const ApiSecret = result.recordset[0]?.ApiSecret;
+      const ApiKey = result.recordset[0]?.ApiKey;
+  
+      // Cerrar la conexión a la base de datos después de obtener la información necesaria
+      await db.closeDatabaseConnection(pool);
+  
+      if (!ApiSecret || !ApiKey) {
+        console.log('No se ha podido obtener el ApiKey o el ApiSecret para la tienda:', store);
+        throw new Error('No se ha podido obtener el Secrets');
+      }
+  
+      return { ApiSecret, ApiKey };
+    } catch (error) {
+      console.error('Error al obtener los Secrets desde la base de datos:', error);
+      throw error;
     }
-
-    return accessToken;
-  } catch (error) {
-    console.error('Error al obtener el AccessToken desde la base de datos:', error);
-    throw error;
   }
-}
+  
 
 
 //Exporta los modulos
