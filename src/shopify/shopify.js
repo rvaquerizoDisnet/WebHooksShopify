@@ -140,8 +140,8 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
 
 async function handleOrderWebhook(jsonData, store) {
   try {
-    const xmlData = convertirJSToXML(jsonData, store);
-    console.log("HAndleOrderWebhook: "+ store)
+    const xmlData = await convertirJSToXML(jsonData, store);
+
     const response = await enviarDatosAlWebService(xmlData, store);
 
     console.log(`Respuesta del servicio web para orders:`, response.data);
@@ -153,6 +153,8 @@ async function handleOrderWebhook(jsonData, store) {
 
 async function enviarDatosAlWebService(xmlData, store) {
   try {
+
+    console.log('XML Data:', xmlData);
     const pool = await db.connectToDatabase();
     const request = pool.request();
 
@@ -170,7 +172,6 @@ async function enviarDatosAlWebService(xmlData, store) {
     if (urlWebService) {
       // Concatenar la variable de entorno al principio
       urlWebServiceConVariableEntorno = process.env.webserviceABC + urlWebService;
-      console.log(urlWebServiceConVariableEntorno);
     } else {
       console.error('No se encontró un UrlWebService en la base de datos.');
     }
@@ -182,6 +183,8 @@ async function enviarDatosAlWebService(xmlData, store) {
       throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
     }
     
+
+
     const response = await axios.post(urlWebServiceConVariableEntorno, xmlData, {
       headers: {
         'Content-Type': 'application/xml',
@@ -213,7 +216,6 @@ async function convertirJSToXML(data, store) {
 // Mapea los datos JSON a XML
 async function mapJsonToXml(jsonData, store) {
   const sc = await obtenerCodigoSesionCliente(store)
-  console.log('sc', sc)
   const destinatario = jsonData.shipping_address || {};
 
   // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
@@ -334,7 +336,6 @@ async function mapJsonToXml(jsonData, store) {
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
-  console.log("Store en obtenerCodigoSesionCliente:" + store)
   try {
     const pool = await db.connectToDatabase();
     const request = pool.request();
@@ -345,7 +346,7 @@ async function obtenerCodigoSesionCliente(store) {
 
     
     const sessionCode = result.recordset[0]?.SessionCode;
-    console.log("sessionCode en obtenerCodigoSesionCliente:" + sessionCode)
+
 
     // Cerrar la conexión a la base de datos después de obtener la información necesaria
     await db.closeDatabaseConnection(pool);
@@ -354,9 +355,6 @@ async function obtenerCodigoSesionCliente(store) {
       console.log('No se ha podido obtener el SessionCode para la tienda:', store);
       return 'No se ha podido obtener el SessionCode';
     }
-
-    console.log(`Cliente: ${store}`);
-    console.log(`sessionCode: ${sessionCode}`)
     return sessionCode;
   } catch (error) {
     console.error('Error al obtener el SessionCode desde la base de datos:', error);
@@ -367,10 +365,10 @@ async function obtenerCodigoSesionCliente(store) {
 
 // Para pedidos anteriores
 async function sendOrderToWebService(order, store) {
-  console.log('Store en sendOrderToWebService:', store);
+
   try {
     // Mapea los datos JSON a XML
-    const xmlData = convertirJSToXML(order, store);
+    const xmlData = await convertirJSToXML(order, store);
 
     // Envía los datos al webservice
     await enviarDatosAlWebService(xmlData, store);
@@ -383,7 +381,6 @@ async function sendOrderToWebService(order, store) {
 }
 
 async function getUnfulfilledOrdersAndSendToWebService(store) {
-  console.log('Valor de store en getUnfulfilledOrdersAndSendToWebService:', store);
   try {
     const adminApiAccessToken = await obtenerAccessTokenTienda(store);
 
@@ -407,7 +404,6 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     }
 
     // Envía cada orden no cumplida al webservice
-    console.log('Store en getUnfulfilledOrdersAndSendToWebService:', store);
     for (const order of unfulfilledOrders) {
       await sendOrderToWebService(order, store);
     }

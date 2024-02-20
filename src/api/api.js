@@ -25,36 +25,21 @@ async function initDynamicEndpoints() {
 
     // Configurar el endpoint para manejar pedidos POST
     router.post(`${rutaWebhook}orders`, async (req, res) => {
-      try {
+        console.log('POST request to ' + '/printalot/orders/');
+        res.json({ message: 'POST request received successfully' });
         const jobData = { tipo: 'orders', req, res, store: store.NombreEndpoint };
         await shopify.handleWebhook(jobData);
-        res.status(200).send('OK');
-      } catch (error) {
-        console.error('Error al procesar el webhook:', error);
-        res.status(500).send('Internal Server Error');
-      }
     });
 
     // Configurar el endpoint para obtener pedidos no cumplidos
-    router.get(`${rutaWebhook}orders/unfulfilled`, async (req, res) => {
-      try {
-        await shopify.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
-        res.status(200).send('OK');
-      } catch (error) {
-        console.error('Error al obtener pedidos no cumplidos o enviar al webservice:', error);
-        res.status(500).send('Internal Server Error');
-      }
+    router.get(`${rutaWebhook}orders/unfulfilled`, verificarToken, async (req, res) => {
+      await shopify.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
     });
 
     // Configurar el endpoint para manejar envíos POST
     router.post(`${rutaWebhook}shipments`, async (req, res) => {
-      try {
         const store = await obtenerCodigoSesionCliente(req.body);
         await shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
-      } catch (error) {
-        console.error('Error al procesar el envío:', error);
-        res.status(500).send('Internal Server Error');
-      }
     });
   });
 }
