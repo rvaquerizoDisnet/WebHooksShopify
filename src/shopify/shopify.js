@@ -111,7 +111,7 @@ async function initWebhooks(app, providedUrl) {
     setInterval(processQueue, 1000);
 
     // Cerrar la conexión a la base de datos después de configurar los webhooks
-    await db.closeDatabaseConnection(pool);
+    ////await db.closeDatabaseConnection(pool);
   } catch (error) {
     console.error('Error al inicializar los webhooks:', error);
     throw error;
@@ -177,7 +177,7 @@ async function enviarDatosAlWebService(xmlData, store) {
     }
     
     // Cerrar la conexión a la base de datos después de obtener la URL
-    await db.closeDatabaseConnection(pool);
+    ////await db.closeDatabaseConnection(pool);
     
     if (!urlWebServiceConVariableEntorno) {
       throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
@@ -349,7 +349,7 @@ async function obtenerCodigoSesionCliente(store) {
 
 
     // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    await db.closeDatabaseConnection(pool);
+    //await db.closeDatabaseConnection(pool);
 
     if (!sessionCode) {
       console.log('No se ha podido obtener el SessionCode para la tienda:', store);
@@ -428,7 +428,7 @@ async function obtenerAccessTokenTienda(store) {
     const accessToken = result.recordset[0]?.AccessToken;
 
     // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    await db.closeDatabaseConnection(pool);
+    //await db.closeDatabaseConnection(pool);
 
     if (!accessToken) {
       console.log('No se ha podido obtener el AccessToken para la tienda:', store);

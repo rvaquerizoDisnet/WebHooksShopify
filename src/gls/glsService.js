@@ -125,7 +125,7 @@ async function leerWeightDisplacement(OrderNumber) {
         const request = pool.request();
         request.input('OrderNumber', sql.NVarChar, OrderNumber);
         const result = await request.query(query);
-        await pool.close();
+        //await pool.close();
         if (result.recordset.length === 0) {
             console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
             return { Weight: null, Displacement: null, IdOrder: null };
@@ -154,7 +154,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         request.input('Weight', sql.Decimal(18, 8), Weight);
         request.input('Displacement', sql.Decimal(18, 8), Displacement);
         await request.query(query);
-        await pool.close();
+        //await pool.close();
         console.log('Datos insertados en OtraTabla correctamente.');
     } catch (error) {
         console.error('Error al insertar en OtraTabla:', error.message);
@@ -206,7 +206,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         console.error('Error al actualizar la base de datos:', error.message);
     } finally {
         if (pool) {
-            await pool.close();
+            //await pool.close();
             console.log('Conexión cerrada correctamente.');
         }
     }

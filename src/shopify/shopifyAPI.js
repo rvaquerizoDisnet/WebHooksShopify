@@ -157,7 +157,7 @@ async function obtenerNombreCompania(store) {
         
         const { TransportCompany } = result.recordset[0];
     
-        await db.closeDatabaseConnection(pool);
+        //await db.closeDatabaseConnection(pool);
     
         if (!TransportCompany) {
             console.log(`No se ha podido obtener la compañía de transporte para la tienda: ${store}`);
@@ -181,7 +181,7 @@ async function getAdminApiAccessTokenFromDB(store) {
       
       const { AccessToken } = result.recordset[0];
   
-      await db.closeDatabaseConnection(pool);
+      //await db.closeDatabaseConnection(pool);
   
       if (!AccessToken) {
         console.log(`No se ha podido obtener el AccessToken para la tienda: ${store}`);
@@ -206,7 +206,7 @@ async function getAdminApiAccessTokenFromDB(store) {
       
       const { ApiKey } = result.recordset[0];
   
-      await db.closeDatabaseConnection(pool);
+      //await db.closeDatabaseConnection(pool);
   
       if (!ApiKey) {
         console.log(`No se ha podido obtener la API Key para la tienda: ${store}`);

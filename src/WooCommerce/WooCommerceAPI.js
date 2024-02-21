@@ -90,7 +90,7 @@ async function obtenerNombreCompania(store) {
         
         const { TransportCompany } = result.recordset[0];
     
-        await db.closeDatabaseConnection(pool);
+        //await db.closeDatabaseConnection(pool);
     
         if (!TransportCompany) {
             console.log(`No se ha podido obtener la compañía de transporte para la tienda: ${store}`);
@@ -116,7 +116,7 @@ async function obtenerApiKeyTienda(store) {
       const ApiKey = result.recordset[0]?.ApiKey;
   
       // Cerrar la conexión a la base de datos después de obtener la información necesaria
-      await db.closeDatabaseConnection(pool);
+      //await db.closeDatabaseConnection(pool);
   
       if (!ApiKey) {
         console.log('No se ha podido obtener el ApiKey para la tienda:', store);
@@ -142,7 +142,7 @@ async function obtenerApiKeyTienda(store) {
       const ApiSecret = result.recordset[0]?.ApiSecret;
   
       // Cerrar la conexión a la base de datos después de obtener la información necesaria
-      await db.closeDatabaseConnection(pool);
+      //await db.closeDatabaseConnection(pool);
   
       if (!ApiSecret || !ApiKey) {
         console.log('No se ha podido obtener el ApiKey o el ApiSecret para la tienda:', store);
