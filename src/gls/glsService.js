@@ -38,6 +38,8 @@ cron.schedule('0 6 * * *', async () => {
 });
 */
 
+
+
 async function consultarPedidosGLSYActualizar(pool, uidCliente, departamentoExp) {
     try {
         const fechaAyerStr = moment().subtract(1, 'days').format('DD/MM/YYYY');
