@@ -36,7 +36,15 @@ router.post('/login', handleValidationErrors, async (req, res) => {
       delete failedLoginAttempts[username];
 
       const token = generarToken({ username: usuario.username, rol: usuario.rol });
-      res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
+      const secureCookie = req.secure || req.headers['x-forwarded-proto'] === 'https';
+
+      // Configura la cookie con la bandera 'secure' dependiendo de si la solicitud es HTTPS o no
+      res.cookie('token', token, {
+        httpOnly: false,
+        maxAge: 3600000,
+        sameSite: 'none',
+        secure: secureCookie
+      });
       res.redirect('/');
     } else {
       // Si las credenciales son inválidas, aumentar el contador de intentos fallidos
@@ -63,7 +71,15 @@ router.post('/register', handleValidationErrors, async (req, res) => {
     await userService.registrarUsuario(username, password, rol);
 
     const token = generarToken({ username, rol });
-    res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
+    const secureCookie = req.secure || req.headers['x-forwarded-proto'] === 'https';
+
+    // Configura la cookie con la bandera 'secure' dependiendo de si la solicitud es HTTPS o no
+    res.cookie('token', token, {
+      httpOnly: false,
+      maxAge: 3600000,
+      sameSite: 'none',
+      secure: secureCookie
+    });
     res.redirect('/');
   } catch (error) {
     console.error('Error en el registro de usuario:', error.message);
