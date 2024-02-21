@@ -12,7 +12,7 @@ const woocommerceRouter = require('./api/ApiWooCommerce');
 const newCustomerRouter = require('./api/newCustomer');
 const { errorHandlingMiddleware } = require('./autenticacion/errorHandlingMiddleware');
 require('dotenv').config();
-const db = require('./utils/database');
+const {connectToDatabase} = require('./utils/database');
 const app = express();
 const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
