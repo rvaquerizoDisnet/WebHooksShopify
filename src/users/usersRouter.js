@@ -70,10 +70,10 @@ router.post('/register', handleValidationErrors, async (req, res) => {
     res.status(500).json({ mensaje: 'Error interno del servidor.' });
   }
 });
-
+*/
 router.post('/logout', (req, res) => {
   res.clearCookie('token');
   res.redirect('/users/login');
 });
-*/
+
 module.exports = router;
