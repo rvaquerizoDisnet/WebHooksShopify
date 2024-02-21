@@ -12,7 +12,7 @@ const woocommerceRouter = require('./api/ApiWooCommerce');
 const newCustomerRouter = require('./api/newCustomer');
 const { errorHandlingMiddleware } = require('./autenticacion/errorHandlingMiddleware');
 require('dotenv').config();
-const {connectToDatabase} = require('./utils/database');
+const { connectToDatabase, closeDatabaseConnection } = require('./utils/database');
 const app = express();
 const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
@@ -28,7 +28,7 @@ app.use(cookieParser());
 
 app.use('/shopify', apiRouter.router);
 app.use('/gls', glsRouter);
-app.use('/users',  usersRouter);
+app.use('/users', usersRouter);
 app.use('/', homeRouter);
 app.use('/nuevo-cliente', newCustomerRouter);
 app.use('/woocommerce', woocommerceRouter.router)
@@ -51,7 +51,7 @@ const providedUrl = process.env.YOUR_PROVIDED_URL;
 
 shopify.initWebhooks(app, providedUrl);
 
-apiRouter.initDynamicEndpoints();  
+apiRouter.initDynamicEndpoints();
 
 woocommerce.initWebhooks(app, providedUrl);
 
@@ -62,26 +62,30 @@ app.use(cors());
 
 app.use(errorHandlingMiddleware);
 
-const server = app.listen(port, async () => {
+let server;
+
+const startServer = async () => {
   try {
     // Conectarse a la base de datos al iniciar el servidor
-    const pool = await connectToDatabase();
-    console.log(`Servidor escuchando en http://localhost:${port}`);
-
+    await connectToDatabase();
+    server = app.listen(port, () => {
+      console.log(`Servidor escuchando en http://localhost:${port}`);
+    });
   } catch (error) {
     console.error('Error al iniciar el servidor:', error.message);
     process.exit(1);
   }
-});
+};
 
+startServer();
 
-// Manejar eventos de cierre para cerrar correctamente el servidor
+// Manejar eventos de cierre para cerrar correctamente el servidor y la conexión a la base de datos
 process.on('SIGTERM', () => {
   if (server) {
-    server.close(() => {
+    server.close(async () => {
       console.log('Servidor cerrado.');
+      await closeDatabaseConnection();
       process.exit(0);
     });
   }
 });
-
