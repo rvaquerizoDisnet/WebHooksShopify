@@ -12,7 +12,6 @@ const woocommerceRouter = require('./api/ApiWooCommerce');
 const newCustomerRouter = require('./api/newCustomer');
 const { errorHandlingMiddleware } = require('./autenticacion/errorHandlingMiddleware');
 require('dotenv').config();
-const { connectToDatabase, closeDatabaseConnection } = require('./utils/database');
 const app = express();
 const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
@@ -67,7 +66,6 @@ let server;
 const startServer = async () => {
   try {
     // Conectarse a la base de datos al iniciar el servidor
-    await connectToDatabase();
     server = app.listen(port, () => {
       console.log(`Servidor escuchando en http://localhost:${port}`);
     });
@@ -84,7 +82,6 @@ process.on('SIGTERM', () => {
   if (server) {
     server.close(async () => {
       console.log('Servidor cerrado.');
-      await closeDatabaseConnection();
       process.exit(0);
     });
   }
