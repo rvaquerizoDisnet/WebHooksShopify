@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('10 10 * * *', async () => {
+    cron.schedule('20 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -66,8 +66,8 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('end', () => {
              // Iterar sobre los registros filtrados
              for (const pedido of rows) {
-                 //consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
-                 console.log("pedido:", pedido)
+                 consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
+                 //console.log("pedido:", pedido)
              }
              
              console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
@@ -100,17 +100,19 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const xmlData = response.data;
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
+        console.log("peso ", peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
-
+        console.log("Volumen ", volumen)
         const weightDisplacement = await leerWeightDisplacement(OrderNumber);
 
         // Actualizar la tabla DeliveryNoteHeader
-        await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber);
+        //await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber);
 
         // Almacenar los valores devueltos por leerWeightDisplacement en variables
         const { Weight, Displacement, IdOrder } = weightDisplacement;
+        console.log(Weight, Displacement, IdOrder)
 
-        await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+        //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
 
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
