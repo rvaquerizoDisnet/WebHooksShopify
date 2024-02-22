@@ -1,3 +1,6 @@
+const cron = require('node-cron');
+const { execSync } = require('child_process');
+const fs = require('fs');
 // Archivo de definición de la tabla expediciones en formato SQL
 const sqliteSchemaFilePath = '/shares/GLS/data/expediciones_schema.sql';
 

@@ -63,7 +63,8 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
             }
 
             for (const pedido of rows) {
-                consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
+                //consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
+                console.log("pedido:", pedido)
             }
 
             console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);

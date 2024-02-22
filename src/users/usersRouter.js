@@ -36,8 +36,24 @@ router.post('/login', handleValidationErrors, async (req, res) => {
       delete failedLoginAttempts[username];
 
       const token = generarToken({ username: usuario.username, rol: usuario.rol });
-      res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
-      res.redirect('/');
+      console.log("token en el login", token)
+      //res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
+      //console.log('Cookie establecida:', res.getHeaders()['set-cookie']);
+      //res.redirect('/');
+      try {
+        // Intenta establecer la cookie
+        res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
+    
+        // Verifica si la cookie se ha establecido correctamente
+        if (res.getHeaders()['set-cookie']) {
+            console.log('Cookie establecida:', res.getHeaders()['set-cookie']);
+        } else {
+            console.error('No se pudo establecer la cookie.');
+        }
+    } catch (error) {
+        // Maneja cualquier error que pueda ocurrir al establecer la cookie
+        console.error('Error al establecer la cookie:', error);
+    }
     } else {
       // Si las credenciales son inválidas, aumentar el contador de intentos fallidos
       failedLoginAttempts[username] = (failedLoginAttempts[username] || 0) + 1;
