@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('50 10 * * *', async () => {
+    cron.schedule('0 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -99,10 +99,10 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
         const volumen = await parsearVolumenDesdeXML(xmlData);
-        const weightDisplacement = await leerWeightDisplacement(OrderNumber);
+        const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         // Actualizar la tabla DeliveryNoteHeader
-        await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber);
+        await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber.toString());
 
         // Almacenar los valores devueltos por leerWeightDisplacement en variables
         const { Weight, Displacement, IdOrder } = weightDisplacement;
@@ -153,14 +153,14 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
             WHERE IdOrder = @IdOrder;
         `;
         const request = pool.request();
-        request.input('IdOrder', sql.NVarChar, IdOrder);
+        request.input('IdOrder', sql.NVarChar, IdOrder.toString());
         request.input('Weight', sql.Decimal(18, 8), Weight);
         request.input('Displacement', sql.Decimal(18, 8), Displacement);
         await request.query(query);
         //await pool.close();
-        console.log('Datos insertados en OrderHeader correctamente.', 'IdOrder:', IdOrder); // Agrega el console.log aquí
+        console.log('Datos insertados en OrderHeader correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
-        console.error('Error al insertar en OtraTabla:', error.message);
+        console.error('Error al insertar en OrderHeader:', error.message);
     }
 }
 
@@ -179,7 +179,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         `;
 
         const requestConsultaIdOrder = pool.request();
-        requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber);
+        requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
 
         const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
 
@@ -204,7 +204,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
 
         await requestUpdate.query(queryUpdate);
 
-        console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder); // Agrega el console.log aquí
+        console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
         console.error('Error al actualizar la base de datos:', error.message);
     } finally {
