@@ -5,7 +5,7 @@ const fs = require('fs');
 const sqliteSchemaFilePath = '/shares/GLS/data/expediciones_schema.sql';
 
 // Programar la creación de la tabla SQLite basada en la estructura de la tabla "expediciones" del archivo .mdb
-cron.schedule('45 9 * * *', () => {
+cron.schedule('48 8 * * *', () => {
     const mdbFilePath = '/shares/GLS/data/expediciones.mdb';
     const sqliteFilePath = '/shares/GLS/data/database.db';
     
