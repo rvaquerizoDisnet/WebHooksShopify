@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('34 11 * * *', async () => {
+    cron.schedule('39 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -102,11 +102,10 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         // Actualizar la tabla DeliveryNoteHeader
-        await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber.toString());
+        await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
 
         // Almacenar los valores devueltos por leerWeightDisplacement en variables
         const { Weight, Displacement, IdOrder } = weightDisplacement;
-        console.log(Weight, Displacement, IdOrder)
 
         await insertarEnOrderHeader(IdOrder, Weight, Displacement)
 
@@ -180,11 +179,9 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         `;
 
         const requestConsultaIdOrder = pool.request();
-        console.log("requestConsultaIdOrder", requestConsultaIdOrder)
         requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
 
         const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
-        console.log("resultConsultaIdOrder: ", resultConsultaIdOrder)
         if (resultConsultaIdOrder.recordset.length === 0) {
             console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
             return;
