@@ -4,10 +4,9 @@ const fs = require('fs');
 
 const mdbFilePath = '/home/admin81/shares/GLS/data/expediciones.mdb';
 const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
-const jsonFilePath = '/home/admin81/shares/GLS/data/expediciones.json';
 
 function convertTableToCSV() {
-    cron.schedule('25 9 * * *', () => {
+    cron.schedule('40 9 * * *', () => {
         try {
             const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
             execSync(exportToCSVCommand);
@@ -18,20 +17,9 @@ function convertTableToCSV() {
     });
 }
 
-function convertTableToJSON() {
-    cron.schedule('25 9 * * *', () => {
-        try {
-            const exportToJSONCommand = `mdb-export -I json ${mdbFilePath} expediciones > ${jsonFilePath}`;
-            execSync(exportToJSONCommand);
-            console.log('Tabla expediciones exportada a JSON correctamente.');
-        } catch (error) {
-            console.error('Error al exportar la tabla expediciones a JSON:', error);
-        }
-    });
-}
 
 function deleteSQLiteFile() {
-    cron.schedule('30 6 * * *', () => {
+    cron.schedule('50 9 * * *', () => {
         const sqliteFilePath = '/home/admin81/shares/GLS/data/database.db';
         try {
             fs.unlinkSync(sqliteFilePath);
@@ -42,4 +30,4 @@ function deleteSQLiteFile() {
     });
 }
 
-module.exports = { convertTableToCSV, convertTableToJSON, deleteSQLiteFile };
+module.exports = { convertTableToCSV, deleteSQLiteFile };

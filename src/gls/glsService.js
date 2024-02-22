@@ -8,81 +8,71 @@ const xml2js = require('xml2js');
 const cron = require('node-cron');
 require('dotenv').config();
 const moment = require('moment');
+const csvParser = require('csv-parser');
 
-/*
-cron.schedule('0 6 * * *', async () => {
-    // Ejecutar consultas a las 6:00
-    console.log('Ejecutando consulta a GLS a las 6:00');
+function consultaAGls() {
+    cron.schedule('0 6 * * *', async () => {
+        // Ejecutar consultas a las 6:00
+        console.log('Ejecutando consulta a GLS a las 6:00');
 
-    try {
-        // Conectar a la base de datos
-        const pool = await connectToDatabase();
+        try {
+            // Conectar a la base de datos
+            const pool = await connectToDatabase();
 
-        // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
-        const query = `
-            SELECT uid_cliente, departamento_exp
-            FROM MiddlewareGLS;
-        `;
-        const result = await pool.query(query);
+            // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
+            const query = `
+                SELECT uid_cliente, departamento_exp
+                FROM MiddlewareGLS;
+            `;
+            const result = await pool.query(query);
 
-        // Recorrer los resultados y realizar las consultas a GLS para cada registro
-        for (const row of result.recordset) {
-            await consultarPedidosGLSYActualizar(row.uid_cliente, row.departamento_exp);
+            // Recorrer los resultados y realizar las consultas a GLS para cada registro
+            for (const row of result.recordset) {
+                await consultarPedidosGLSYActualizar(row.uid_cliente, row.departamento_exp);
+            }
+
+            // Cerrar la conexión a la base de datos
+            await closeDatabaseConnection();
+        } catch (error) {
+            console.error('Error al ejecutar la consulta a GLS:', error);
         }
-
-        // Cerrar la conexión a la base de datos
-        await closeDatabaseConnection();
-    } catch (error) {
-        console.error('Error al ejecutar la consulta a GLS:', error);
-    }
-});
-
-*/
+    });
+}
 
 
 async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         const fechaAyerStr = moment().subtract(1, 'days').format('DD/MM/YYYY');
 
-        // Conectar a la base de datos SQLite
-        const db = new sqlite3.Database('/shares/GLS/data/database.db');
+         // Leer el archivo CSV
+         const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+         const rows = [];
 
-        // Consultar los registros del día anterior con el departamento_exp correspondiente
-        const querySQLite = `
-            SELECT referencia_exp, departamento_exp, identificador_exp 
-            FROM expediciones 
-            WHERE fechaTransmision_exp >= ? 
-            AND fechaTransmision_exp <= ? 
-            AND departamento_exp = ?
-        `;
-
-        db.all(querySQLite, [`${fechaAyerStr} 00:00:00`, `${fechaAyerStr} 23:59:59`, departamentoExp], (err, rows) => {
-            if (err) {
-                console.error('Error al consultar pedidos en SQLite:', err);
-                return;
-            }
-
-            for (const pedido of rows) {
-                //consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
-                console.log("pedido:", pedido)
-            }
-
-            console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
-
-            // Cerrar la conexión a la base de datos SQLite
-            db.close((err) => {
-                if (err) {
-                    console.error('Error al cerrar la conexión con la base de datos SQLite:', err.message);
-                } else {
-                    console.log('Conexión con la base de datos SQLite cerrada correctamente.');
-                }
-            });
-        });
-    } catch (error) {
-        console.error('Error al consultar pedidos y actualizar la base de datos:', error);
-    }
+         fs.createReadStream(csvFilePath)
+         .pipe(csvParser())
+         .on('data', (row) => {
+             // Filtrar los registros del día anterior con el departamento_exp correspondiente
+             if (
+                 moment(row.fechaTransmision_exp, 'DD/MM/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'DD/MM/YYYY')) &&
+                 moment(row.fechaTransmision_exp, 'DD/MM/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'DD/MM/YYYY').add(1, 'days')) &&
+                 row.departamento_exp === departamentoExp
+             ) {
+                 rows.push(row);
+             }
+         })
+         .on('end', () => {
+             // Iterar sobre los registros filtrados
+             for (const pedido of rows) {
+                 //consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
+                 console.log("pedido:", pedido)
+             }
+             
+             console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
+         });
+ } catch (error) {
+     console.error('Error al consultar pedidos y actualizar la base de datos:', error);
+ }
 }
-
 
 
 async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
@@ -297,4 +287,4 @@ async function parsearVolumenDesdeXML(xmlData) {
     }
 }
 
-module.exports = { consultarPedidoGLS };
+module.exports = { consultarPedidoGLS, consultaAGls };
