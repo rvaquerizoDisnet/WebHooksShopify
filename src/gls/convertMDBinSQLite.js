@@ -6,7 +6,7 @@ const mdbFilePath = '/home/admin81/shares/GLS/data/expediciones.mdb';
 const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
 
 function convertTableToCSV() {
-    cron.schedule('43 9 * * *', () => {
+    cron.schedule('56 9 * * *', () => {
         try {
             const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
             execSync(exportToCSVCommand);
@@ -19,7 +19,7 @@ function convertTableToCSV() {
 
 
 function deleteSQLiteFile() {
-    cron.schedule('50 9 * * *', () => {
+    cron.schedule('00 10 * * *', () => {
         const sqliteFilePath = '/home/admin81/shares/GLS/data/database.db';
         try {
             fs.unlinkSync(sqliteFilePath);

@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('45 9 * * *', async () => {
+    cron.schedule('58 9 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -58,6 +58,9 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
                  row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
+                 console.log(row)
+             } else{
+                console.log("No se ha encontrado ningun pedido ayer")
              }
          })
          .on('end', () => {
