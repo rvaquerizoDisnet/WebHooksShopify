@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('09 11 * * *', async () => {
+    cron.schedule('14 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -155,7 +155,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         const request = pool.request();
         request.input('IdOrder', sql.NVarChar, IdOrder.toString());
         request.input('peso', sql.Decimal(18, 8), Weight);
-        request.input('Displacement', sql.Decimal(18, 8), Displacement);
+        request.input('volumen', sql.Decimal(18, 8), Displacement);
         await request.query(query);
         //await pool.close();
         console.log('Datos insertados en OrderHeader correctamente.', 'IdOrder:', IdOrder);
