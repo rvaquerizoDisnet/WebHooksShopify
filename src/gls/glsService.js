@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const axios = require('axios');
 const sql = require('mssql');
-const sqlite3 = require('sqlite3'); // Importar el módulo SQLite
+const sqlite3 = require('sqlite3');
 const { connectToDatabase, closeDatabaseConnection } = require('../utils/database');
 const xml2js = require('xml2js');
 const cron = require('node-cron');
@@ -27,7 +27,7 @@ cron.schedule('0 6 * * *', async () => {
 
         // Recorrer los resultados y realizar las consultas a GLS para cada registro
         for (const row of result.recordset) {
-            await consultarPedidosGLSYActualizar(pool, row.uid_cliente, row.departamento_exp);
+            await consultarPedidosGLSYActualizar(row.uid_cliente, row.departamento_exp);
         }
 
         // Cerrar la conexión a la base de datos
@@ -36,13 +36,16 @@ cron.schedule('0 6 * * *', async () => {
         console.error('Error al ejecutar la consulta a GLS:', error);
     }
 });
+
 */
 
 
-
-async function consultarPedidosGLSYActualizar(pool, uidCliente, departamentoExp) {
+async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         const fechaAyerStr = moment().subtract(1, 'days').format('DD/MM/YYYY');
+
+        // Conectar a la base de datos SQLite
+        const db = new sqlite3.Database('/shares/GLS/data/database.db');
 
         // Consultar los registros del día anterior con el departamento_exp correspondiente
         const querySQLite = `
@@ -59,12 +62,20 @@ async function consultarPedidosGLSYActualizar(pool, uidCliente, departamentoExp)
                 return;
             }
 
-
-             for (const pedido of rows) {
+            for (const pedido of rows) {
                 consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
             }
 
             console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
+
+            // Cerrar la conexión a la base de datos SQLite
+            db.close((err) => {
+                if (err) {
+                    console.error('Error al cerrar la conexión con la base de datos SQLite:', err.message);
+                } else {
+                    console.log('Conexión con la base de datos SQLite cerrada correctamente.');
+                }
+            });
         });
     } catch (error) {
         console.error('Error al consultar pedidos y actualizar la base de datos:', error);
@@ -99,7 +110,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
 
         const weightDisplacement = await leerWeightDisplacement(OrderNumber);
 
-        // Actualizar la tabla OrderHeader
+        // Actualizar la tabla DeliveryNoteHeader
         await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber);
 
         // Almacenar los valores devueltos por leerWeightDisplacement en variables

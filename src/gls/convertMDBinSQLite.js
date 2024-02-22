@@ -1,26 +1,27 @@
-/*const cron = require('node-cron');
-const { execSync } = require('child_process');
-const fs = require('fs');
-const sqlite3 = require('sqlite3').verbose();
+// Archivo de definición de la tabla expediciones en formato SQL
+const sqliteSchemaFilePath = '/shares/GLS/data/expediciones_schema.sql';
 
-cron.schedule('0 5 * * *', () => {
-    // Comando para convertir el archivo .mdb a SQLite
+// Programar la creación de la tabla SQLite basada en la estructura de la tabla "expediciones" del archivo .mdb
+cron.schedule('45 9 * * *', () => {
     const mdbFilePath = '/shares/GLS/data/expediciones.mdb';
     const sqliteFilePath = '/shares/GLS/data/database.db';
     
-    // Comando para convertir el archivo .mdb a SQLite usando mdb-tools
-    const command = `mdb-export ${mdbFilePath} | sqlite3 ${sqliteFilePath}`;
+    // Comando para generar el esquema SQL de la tabla "expediciones"
+    const schemaCommand = `mdb-schema ${mdbFilePath} sqlite > ${sqliteSchemaFilePath}`;
     
-    // Ejecutar el comando
     try {
-        execSync(command);
-        console.log('Conversión completa: .mdb -> SQLite');
+        // Ejecutar el comando para generar el esquema SQL
+        execSync(schemaCommand);
+        console.log('Esquema de tabla expediciones generado.');
         
-        // Eliminar el archivo SQLite después de la conversión
-        fs.unlinkSync(sqliteFilePath);
-        console.log('Archivo SQLite eliminado.');
+        // Comando para crear la tabla en SQLite utilizando el esquema SQL generado
+        const createTableCommand = `sqlite3 ${sqliteFilePath} < ${sqliteSchemaFilePath}`;
+        
+        // Ejecutar el comando para crear la tabla en SQLite
+        execSync(createTableCommand);
+        console.log('Tabla expediciones creada en SQLite.');
     } catch (error) {
-        console.error('Error al convertir el archivo .mdb a SQLite:', error);
+        console.error('Error al generar o crear la tabla expediciones en SQLite:', error);
     }
 });
 
@@ -34,4 +35,3 @@ cron.schedule('30 6 * * *', () => {
         console.error('Error al eliminar el archivo SQLite:', error);
     }
 });
-*/
