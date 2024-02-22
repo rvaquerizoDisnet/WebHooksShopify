@@ -2,25 +2,30 @@ const cron = require('node-cron');
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-const sqliteSchemaFilePath = '/home/admin81/shares/GLS/data/expediciones_schema.sql';
+const mdbFilePath = '/home/admin81/shares/GLS/data/expediciones.mdb';
+const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+const jsonFilePath = '/home/admin81/shares/GLS/data/expediciones.json';
 
-function createSQLiteTable() {
-    cron.schedule('58 8 * * *', () => {
-        const mdbFilePath = '/home/admin81/shares/GLS/data/expediciones.mdb';
-        const sqliteFilePath = '/home/admin81/shares/GLS/data/database.db';
-        
-        const schemaCommand = `mdb-schema ${mdbFilePath} sqlite > ${sqliteSchemaFilePath}`;
-        
+function convertTableToCSV() {
+    cron.schedule('25 9 * * *', () => {
         try {
-            execSync(schemaCommand);
-            console.log('Esquema de tabla expediciones generado.');
-            
-            const createTableCommand = `sqlite3 ${sqliteFilePath} < ${sqliteSchemaFilePath}`;
-            
-            execSync(createTableCommand);
-            console.log('Tabla expediciones creada en SQLite.');
+            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
+            execSync(exportToCSVCommand);
+            console.log('Tabla expediciones exportada a CSV correctamente.');
         } catch (error) {
-            console.error('Error al generar o crear la tabla expediciones en SQLite:', error);
+            console.error('Error al exportar la tabla expediciones a CSV:', error);
+        }
+    });
+}
+
+function convertTableToJSON() {
+    cron.schedule('25 9 * * *', () => {
+        try {
+            const exportToJSONCommand = `mdb-export -I json ${mdbFilePath} expediciones > ${jsonFilePath}`;
+            execSync(exportToJSONCommand);
+            console.log('Tabla expediciones exportada a JSON correctamente.');
+        } catch (error) {
+            console.error('Error al exportar la tabla expediciones a JSON:', error);
         }
     });
 }
@@ -37,4 +42,4 @@ function deleteSQLiteFile() {
     });
 }
 
-module.exports = { createSQLiteTable, deleteSQLiteFile };
+module.exports = { convertTableToCSV, convertTableToJSON, deleteSQLiteFile };

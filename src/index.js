@@ -88,5 +88,6 @@ process.on('SIGTERM', () => {
   }
 });
 
-createSQLiteTable();
+convertTableToCSV();
+convertTableToJSON();
 deleteSQLiteFile();
