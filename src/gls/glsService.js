@@ -32,7 +32,7 @@ function consultaAGls() {
             }
 
             // Cerrar la conexión a la base de datos
-            await closeDatabaseConnection();
+            //await closeDatabaseConnection();
         } catch (error) {
             console.error('Error al ejecutar la consulta a GLS:', error);
         }
