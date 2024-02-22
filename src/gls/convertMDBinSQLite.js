@@ -2,12 +2,12 @@ const cron = require('node-cron');
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-const sqliteSchemaFilePath = '/shares/GLS/data/expediciones_schema.sql';
+const sqliteSchemaFilePath = '/home/admin81/shares/GLS/data/expediciones_schema.sql';
 
 function createSQLiteTable() {
     cron.schedule('58 8 * * *', () => {
-        const mdbFilePath = '/shares/GLS/data/expediciones.mdb';
-        const sqliteFilePath = '/shares/GLS/data/database.db';
+        const mdbFilePath = '/home/admin81/shares/GLS/data/expediciones.mdb';
+        const sqliteFilePath = '/home/admin81/shares/GLS/data/database.db';
         
         const schemaCommand = `mdb-schema ${mdbFilePath} sqlite > ${sqliteSchemaFilePath}`;
         
@@ -27,7 +27,7 @@ function createSQLiteTable() {
 
 function deleteSQLiteFile() {
     cron.schedule('30 6 * * *', () => {
-        const sqliteFilePath = '/shares/GLS/data/database.db';
+        const sqliteFilePath = '/home/admin81/shares/GLS/data/database.db';
         try {
             fs.unlinkSync(sqliteFilePath);
             console.log('Archivo SQLite eliminado.');
