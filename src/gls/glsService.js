@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('32 10 * * *', async () => {
+    cron.schedule('49 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -58,7 +58,6 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
                  row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
-                 console.log(row)
              } else{
                 console.log("No se ha encontrado ningun pedido ayer")
              }
@@ -67,7 +66,6 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              // Iterar sobre los registros filtrados
              for (const pedido of rows) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
-                 //console.log("pedido:", pedido)
              }
              
              console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
@@ -101,17 +99,16 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
         const volumen = await parsearVolumenDesdeXML(xmlData);
-        console.log("peso ", peso, " Volumen ", volumen, "OrderNumber ", OrderNumber)
         const weightDisplacement = await leerWeightDisplacement(OrderNumber);
 
         // Actualizar la tabla DeliveryNoteHeader
-        //await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber);
+        await actualizarBaseDeDatos(weightDisplacement.IdOrder, peso, volumen, OrderNumber);
 
         // Almacenar los valores devueltos por leerWeightDisplacement en variables
         const { Weight, Displacement, IdOrder } = weightDisplacement;
         console.log(Weight, Displacement, IdOrder)
 
-        //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+        await insertarEnOrderHeader(IdOrder, Weight, Displacement)
 
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
@@ -124,8 +121,8 @@ async function leerWeightDisplacement(OrderNumber) {
         const pool = await connectToDatabase();
         const query = `
             SELECT dh.Weight, dh.Displacement, oh.IdOrder
-            FROM DeliveryNoteHeader dh
-            INNER JOIN OrderHeader oh ON dh.IdOrder = oh.IdOrder
+            FROM MiddlewareDNH dh
+            INNER JOIN MiddlewareOH oh ON dh.IdOrder = oh.IdOrder
             WHERE oh.OrderNumber = @OrderNumber;
         `;
         const request = pool.request();
@@ -151,7 +148,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
     try {
         const pool = await connectToDatabase();
         const query = `
-            UPDATE OrderHeader
+            UPDATE MiddlewareOH
             SET nFree7 = @peso, nFree8 = @volumen
             WHERE IdOrder = @IdOrder;
         `;
@@ -177,7 +174,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         // Consultar el IdOrder relacionado con el OrderNumber
         const queryConsultaIdOrder = `
             SELECT IdOrder
-            FROM OrderHeader
+            FROM MiddlewareOH
             WHERE OrderNumber = @OrderNumber;
         `;
 
@@ -196,7 +193,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         // Actualizar la tabla DeliveryNoteHeader con el IdOrder correspondiente
         const requestUpdate = pool.request();
         const queryUpdate = `
-            UPDATE DeliveryNoteHeader
+            UPDATE MiddlewareDNH
             SET Weight = @peso, Displacement = @volumen
             WHERE IdOrder = @IdOrder;
         `;
