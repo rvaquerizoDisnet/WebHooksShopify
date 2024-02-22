@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('58 9 * * *', async () => {
+    cron.schedule('07 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -42,7 +42,7 @@ function consultaAGls() {
 
 async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
-        const fechaAyerStr = moment().subtract(1, 'days').format('DD/MM/YYYY');
+        const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -53,8 +53,8 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
              if (
-                 moment(row.fechaTransmision_exp, 'DD/MM/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'DD/MM/YYYY')) &&
-                 moment(row.fechaTransmision_exp, 'DD/MM/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'DD/MM/YYYY').add(1, 'days')) &&
+                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
+                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
                  row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
