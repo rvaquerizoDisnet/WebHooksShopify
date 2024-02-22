@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('20 10 * * *', async () => {
+    cron.schedule('30 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -100,9 +100,8 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const xmlData = response.data;
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
-        console.log("peso ", peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
-        console.log("Volumen ", volumen)
+        console.log("peso ", peso, " Volumen ", volumen, "OrderNumber ", OrderNumber)
         const weightDisplacement = await leerWeightDisplacement(OrderNumber);
 
         // Actualizar la tabla DeliveryNoteHeader
@@ -242,7 +241,6 @@ async function parsearPesoDesdeXML(xmlData) {
         ) {
             const expediciones = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'];
             const peso = parseFloat(expediciones[0]?.['kgs'][0]?.replace(',', '.')) || 0.0;
-            console.log("Peso parseado:", peso);
             return peso;
         } else {
             // Mostrar un mensaje de error si la propiedad no está presente
@@ -279,7 +277,6 @@ async function parsearVolumenDesdeXML(xmlData) {
         ) {
             const expediciones = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'];
             const volumen = parseFloat(expediciones[0]?.['vol'][0]?.replace(',', '.')) || 0.0;
-            console.log('Volumen parseado:', volumen);
             return volumen;
         } else {
             // Mostrar un mensaje de error si la propiedad no está presente

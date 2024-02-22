@@ -42,7 +42,7 @@ router.post('/login', handleValidationErrors, async (req, res) => {
       //res.redirect('/');
       try {
         // Intenta establecer la cookie
-        res.cookie('token', token, { httpOnly: false, maxAge: 36000000, sameSite: 'none', secure: true });
+        res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
     
         // Verifica si la cookie se ha establecido correctamente
         if (res.getHeaders()['set-cookie']) {
