@@ -282,13 +282,12 @@ async function mapJsonToXml(jsonData, store) {
     codigoProvincia = destinatario.country_code
   }
 
-  // Asignación del campo Empresa y Nombre
-  let nombreDestinatario = destinatario.name + " " + destinatario.company || '-';
+  let nombreDestinatario = (destinatario.name || '') + (destinatario.company || '');
   let nombreDestinatario2 = null;
-
+  
   if (nombreDestinatario.length > 40) {
-    nombreDestinatario2 = nombreDestinatario.substring(40);
     nombreDestinatario = nombreDestinatario.substring(0, 40);
+    nombreDestinatario2 = nombreDestinatario.substring(40);
   }
 
   // Crear el objeto XML sin incluir Direccion2 si es nulo
@@ -304,8 +303,7 @@ async function mapJsonToXml(jsonData, store) {
         Idioma: 'castellano',
         Destinatario: {
           Empresa: nombreDestinatario,
-          Nombre: nombreDestinatario,
-          ...(nombreDestinatario2 !== null && { NombreDestinatario2: nombreDestinatario2 }), // Agrega NombreDestinatario2 solo si no es null
+          ...(nombreDestinatario2 !== null && { Nombre: nombreDestinatario2 }),
           Direccion: direccion1,
           // Incluir Direccion2 solo si no es nulo
           ...(direccion2 !== null && { Direccion2: direccion2 }),
