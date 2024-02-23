@@ -25,7 +25,7 @@ async function initDynamicEndpoints() {
 
     // Configurar el endpoint para manejar pedidos POST
     router.post(`${rutaWebhook}orders`, async (req, res) => {
-        console.log('POST request to ' + '/printalot/orders/');
+        console.log('POST request to ' + '/orders/');
         res.json({ message: 'POST request received successfully' });
         const jobData = { tipo: 'orders', req, res, store: store.NombreEndpoint };
         await shopify.handleWebhook(jobData);
@@ -34,6 +34,13 @@ async function initDynamicEndpoints() {
     // Configurar el endpoint para obtener pedidos no cumplidos
     router.get(`${rutaWebhook}orders/unfulfilled`, verificarToken, async (req, res) => {
       await shopify.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
+    });
+
+    // Configurar el endpoint para obtener pedidos no cumplidos
+    router.get(`${rutaWebhook}orders/canceled`, async (req, res) => {
+      console.log('POST request to ' + '/orders/canceled');
+      res.json({ message: 'POST request received successfully' });
+      //llamar a la logica para cancelar pedidos
     });
 
     // Configurar el endpoint para manejar envíos POST
