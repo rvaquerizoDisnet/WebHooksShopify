@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('50 9 * * *', async () => {
+    cron.schedule('11 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -96,9 +96,12 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         });
 
         const xmlData = response.data;
+        console.log(xmlData)
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
+        console.log(peso, "peso")
         const volumen = await parsearVolumenDesdeXML(xmlData);
+        console.log(volumen, "volumen")
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         // Actualizar la tabla DeliveryNoteHeader
@@ -159,7 +162,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         //await pool.close();
         //console.log('Datos insertados en OrderHeader correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
-        console.error('Error al insertar en OrderHeader:', error.message);
+        console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
     }
 }
 

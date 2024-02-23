@@ -16,7 +16,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
 const { obtenerConfiguracionesTiendas } = require('./api/api');
-const { consultaAGls } = require('./gls/glsService');
+const { consultaAGls, consultarPedidoGLS } = require('./gls/glsService');
 const { convertTableToCSV, deleteCSVFile } = require('./gls/convertMDBinSQLite');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -78,6 +78,8 @@ const startServer = async () => {
 };
 
 startServer();
+
+consultarPedidoGLS("cb4b925e-5fee-4ac8-8f25-94114369592d", '2000046879', 930348197)
 
 // Manejar eventos de cierre para cerrar correctamente el servidor y la conexión a la base de datos
 process.on('SIGTERM', () => {
