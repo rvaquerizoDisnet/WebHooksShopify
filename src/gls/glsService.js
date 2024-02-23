@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('43 10 * * *', async () => {
+    cron.schedule('48 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -204,15 +204,22 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
 
         console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
-        console.error('Error al actualizar la base de datos:', OrderNumber, error.message);
+        // Manejar el error específico de deadlock
+        if (error.message.includes('deadlocked')) {
+            console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
+            // Esperar un breve intervalo antes de reintentar la operación
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Espera de 1 segundo
+            // Reintentar la operación
+            await actualizarBaseDeDatos(OrderNumber, peso, volumen);
+        } else {
+            console.error('Error al actualizar la base de datos:', OrderNumber, error.message);
+        }
     } finally {
         if (pool) {
-            //await pool.close();
             console.log('Conexión cerrada correctamente.');
         }
     }
 }
-
 
 // Función para parsear el peso desde XML
 async function parsearPesoDesdeXML(xmlData) {
