@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('25 10 * * *', async () => {
+    cron.schedule('29 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -204,7 +204,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
 
         console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
-        console.error('Error al actualizar la base de datos:', 'IdOrder:', IdOrder, error.message);
+        console.error('Error al actualizar la base de datos:', OrderNumber, error.message);
     } finally {
         if (pool) {
             //await pool.close();
