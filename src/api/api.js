@@ -37,7 +37,7 @@ async function initDynamicEndpoints() {
     });
 
     // Configurar el endpoint para obtener pedidos no cumplidos
-    router.get(`${rutaWebhook}orders/canceled`, async (req, res) => {
+    router.post(`${rutaWebhook}orders/canceled`, async (req, res) => {
       console.log('POST request to ' + '/orders/canceled');
       res.json({ message: 'POST request received successfully' });
       //llamar a la logica para cancelar pedidos
