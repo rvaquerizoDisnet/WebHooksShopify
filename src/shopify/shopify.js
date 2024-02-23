@@ -285,9 +285,9 @@ async function mapJsonToXml(jsonData, store) {
   let nombreDestinatario = (destinatario.name || '') + (destinatario.company || '');
   let nombreDestinatario2 = null;
   
-  if (nombreDestinatario.length > 40) {
-    nombreDestinatario = nombreDestinatario.substring(0, 40);
-    nombreDestinatario2 = nombreDestinatario.substring(40);
+  if (nombreDestinatario.length > 80) {
+    nombreDestinatario = nombreDestinatario.substring(0, 80);
+    nombreDestinatario2 = nombreDestinatario.substring(80);
   }
 
   // Crear el objeto XML sin incluir Direccion2 si es nulo
