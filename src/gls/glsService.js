@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('16 11 * * *', async () => {
+    cron.schedule('18 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -143,7 +143,7 @@ async function leerWeightDisplacement(OrderNumber) {
     }
 }
 
-async function insertarEnOrderHeader(OrderNumber, peso, volumen, IdOrder, Weight, Displacement) {
+async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
     try {
         const pool = await connectToDatabase();
         const query = `
@@ -162,11 +162,20 @@ async function insertarEnOrderHeader(OrderNumber, peso, volumen, IdOrder, Weight
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Espera de 5 segundos
-            // Reintentar la operación
-            await actualizarBaseDeDatos(OrderNumber, peso, volumen);
+            await new Promise(resolve => setTimeout(resolve, 5000)); 
+            const pool = await connectToDatabase();
+            const query = `
+                UPDATE MiddlewareOH
+                SET nFree7 = @peso, nFree8 = @volumen
+                WHERE IdOrder = @IdOrder;
+            `;
+            const request = pool.request();
+            request.input('IdOrder', sql.NVarChar, IdOrder.toString());
+            request.input('peso', sql.Decimal(18, 8), Weight);
+            request.input('volumen', sql.Decimal(18, 8), Displacement);
+            await request.query(query);
         } else {
-            console.error('Error al insertar en OrderHeader: ', OrderNumber, error.message);
+            console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
         }
     }
 }
