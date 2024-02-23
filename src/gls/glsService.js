@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('52 10 * * *', async () => {
+    cron.schedule('16 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -143,7 +143,7 @@ async function leerWeightDisplacement(OrderNumber) {
     }
 }
 
-async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
+async function insertarEnOrderHeader(OrderNumber, peso, volumen, IdOrder, Weight, Displacement) {
     try {
         const pool = await connectToDatabase();
         const query = `
@@ -162,7 +162,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Espera de 1 segundo
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Espera de 5 segundos
             // Reintentar la operación
             await actualizarBaseDeDatos(OrderNumber, peso, volumen);
         } else {
