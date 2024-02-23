@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('37 10 * * *', async () => {
+    cron.schedule('40 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -159,7 +159,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         //await pool.close();
         //console.log('Datos insertados en OrderHeader correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
-        console.error('Error al insertar en OrderHeader:', error.message);
+        console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
     }
 }
 
