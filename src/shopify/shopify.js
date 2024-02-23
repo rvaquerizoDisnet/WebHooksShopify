@@ -215,7 +215,7 @@ async function convertirJSToXML(data, store) {
 
 // Mapea los datos JSON a XML
 async function mapJsonToXml(jsonData, store) {
-  const sc = await obtenerCodigoSesionCliente(store)
+  const sc = await obtenerCodigoSesionCliente(store);
   const destinatario = jsonData.shipping_address || {};
 
   // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
@@ -226,28 +226,26 @@ async function mapJsonToXml(jsonData, store) {
     notasCliente = 'Sin observaciones';
   }
 
-  notasCliente = 'Sin observaciones';
-
   let lineas;
   // Obtener lineas
-  if (store == 'ami-iyok'){
+  if (store == 'ami-iyok') {
     lineas = jsonData.line_items
-    ? jsonData.line_items.map((item, index) => ({
+      ? jsonData.line_items.map((item, index) => ({
         CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
         Cantidad: item.quantity || 0,
         NumeroLinea: index + 1,
       })).concat([{
         CodArticulo: 'SACHETKIT', Cantidad: 1, NumeroLinea: jsonData.line_items.length + 1
       }])
-    : [];
-  }else{
+      : [];
+  } else {
     lineas = jsonData.line_items
-    ? jsonData.line_items.map((item, index) => ({
+      ? jsonData.line_items.map((item, index) => ({
         CodArticulo: item.sku || `SKU NO INCLUIDO EN EL ARCHIVO`,
         Cantidad: item.quantity || 0,
         NumeroLinea: index + 1,
       }))
-    : [];
+      : [];
   }
 
   // Función para formatear la fecha
@@ -264,8 +262,6 @@ async function mapJsonToXml(jsonData, store) {
 
   // Ajustar dirección
   let direccion1 = destinatario.address1 || '-';
-
-  // Inicializar direccion2 como nulo
   let direccion2 = null;
 
   // Cortar la dirección1 si es mayor a 40 caracteres
@@ -281,20 +277,19 @@ async function mapJsonToXml(jsonData, store) {
   if (destinatario.country_code === 'ES') {
     // Asignar los dos primeros dígitos del código postal como código de provincia
     codigoProvincia = destinatario.zip.substring(0, 2);
-  }
-  else{
+  } else {
     //En caso que no sea ES el codigo pais asigna el codigo pais tambien a codigo provincia
     codigoProvincia = destinatario.country_code
   }
 
-   // Asignación del campo Empresa y Nombre
-   let nombreDestinatario = destinatario.name || '-';
-   let empresaDestinatario = destinatario.company || '-';
- 
-   // Si la empresa es '-' y el nombre no lo es, asigna el nombre a la empresa
-   if (empresaDestinatario === '-') {
-     empresaDestinatario = nombreDestinatario;
-   }
+  // Asignación del campo Empresa y Nombre
+  let nombreDestinatario = destinatario.name + " " + destinatario.company || '-';
+  let nombreDestinatario2 = null;
+
+  if (nombreDestinatario.length > 40) {
+    nombreDestinatario2 = nombreDestinatario.substring(40);
+    nombreDestinatario = nombreDestinatario.substring(0, 40);
+  }
 
   // Crear el objeto XML sin incluir Direccion2 si es nulo
   const xmlObject = {
@@ -308,8 +303,9 @@ async function mapJsonToXml(jsonData, store) {
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
-          Empresa: empresaDestinatario,
+          Empresa: nombreDestinatario,
           Nombre: nombreDestinatario,
+          ...(nombreDestinatario2 !== null && { NombreDestinatario2: nombreDestinatario2 }), // Agrega NombreDestinatario2 solo si no es null
           Direccion: direccion1,
           // Incluir Direccion2 solo si no es nulo
           ...(direccion2 !== null && { Direccion2: direccion2 }),
@@ -331,6 +327,8 @@ async function mapJsonToXml(jsonData, store) {
 
   return xmlObject;
 }
+
+
 
 
 // Segun en el endpoint donde se ha hecho, escoge un codigo de cliente para que en el Sesion_Cliente del xml este incluido

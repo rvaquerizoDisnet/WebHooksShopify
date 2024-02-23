@@ -19,8 +19,12 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
         // Configuración para el acceso a la API
         const adminApiAccessToken = await getAdminApiAccessTokenFromDB(store);
+        console.log("adminApiAccessToken ", adminApiAccessToken)
         const apiKey = await getApiKeyFromDB(store);
-        
+        console.log("apiKey ", apiKey)
+
+        console.log(store)
+
         const shopify = new Shopify({
             shopName: `${store}.myshopify.com`,
             apiKey: apiKey,
@@ -35,20 +39,20 @@ async function handleShipmentAdminApi({ req, res, store }) {
             }
         
             const orderNumber = pedido.ordernumber[0];
+            console.log(orderNumber+ " OrderNumber")
             const trackingNumber = pedido.trackingnumber[0] + "";
-        
+            console.log(trackingNumber+ " trackingNumber")
         
             let yearOrderNumber = orderNumber;
     
             const currentYear = new Date().getFullYear();
             yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
-            console.log(yearOrderNumber, "yearOrderNumber")
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
             const ordersByOrderNumber = await shopify.order.list({ name: orderNumber, status: 'any' });
-            console.log("ordersByOrderNumber ", ordersByOrderNumber)
+            //console.log("ordersByOrderNumber ", ordersByOrderNumber)
             const ordersByYearAndOrderNumber = await shopify.order.list({ name: yearOrderNumber, status: 'any' });
-            console.log("ordersByYearAndOrderNumber ", ordersByYearAndOrderNumber)
+            //console.log("ordersByYearAndOrderNumber ", ordersByYearAndOrderNumber)
             // Concatenar los resultados de ambas búsquedas
             const orders = ordersByOrderNumber.concat(ordersByYearAndOrderNumber);
             //console.log("orders ", orders)
@@ -56,7 +60,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Buscar el pedido por el OrderNumber
             const currentOrder = orders.find(order => order.name === orderNumber || order.name === yearOrderNumber);
-
+            console.log(currentOrder + "currentOrder")
             
             // Comprobamos que el pedido exista
             if (!currentOrder) {
@@ -73,10 +77,18 @@ async function handleShipmentAdminApi({ req, res, store }) {
             // Obtener la dirección de envío del pedido
             const shippingAddress = currentOrder.shipping_address;
             const zipCode = shippingAddress.zip;
+            const countryCode = shippingAddress.country_code;
+
+            if (countryCode != 'ES') {
+                console.log(`Pedido con OrderNumber ${orderNumber} o ${yearOrderNumber} no se cerrara porque no es un pedido nacional.`);
+                continue;
+            }
 
             // Guardamos los datos
             const orderId = currentOrder.id;
+            console.log("OrderId: ", orderId)
             const locationId = currentOrder.fulfillments[0]?.location_id;
+            console.log("locationId: ", locationId)
 
             // Si el pedido ya tiene una locationID es decir ya tiene el fulfillment creado, continuamos sin hacer nada mas.
             if (locationId) {
