@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('11 10 * * *', async () => {
+    cron.schedule('17 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -96,12 +96,9 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         });
 
         const xmlData = response.data;
-        console.log(xmlData)
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
-        console.log(peso, "peso")
         const volumen = await parsearVolumenDesdeXML(xmlData);
-        console.log(volumen, "volumen")
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         // Actualizar la tabla DeliveryNoteHeader
@@ -162,71 +159,60 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         //await pool.close();
         //console.log('Datos insertados en OrderHeader correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
-        console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
+        console.error('Error al insertar en OrderHeader:', error.message);
     }
 }
 
 
 async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
     let pool;
-    const maxRetries = 3; // Número máximo de reintentos
-    let retries = 0;
+    try {
+        // Conectar a la base de datos
+        pool = await connectToDatabase();
 
-    while (retries < maxRetries) {
-        try {
-            // Conectar a la base de datos
-            pool = await connectToDatabase();
+        // Consultar el IdOrder relacionado con el OrderNumber
+        const queryConsultaIdOrder = `
+            SELECT IdOrder
+            FROM MiddlewareOH
+            WHERE OrderNumber = @OrderNumber;
+        `;
 
-            // Consultar el IdOrder relacionado con el OrderNumber
-            const queryConsultaIdOrder = `
-                SELECT IdOrder
-                FROM MiddlewareOH
-                WHERE OrderNumber = @OrderNumber;
-            `;
+        const requestConsultaIdOrder = pool.request();
+        requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
 
-            const requestConsultaIdOrder = pool.request();
-            requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
+        const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
+        if (resultConsultaIdOrder.recordset.length === 0) {
+            console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
+            return;
+        }
 
-            const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
-            if (resultConsultaIdOrder.recordset.length === 0) {
-                console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
-                return;
-            }
+        const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
 
-            const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
+        // Actualizar la tabla DeliveryNoteHeader con el IdOrder correspondiente
+        const requestUpdate = pool.request();
+        const queryUpdate = `
+            UPDATE MiddlewareDNH
+            SET Weight = @peso, Displacement = @volumen
+            WHERE IdOrder = @IdOrder;
+        `;
 
-            // Actualizar la tabla DeliveryNoteHeader con el IdOrder correspondiente
-            const requestUpdate = pool.request();
-            const queryUpdate = `
-                UPDATE MiddlewareDNH
-                SET Weight = @peso, Displacement = @volumen
-                WHERE IdOrder = @IdOrder;
-            `;
+        requestUpdate.input('peso', sql.Decimal(18, 8), peso);
+        requestUpdate.input('volumen', sql.Decimal(18, 8), volumen);
+        requestUpdate.input('IdOrder', sql.Int, IdOrder);
 
-            requestUpdate.input('peso', sql.Decimal(18, 8), peso);
-            requestUpdate.input('volumen', sql.Decimal(18, 8), volumen);
-            requestUpdate.input('IdOrder', sql.Int, IdOrder);
+        await requestUpdate.query(queryUpdate);
 
-            await requestUpdate.query(queryUpdate);
-
-            console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder);
-            return; // Salir del bucle si la actualización fue exitosa
-        } catch (error) {
-            retries++;
-            console.error(`Error al actualizar la base de datos para el pedido con IdOrder ${IdOrder}:`, error.message);
-            if (retries === maxRetries) {
-                console.error(`Se han superado los ${maxRetries} intentos. No se pudo actualizar la base de datos para el pedido con IdOrder ${IdOrder}.`);
-            } else {
-                console.log(`Reintentando... (Intento ${retries} de ${maxRetries})`);
-            }
-        } finally {
-            if (pool) {
-                console.log('Conexión cerrada correctamente.');
-                //await pool.close();
-            }
+        console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder);
+    } catch (error) {
+        console.error('Error al actualizar la base de datos:', 'IdOrder:', IdOrder, error.message);
+    } finally {
+        if (pool) {
+            //await pool.close();
+            console.log('Conexión cerrada correctamente.');
         }
     }
 }
+
 
 // Función para parsear el peso desde XML
 async function parsearPesoDesdeXML(xmlData) {
