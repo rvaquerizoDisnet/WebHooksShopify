@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('29 10 * * *', async () => {
+    cron.schedule('37 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 

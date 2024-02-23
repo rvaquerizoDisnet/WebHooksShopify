@@ -298,7 +298,7 @@ async function mapJsonToXml(jsonData, store) {
         OrderNumber: `#${jsonData.order_number || '-'}`,
         FechaPedido: formattedFechaPedido,
         OrderCustomer: `#${jsonData.order_number || '-'}`,
-        ObservAgencia: notasCliente,
+        ObservAgencia: ' ',
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {
