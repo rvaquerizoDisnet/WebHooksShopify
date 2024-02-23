@@ -11,7 +11,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('30 9 * * *', async () => {
+    cron.schedule('350 9 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -166,53 +166,64 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
 
 async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
     let pool;
-    try {
-        // Conectar a la base de datos
-        pool = await connectToDatabase();
+    const maxRetries = 3; // Número máximo de reintentos
+    let retries = 0;
 
-        // Consultar el IdOrder relacionado con el OrderNumber
-        const queryConsultaIdOrder = `
-            SELECT IdOrder
-            FROM MiddlewareOH
-            WHERE OrderNumber = @OrderNumber;
-        `;
+    while (retries < maxRetries) {
+        try {
+            // Conectar a la base de datos
+            pool = await connectToDatabase();
 
-        const requestConsultaIdOrder = pool.request();
-        requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
+            // Consultar el IdOrder relacionado con el OrderNumber
+            const queryConsultaIdOrder = `
+                SELECT IdOrder
+                FROM MiddlewareOH
+                WHERE OrderNumber = @OrderNumber;
+            `;
 
-        const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
-        if (resultConsultaIdOrder.recordset.length === 0) {
-            console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
-            return;
-        }
+            const requestConsultaIdOrder = pool.request();
+            requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
 
-        const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
+            const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
+            if (resultConsultaIdOrder.recordset.length === 0) {
+                console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
+                return;
+            }
 
-        // Actualizar la tabla DeliveryNoteHeader con el IdOrder correspondiente
-        const requestUpdate = pool.request();
-        const queryUpdate = `
-            UPDATE MiddlewareDNH
-            SET Weight = @peso, Displacement = @volumen
-            WHERE IdOrder = @IdOrder;
-        `;
+            const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
 
-        requestUpdate.input('peso', sql.Decimal(18, 8), peso);
-        requestUpdate.input('volumen', sql.Decimal(18, 8), volumen);
-        requestUpdate.input('IdOrder', sql.Int, IdOrder);
+            // Actualizar la tabla DeliveryNoteHeader con el IdOrder correspondiente
+            const requestUpdate = pool.request();
+            const queryUpdate = `
+                UPDATE MiddlewareDNH
+                SET Weight = @peso, Displacement = @volumen
+                WHERE IdOrder = @IdOrder;
+            `;
 
-        await requestUpdate.query(queryUpdate);
+            requestUpdate.input('peso', sql.Decimal(18, 8), peso);
+            requestUpdate.input('volumen', sql.Decimal(18, 8), volumen);
+            requestUpdate.input('IdOrder', sql.Int, IdOrder);
 
-        console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder);
-    } catch (error) {
-        console.error('Error al actualizar la base de datos:', error.message);
-    } finally {
-        if (pool) {
-            //await pool.close();
-            console.log('Conexión cerrada correctamente.');
+            await requestUpdate.query(queryUpdate);
+
+            console.log('Base de datos actualizada correctamente.', 'IdOrder:', IdOrder);
+            return; // Salir del bucle si la actualización fue exitosa
+        } catch (error) {
+            retries++;
+            console.error(`Error al actualizar la base de datos para el pedido con IdOrder ${IdOrder}:`, error.message);
+            if (retries === maxRetries) {
+                console.error(`Se han superado los ${maxRetries} intentos. No se pudo actualizar la base de datos para el pedido con IdOrder ${IdOrder}.`);
+            } else {
+                console.log(`Reintentando... (Intento ${retries} de ${maxRetries})`);
+            }
+        } finally {
+            if (pool) {
+                console.log('Conexión cerrada correctamente.');
+                //await pool.close();
+            }
         }
     }
 }
-
 
 // Función para parsear el peso desde XML
 async function parsearPesoDesdeXML(xmlData) {
