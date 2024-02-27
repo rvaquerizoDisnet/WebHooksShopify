@@ -312,7 +312,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('47 11 * * *', async () => {
+    cron.schedule('53 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
 
@@ -358,8 +358,6 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
                 row.departamento_exp === departamentoExp
             ) {
                 rows.push(row);
-            } else{
-                console.log("No se ha encontrado ningun pedido ayer")
             }
         })
         .on('end', () => {
@@ -368,7 +366,7 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
                 ActualizarBBDDTracking(pedido.referencia_exp, pedido.codbarras_exp); // Pasar el campo codbarras_EXP como argumento
             }
             
-            console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
+            console.log(`Consultados y actualizados el tracking de GLS para el departamento ${departamentoExp}.`);
         });
     } catch (error) {
         console.error('Error al consultar pedidos y actualizar la base de datos:', error);
