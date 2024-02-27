@@ -145,7 +145,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 // Función para hacer una solicitud retardada con espera
 async function makeDelayedRequest(requestFunc) {
     const response = await requestFunc(); // Hacer la solicitud
-    await wait(1000); // Esperar 1 segundo
+    await wait(500); // Esperar medio segundo
     return response; // Devolver la respuesta
 }
 
