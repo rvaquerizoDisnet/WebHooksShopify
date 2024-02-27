@@ -18,13 +18,17 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
         // Configuración para el acceso a la API
         const adminApiAccessToken = await getAdminApiAccessTokenFromDB(store);
+        console.log("adminApiAccessToken: ", adminApiAccessToken)
         const apiKey = await getApiKeyFromDB(store);
+        console.log("Apikey: ", apiKey)
         const shopify = new Shopify({
             shopName: `${store}.myshopify.com`,
             apiKey: apiKey,
             password: adminApiAccessToken,
             apiVersion: '2024-01',
         });
+
+        console.log("Shopify", shopify)
 
         for (const pedido of pedidos) {
             if (!pedido.ordernumber || !pedido.trackingnumber) {
@@ -63,6 +67,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const shippingAddress = currentOrder.shipping_address;
             const zipCode = shippingAddress.zip;
             const countryCode = shippingAddress.country_code;
+            console.log("countryCode", countryCode)
 
             if (countryCode != 'ES') {
                 console.log(`Pedido con OrderNumber ${orderNumber} o ${yearOrderNumber} no se cerrará porque no es un pedido nacional.`);
@@ -71,6 +76,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Guardamos los datos
             const orderId = currentOrder.id;
+            console.log("orderId", orderId)
             const locationId = currentOrder.fulfillments[0]?.location_id;
 
             // Si el pedido ya tiene una locationID, es decir, ya tiene el fulfillment creado, continuamos sin hacer nada más.
@@ -81,6 +87,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Obtenemos el fulfillment del idOrder que hemos obtenido antes
             const fulfillmentDetails = await shopify.order.fulfillmentOrders(orderId);
+            console.log("fulfillmentDetails: ", fulfillmentDetails)
             const fulfillmentOrderId = fulfillmentDetails[0].id;
             const fulfillmentLineitemIds = fulfillmentDetails[0].line_items.map(item => ({
                 id: item.id,
@@ -114,12 +121,14 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 origin_address: null,
                 message: 'Estado de entrega: ' + trackingNumber
             };
+            console.log("updateParams: ", updateParams)
 
             // Crear la actualización de cumplimiento para el pedido
             const updateFulfillment = await shopify.fulfillment.createV2(updateParams);
+            console.log("updateFulfillment: ", updateFulfillment)
 
             console.error('Detalles de la respuesta de Shopify:', updateFulfillment);
-            await wait(10000);
+            await wait(3000);
         }
     } catch (error) {
         console.error('Error al manejar la solicitud de la API de administración de Shopify:', error);
