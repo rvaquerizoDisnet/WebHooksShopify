@@ -312,7 +312,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('28 11 * * *', async () => {
+    cron.schedule('33 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para le tracking a las 6:00');
 
