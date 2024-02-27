@@ -118,7 +118,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const updateFulfillment = await shopify.fulfillment.createV2(updateParams);
 
             console.error('Detalles de la respuesta de Shopify:', updateFulfillment);
-            await wait(2000);
+            //await wait(1000);
         }
     } catch (error) {
         console.error('Error al manejar la solicitud de la API de administración de Shopify:', error);
