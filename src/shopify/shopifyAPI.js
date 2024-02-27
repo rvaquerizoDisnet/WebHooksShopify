@@ -40,8 +40,8 @@ async function handleShipmentAdminApi({ req, res, store }) {
             yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
-            const ordersByOrderNumber = await shopify.order.list({ name: orderNumber, status: 'any' });
-            const ordersByYearAndOrderNumber = await shopify.order.list({ name: yearOrderNumber, status: 'any' });
+            const ordersByOrderNumber = await makeDelayedRequest(() => shopify.order.list({ name: orderNumber, status: 'any' }));
+            const ordersByYearAndOrderNumber = await makeDelayedRequest(() => shopify.order.list({ name: yearOrderNumber, status: 'any' }));
             const orders = ordersByOrderNumber.concat(ordersByYearAndOrderNumber);
 
             // Buscar el pedido por el OrderNumber
@@ -141,6 +141,13 @@ async function handleShipmentAdminApi({ req, res, store }) {
             res.json({ message: successMessage });
         }
     }
+}
+
+// Función para hacer una solicitud retardada con espera
+async function makeDelayedRequest(requestFunc) {
+    const response = await requestFunc(); // Hacer la solicitud
+    await wait(2000); // Esperar 1 segundo
+    return response; // Devolver la respuesta
 }
 
 function wait(ms) {
