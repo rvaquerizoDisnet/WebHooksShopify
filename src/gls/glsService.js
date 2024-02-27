@@ -2,7 +2,6 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const axios = require('axios');
 const sql = require('mssql');
-const sqlite3 = require('sqlite3');
 const { connectToDatabase, closeDatabaseConnection } = require('../utils/database');
 const xml2js = require('xml2js');
 const cron = require('node-cron');
@@ -313,7 +312,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('16 11 * * *', async () => {
+    cron.schedule('21 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para le tracking a las 6:00');
 
@@ -405,9 +404,26 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
         request.input('codbarrasExp', sql.NVarChar, codbarrasExp);
         request.input('IdOrder', sql.NVarChar, IdOrder.toString());
         await request.query(query);
-        console.log(`Se ha actualizado el campo TrackingNumber con el valor ${codbarrasExp} para el cliente ${uidCliente} y el IdOrder ${IdOrder}.`);
+        console.log(`Se ha actualizado el campo TrackingNumber con el valor ${codbarrasExp} y el IdOrder ${IdOrder}.`);
     } catch (error) {
-        console.error('Error al actualizar la base de datos con el número de seguimiento:', error);
+        if (error.message.includes('deadlocked')) {
+            console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
+            // Esperar un breve intervalo antes de reintentar la operación
+            await new Promise(resolve => setTimeout(resolve, 5000)); 
+            const pool = await connectToDatabase();
+            const query = `
+                UPDATE MiddlewareDNH
+                SET TrackingNumber = @codbarrasExp
+                WHERE IdOrder = @IdOrder;
+            `;
+            const request = pool.request();
+            request.input('codbarrasExp', sql.NVarChar, codbarrasExp);
+            request.input('IdOrder', sql.NVarChar, IdOrder.toString());
+            await request.query(query);
+            console.log(`Se ha actualizado el campo TrackingNumber con el valor ${codbarrasExp} y el IdOrder ${IdOrder}.`);
+        } else {
+            console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
+        }
     }
 }
 
