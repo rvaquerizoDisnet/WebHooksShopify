@@ -46,7 +46,6 @@ app.use((err, req, res, next) => {
   }
 });
 
-const whitelist = process.env.WHITELIST ? JSON.parse(process.env.WHITELIST) : [];
 
 // Obtener la URL pública proporcionada
 const providedUrl = process.env.YOUR_PROVIDED_URL;
@@ -59,18 +58,8 @@ woocommerce.initWebhooks(app, providedUrl);
 
 woocommerceRouter.initDynamicEndpoints();
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-};
-
-app.use(bodyParser.json());
-app.use(cors(corsOptions));
+// Configurar CORS
+app.use(cors());
 
 app.use(errorHandlingMiddleware);
 
@@ -103,6 +92,6 @@ process.on('SIGTERM', () => {
 
 
 // Llamada a las tareas automaticas por Cron
-convertTableToCSV();
-deleteCSVFile();
-consultaAGls();
+//convertTableToCSV();
+//deleteCSVFile();
+//consultaAGls();
