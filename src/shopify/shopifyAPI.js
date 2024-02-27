@@ -18,9 +18,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
         // Configuración para el acceso a la API
         const adminApiAccessToken = await getAdminApiAccessTokenFromDB(store);
-        console.log("adminApiAccessToken: ", adminApiAccessToken)
         const apiKey = await getApiKeyFromDB(store);
-        console.log("Apikey: ", apiKey)
         const shopify = new Shopify({
             shopName: `${store}.myshopify.com`,
             apiKey: apiKey,
@@ -83,19 +81,13 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Obtenemos el fulfillment del idOrder que hemos obtenido antes
             const fulfillmentDetails = await shopify.order.fulfillmentOrders(orderId);
-            console.log("------------------------------------------")
-            console.log("fulfillmentDetails: ", fulfillmentDetails)
-            console.log("------------------------------------------")
             const fulfillmentOrderId = fulfillmentDetails[0].id;
             const fulfillmentLineitemIds = fulfillmentDetails[0].line_items.map(item => ({
                 id: item.id,
                 quantity: item.quantity
             }));
 
-            console.log("fulfillmentOrderId", fulfillmentOrderId)
-
             const company = await obtenerNombreCompania(store);
-            console.log("compnay", company)
             let url = ''
             if (company === 'GLS') {
                 url = `https://mygls.gls-spain.es/e/${trackingNumber}/${zipCode}/en`;
@@ -122,15 +114,11 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 origin_address: null,
                 message: 'Estado de entrega: ' + trackingNumber
             };
-            console.log("------------------------------------------")
-            console.log("updateParams: ", updateParams)
-            console.log("------------------------------------------")
             // Crear la actualización de cumplimiento para el pedido
             const updateFulfillment = await shopify.fulfillment.createV2(updateParams);
-            console.log("updateFulfillment: ", updateFulfillment)
 
             console.error('Detalles de la respuesta de Shopify:', updateFulfillment);
-            await wait(3000);
+            await wait(2000);
         }
     } catch (error) {
         console.error('Error al manejar la solicitud de la API de administración de Shopify:', error);
@@ -157,7 +145,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 // Función para hacer una solicitud retardada con espera
 async function makeDelayedRequest(requestFunc) {
     const response = await requestFunc(); // Hacer la solicitud
-    await wait(2000); // Esperar 1 segundo
+    await wait(1000); // Esperar 1 segundo
     return response; // Devolver la respuesta
 }
 
