@@ -50,7 +50,7 @@ async function initDynamicEndpoints() {
           await shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
           
           // Envía una respuesta indicando éxito
-          //res.status(200).json({ message: "Operación completada exitosamente" });
+          res.status(200).json({ message: "Operación completada exitosamente" });
       } catch (error) {
           // Envía una respuesta indicando el error
           res.status(500).json({ error: "Ocurrió un error durante el procesamiento de la solicitud" });
