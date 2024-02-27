@@ -16,8 +16,8 @@ const app = express();
 const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
 const { obtenerConfiguracionesTiendas } = require('./api/api');
-const { consultaAGls, consultarPedidoGLS } = require('./gls/glsService');
-const { convertTableToCSV, deleteCSVFile } = require('./gls/convertMDBinSQLite');
+const { consultaAGls, consultaAGlsTracking } = require('./gls/glsService');
+const { convertTableToCSV, deleteCSVFile,  convertTableToCSV2, deleteCSVFile2} = require('./gls/convertMDBinSQLite');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -92,6 +92,10 @@ process.on('SIGTERM', () => {
 
 
 // Llamada a las tareas automaticas por Cron
-//convertTableToCSV();
-//deleteCSVFile();
-//consultaAGls();
+convertTableToCSV();
+deleteCSVFile();
+consultaAGls();
+//Tracking
+convertTableToCSV2();
+deleteCSVFile2();
+consultaAGlsTracking();

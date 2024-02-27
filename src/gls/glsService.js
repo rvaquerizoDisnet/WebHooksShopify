@@ -310,4 +310,106 @@ async function parsearVolumenDesdeXML(xmlData) {
     }
 }
 
-module.exports = { consultarPedidoGLS, consultaAGls };
+
+//Tracking 
+function consultaAGlsTracking() {
+    cron.schedule('16 11 * * *', async () => {
+        // Ejecutar consultas a las 6:00
+        console.log('Ejecutando consulta a GLS para le tracking a las 6:00');
+
+        try {
+            // Conectar a la base de datos
+            const pool = await connectToDatabase();
+
+            // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
+            const query = `
+                SELECT uid_cliente, departamento_exp
+                FROM MiddlewareGLS;
+            `;
+            const result = await pool.query(query);
+
+            // Recorrer los resultados y realizar las consultas a GLS para cada registro
+            for (const row of result.recordset) {
+                await consultarTrackingyActualizar(row.uid_cliente, row.departamento_exp);
+            }
+
+            // Cerrar la conexión a la base de datos
+            //await closeDatabaseConnection();
+        } catch (error) {
+            console.error('Error al ejecutar la consulta a GLS:', error);
+        }
+    });
+}
+
+async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
+    try {
+        const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
+
+        // Leer el archivo CSV
+        const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+        const rows = [];
+
+        fs.createReadStream(csvFilePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
+            // Filtrar los registros del día anterior con el departamento_exp correspondiente
+            if (
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
+                row.departamento_exp === departamentoExp
+            ) {
+                rows.push(row);
+            } else{
+                console.log("No se ha encontrado ningun pedido ayer")
+            }
+        })
+        .on('end', () => {
+            // Iterar sobre los registros filtrados
+            for (const pedido of rows) {
+                ActualizarBBDDTracking(pedido.referencia_exp, pedido.codbarras_exp); // Pasar el campo codbarras_EXP como argumento
+            }
+            
+            console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
+        });
+    } catch (error) {
+        console.error('Error al consultar pedidos y actualizar la base de datos:', error);
+    }
+}
+
+async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
+    try {
+        const pool = await connectToDatabase();
+        const queryConsultaIdOrder = `
+            SELECT IdOrder
+            FROM MiddlewareOH
+            WHERE OrderNumber = @OrderNumber;
+        `;
+
+        const requestConsultaIdOrder = pool.request();
+        requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
+
+        const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
+        if (resultConsultaIdOrder.recordset.length === 0) {
+            console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
+            return;
+        }
+
+        const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
+
+        const query = `
+            UPDATE MiddlewareDNH
+            SET TrackingNumber = @codbarrasExp
+            WHERE IdOrder = @IdOrder;
+        `;
+        const request = pool.request();
+        request.input('codbarrasExp', sql.NVarChar, codbarrasExp);
+        request.input('IdOrder', sql.NVarChar, IdOrder.toString());
+        await request.query(query);
+        console.log(`Se ha actualizado el campo TrackingNumber con el valor ${codbarrasExp} para el cliente ${uidCliente} y el IdOrder ${IdOrder}.`);
+    } catch (error) {
+        console.error('Error al actualizar la base de datos con el número de seguimiento:', error);
+    }
+}
+
+
+module.exports = { consultarPedidoGLS, consultaAGls, consultaAGlsTracking };
