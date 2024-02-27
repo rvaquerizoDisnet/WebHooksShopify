@@ -36,9 +36,7 @@ router.post('/login', handleValidationErrors, async (req, res) => {
       delete failedLoginAttempts[username];
 
       const token = generarToken({ username: usuario.username, rol: usuario.rol });
-      //res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
-      res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none' });
-
+      res.cookie('token', token, { httpOnly: false, maxAge: 3600000, sameSite: 'none', secure: true });
       res.redirect('/');
     } else {
       // Si las credenciales son inválidas, aumentar el contador de intentos fallidos
