@@ -45,9 +45,18 @@ async function initDynamicEndpoints() {
 
     // Configurar el endpoint para manejar envíos POST
     router.post(`${rutaWebhook}shipments`, async (req, res) => {
-        const store = await obtenerCodigoSesionCliente(req.body);
-        await shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
-    });
+      try {
+          const store = await obtenerCodigoSesionCliente(req.body);
+          await shopifyAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
+          
+          // Envía una respuesta indicando éxito
+          res.status(200).json({ message: "Operación completada exitosamente" });
+      } catch (error) {
+          // Envía una respuesta indicando el error
+          res.status(500).json({ error: "Ocurrió un error durante el procesamiento de la solicitud" });
+      }
+  });
+  
   });
 }
 
