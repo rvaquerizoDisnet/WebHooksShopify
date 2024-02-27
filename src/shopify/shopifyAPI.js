@@ -28,8 +28,6 @@ async function handleShipmentAdminApi({ req, res, store }) {
             apiVersion: '2024-01',
         });
 
-        console.log("Shopify", shopify)
-
         for (const pedido of pedidos) {
             if (!pedido.ordernumber || !pedido.trackingnumber) {
                 console.error('Error de validación: OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.');
@@ -67,7 +65,6 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const shippingAddress = currentOrder.shipping_address;
             const zipCode = shippingAddress.zip;
             const countryCode = shippingAddress.country_code;
-            console.log("countryCode", countryCode)
 
             if (countryCode != 'ES') {
                 console.log(`Pedido con OrderNumber ${orderNumber} o ${yearOrderNumber} no se cerrará porque no es un pedido nacional.`);
@@ -76,7 +73,6 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Guardamos los datos
             const orderId = currentOrder.id;
-            console.log("orderId", orderId)
             const locationId = currentOrder.fulfillments[0]?.location_id;
 
             // Si el pedido ya tiene una locationID, es decir, ya tiene el fulfillment creado, continuamos sin hacer nada más.
@@ -87,14 +83,19 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
             // Obtenemos el fulfillment del idOrder que hemos obtenido antes
             const fulfillmentDetails = await shopify.order.fulfillmentOrders(orderId);
+            console.log("------------------------------------------")
             console.log("fulfillmentDetails: ", fulfillmentDetails)
+            console.log("------------------------------------------")
             const fulfillmentOrderId = fulfillmentDetails[0].id;
             const fulfillmentLineitemIds = fulfillmentDetails[0].line_items.map(item => ({
                 id: item.id,
                 quantity: item.quantity
             }));
 
-            const company = obtenerNombreCompania(store);
+            console.log("fulfillmentOrderId", fulfillmentOrderId)
+
+            const company = await obtenerNombreCompania(store);
+            console.log("compnay", company)
             let url = ''
             if (company === 'GLS') {
                 url = `https://mygls.gls-spain.es/e/${trackingNumber}/${zipCode}/en`;
@@ -121,8 +122,9 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 origin_address: null,
                 message: 'Estado de entrega: ' + trackingNumber
             };
+            console.log("------------------------------------------")
             console.log("updateParams: ", updateParams)
-
+            console.log("------------------------------------------")
             // Crear la actualización de cumplimiento para el pedido
             const updateFulfillment = await shopify.fulfillment.createV2(updateParams);
             console.log("updateFulfillment: ", updateFulfillment)
