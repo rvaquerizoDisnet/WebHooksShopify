@@ -10,7 +10,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('46 9 * * *', async () => {
+    cron.schedule('27 8 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -54,7 +54,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              if (
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                 row.departamento_exp === departamentoExp
+                 row.departamento_exp === departamentoExp && row.referencia_exp == '2000047166'
              ) {
                  rows.push(row);
              } else{
@@ -312,7 +312,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('15 8 * * *', async () => {
+    cron.schedule('23 8 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
 
@@ -355,7 +355,7 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
             if (
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                row.departamento_exp === departamentoExp
+                row.departamento_exp === departamentoExp && row.referencia_exp == '2000047166'
             ) {
                 rows.push(row);
             }
