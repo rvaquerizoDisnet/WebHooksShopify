@@ -10,7 +10,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('32 8 * * *', async () => {
+    cron.schedule('46 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -121,8 +121,8 @@ async function leerWeightDisplacement(OrderNumber) {
         const pool = await connectToDatabase();
         const query = `
             SELECT dh.Weight, dh.Displacement, oh.IdOrder
-            FROM MiddlewareDNH dh
-            INNER JOIN MiddlewareOH oh ON dh.IdOrder = oh.IdOrder
+            FROM DeliveryNoteHeader dh
+            INNER JOIN OrderHeader oh ON dh.IdOrder = oh.IdOrder
             WHERE oh.OrderNumber = @OrderNumber;
         `;
         const request = pool.request();
@@ -148,7 +148,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
     try {
         const pool = await connectToDatabase();
         const query = `
-            UPDATE MiddlewareOH
+            UPDATE OrderHeader
             SET nFree7 = @peso, nFree8 = @volumen
             WHERE IdOrder = @IdOrder;
         `;
@@ -166,7 +166,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
             await new Promise(resolve => setTimeout(resolve, 5000)); 
             const pool = await connectToDatabase();
             const query = `
-                UPDATE MiddlewareOH
+                UPDATE OrderHeader
                 SET nFree7 = @peso, nFree8 = @volumen
                 WHERE IdOrder = @IdOrder;
             `;
@@ -191,7 +191,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         // Consultar el IdOrder relacionado con el OrderNumber
         const queryConsultaIdOrder = `
             SELECT IdOrder
-            FROM MiddlewareOH
+            FROM OrderHeader
             WHERE OrderNumber = @OrderNumber;
         `;
 
@@ -209,7 +209,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         // Actualizar la tabla DeliveryNoteHeader con el IdOrder correspondiente
         const requestUpdate = pool.request();
         const queryUpdate = `
-            UPDATE MiddlewareDNH
+            UPDATE DeliveryNoteHeader
             SET Weight = @peso, Displacement = @volumen
             WHERE IdOrder = @IdOrder;
         `;
@@ -312,7 +312,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('28 8 * * *', async () => {
+    cron.schedule('40 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
 
@@ -378,7 +378,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
         const pool = await connectToDatabase();
         const queryConsultaIdOrder = `
             SELECT IdOrder
-            FROM MiddlewareOH
+            FROM OrderHeader
             WHERE OrderNumber = @OrderNumber;
         `;
 
@@ -394,7 +394,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
         const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
 
         const query = `
-            UPDATE MiddlewareDNH
+            UPDATE DeliveryNoteHeader
             SET TrackingNumber = @codbarrasExp
             WHERE IdOrder = @IdOrder;
         `;
@@ -410,7 +410,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
             await new Promise(resolve => setTimeout(resolve, 5000)); 
             const pool = await connectToDatabase();
             const query = `
-                UPDATE MiddlewareDNH
+                UPDATE DeliveryNoteHeader
                 SET TrackingNumber = @codbarrasExp
                 WHERE IdOrder = @IdOrder;
             `;
