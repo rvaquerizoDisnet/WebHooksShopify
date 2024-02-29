@@ -10,7 +10,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('04 9 * * *', async () => {
+    cron.schedule('45 9 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -54,7 +54,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              if (
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                 row.departamento_exp === departamentoExp && row.referencia_exp == '2000047453'
+                 row.departamento_exp === departamentoExp && (row.referencia_exp == '2000047453' || row.referencia_exp == '2000047466' || row.referencia_exp == '2000047273' || row.referencia_exp == '2000047407' || row.referencia_exp == '2000047517' || row.referencia_exp == '#7644')
              ) {
                  rows.push(row);
              }
@@ -95,7 +95,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const xmlData = response.data;
         // Parsear el XML para obtener peso y volumen
         console.log(xmlData)
-        /*const peso = await parsearPesoDesdeXML(xmlData);
+        const peso = await parsearPesoDesdeXML(xmlData);
         console.log(peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
         console.log(volumen)
@@ -108,7 +108,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const { Weight, Displacement, IdOrder } = weightDisplacement;
 
         await insertarEnOrderHeader(IdOrder, Weight, Displacement)
-*/
+
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
         throw error;
@@ -311,7 +311,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('31 8 * * *', async () => {
+    cron.schedule('41 9 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
 
@@ -354,8 +354,8 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
             if (
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                row.departamento_exp === departamentoExp && row.referencia_exp == '2000047453'
-            ) {
+                row.departamento_exp === departamentoExp && (row.referencia_exp == '2000047453' || row.referencia_exp == '2000047466' || row.referencia_exp == '2000047273' || row.referencia_exp == '2000047407' || row.referencia_exp == '2000047517' || row.referencia_exp == '#7644')
+            ) { 
                 rows.push(row);
             }
         })
