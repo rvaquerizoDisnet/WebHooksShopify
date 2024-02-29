@@ -10,7 +10,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('45 9 * * *', async () => {
+    cron.schedule('00 10 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -311,7 +311,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('41 9 * * *', async () => {
+    cron.schedule('55 9 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
 
