@@ -10,7 +10,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('07 10 * * *', async () => {
+    cron.schedule('56 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -54,9 +54,11 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              if (
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                 row.departamento_exp === departamentoExp && (row.referencia_exp == '2000047453' || row.referencia_exp == '2000047466' || row.referencia_exp == '2000047273' || row.referencia_exp == '2000047407' || row.referencia_exp == '2000047517' || row.referencia_exp == '#7644')
+                 row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
+             } else{
+                console.log("No se ha encontrado ningun pedido ayer")
              }
          })
          .on('end', () => {
@@ -310,7 +312,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('04 10 * * *', async () => {
+    cron.schedule('43 11 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
 
@@ -353,8 +355,8 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
             if (
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                row.departamento_exp === departamentoExp && (row.referencia_exp == '2000047453' || row.referencia_exp == '2000047466' || row.referencia_exp == '2000047273' || row.referencia_exp == '2000047407' || row.referencia_exp == '2000047517' || row.referencia_exp == '#7644')
-            ) { 
+                row.departamento_exp === departamentoExp
+            ) {
                 rows.push(row);
             }
         })
