@@ -218,12 +218,12 @@ async function mapJsonToXml(jsonData, store) {
   const sc = await obtenerCodigoSesionCliente(store);
   const destinatario = jsonData.shipping_address || {};
 
-  // Obtener notas del cliente desde note_attributes y combinarlas en una cadena separada por comas
-  let notasCliente = jsonData.note_attributes ? jsonData.note_attributes.map(attr => attr.value).join(', ') : 'Sin observaciones';
+  // Obtener notas del cliente desde note y combinarlas en una cadena separada por comas
+  let notasCliente = jsonData.note? jsonData.note : 'Sin observaciones';
 
   // Add the following lines to handle the case when notasCliente is an empty string
   if (!notasCliente.trim()) {
-    notasCliente = 'Sin observaciones';
+    notasCliente = ' ';
   }
 
   let lineas;
@@ -298,7 +298,7 @@ async function mapJsonToXml(jsonData, store) {
         OrderNumber: `#${jsonData.order_number || '-'}`,
         FechaPedido: formattedFechaPedido,
         OrderCustomer: `#${jsonData.order_number || '-'}`,
-        ObservAgencia: ' ',
+        ObservAgencia: notasCliente,
         Portes: '1',
         Idioma: 'castellano',
         Destinatario: {

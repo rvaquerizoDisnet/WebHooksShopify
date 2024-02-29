@@ -10,7 +10,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('09 8 * * *', async () => {
+    cron.schedule('22 8 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -54,11 +54,9 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              if (
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                  moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                 row.departamento_exp === departamentoExp && row.referencia_exp == '2000047226'
+                 row.departamento_exp === departamentoExp && row.referencia_exp == '2000047453'
              ) {
                  rows.push(row);
-             } else{
-                console.log("No se ha encontrado ningun pedido ayer")
              }
          })
          .on('end', () => {
@@ -312,7 +310,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('06 8 * * *', async () => {
+    cron.schedule('18 8 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
 
@@ -355,7 +353,7 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
             if (
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                row.departamento_exp === departamentoExp && row.referencia_exp == '2000047226'
+                row.departamento_exp === departamentoExp && row.referencia_exp == '2000047453'
             ) {
                 rows.push(row);
             }
