@@ -10,7 +10,7 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 
 function consultaAGls() {
-    cron.schedule('37 8 * * *', async () => {
+    cron.schedule('02 9 * * *', async () => {
         // Ejecutar consultas a las 6:00
         console.log('Ejecutando consulta a GLS a las 6:00');
 
@@ -94,7 +94,8 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
 
         const xmlData = response.data;
         // Parsear el XML para obtener peso y volumen
-        const peso = await parsearPesoDesdeXML(xmlData);
+        console.log(xmlData)
+        /*const peso = await parsearPesoDesdeXML(xmlData);
         console.log(peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
         console.log(volumen)
@@ -107,7 +108,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const { Weight, Displacement, IdOrder } = weightDisplacement;
 
         await insertarEnOrderHeader(IdOrder, Weight, Displacement)
-
+*/
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
         throw error;
