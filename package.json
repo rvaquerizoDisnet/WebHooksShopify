@@ -30,6 +30,7 @@
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
+    "magento2-rest-client": "github:DivanteLtd/magento2-rest-client",
     "moment": "^2.30.1",
     "mssql": "^10.0.1",
     "ngrok": "^5.0.0-beta.2",
