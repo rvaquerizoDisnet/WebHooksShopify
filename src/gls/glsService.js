@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('26 10 * * *', async () => {
+    cron.schedule('05 12 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -93,8 +93,9 @@ async function consultaAGls() {
 
 async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
-        const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-
+        //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
+        const fechaInicioMes = moment().startOf('month').format('MM/DD/YYYY');
+        const fechaFinMes = moment().endOf('month').format('MM/DD/YYYY');
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
          const rows = [];
@@ -104,8 +105,8 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
              if (
-                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
-                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
                  row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);

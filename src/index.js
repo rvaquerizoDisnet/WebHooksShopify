@@ -100,9 +100,9 @@ process.on('SIGTERM', () => {
 
 
 // Llamada a las tareas automaticas por Cron
-//convertTableToCSV();
-//deleteCSVFile();
-//cronGLS();
+convertTableToCSV();
+deleteCSVFile();
+cronGLS();
 //Tracking
 //convertTableToCSV2();
 //deleteCSVFile2();
