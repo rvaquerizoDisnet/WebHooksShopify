@@ -9,6 +9,8 @@ const homeRouter = require('./api/home');
 const shopify = require('./shopify/shopify');
 const woocommerce = require('./WooCommerce/WooCommerceWB');
 const woocommerceRouter = require('./api/ApiWooCommerce');
+const magentoRouter = require('./api/apiMagento');
+const magento = require('./magento/magento');
 const newCustomerRouter = require('./api/newCustomer');
 const { errorHandlingMiddleware } = require('./autenticacion/errorHandlingMiddleware');
 require('dotenv').config();
@@ -16,7 +18,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
 const { obtenerConfiguracionesTiendas } = require('./api/api');
-const { consultaAGls, consultaAGlsTracking } = require('./gls/glsService');
+const { consultaAGlsTracking, consultarPedidoGLS, cronGLS, consultarIncidenciasYPesos } = require('./gls/glsService');
 const { convertTableToCSV, deleteCSVFile,  convertTableToCSV2, deleteCSVFile2} = require('./gls/convertMDBinSQLite');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -33,6 +35,7 @@ app.use('/users', usersRouter);
 app.use('/', homeRouter);
 app.use('/nuevo-cliente', newCustomerRouter);
 app.use('/woocommerce', woocommerceRouter.router)
+app.use('/magento', magentoRouter.router)
 
 app.use((err, req, res, next) => {
   if (err.name === 'UnauthorizedError') {
@@ -58,6 +61,11 @@ woocommerce.initWebhooks(app, providedUrl);
 
 woocommerceRouter.initDynamicEndpoints();
 
+
+magento.initWebhooks(app, providedUrl);
+
+magentoRouter.initDynamicEndpoints();
+
 // Configurar CORS
 app.use(cors());
 
@@ -70,6 +78,7 @@ const startServer = async () => {
     // Conectarse a la base de datos al iniciar el servidor
     server = app.listen(port, () => {
       console.log(`Servidor escuchando en http://localhost:${port}`);
+      consultarPedidoGLS("cb4b925e-5fee-4ac8-8f25-94114369592d", "2000047453", 932625225 )
     });
   } catch (error) {
     console.error('Error al iniciar el servidor:', error.message);
@@ -92,10 +101,11 @@ process.on('SIGTERM', () => {
 
 
 // Llamada a las tareas automaticas por Cron
-//convertTableToCSV();
-//deleteCSVFile();
-//consultaAGls();
+convertTableToCSV();
+deleteCSVFile();
+cronGLS();
 //Tracking
-//convertTableToCSV2();
-//deleteCSVFile2();
-//consultaAGlsTracking();
+convertTableToCSV2();
+deleteCSVFile2();
+consultaAGlsTracking();
+consultarIncidenciasYPesos();
