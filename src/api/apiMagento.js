@@ -10,6 +10,7 @@ const db = require('../utils/database');
 const { connectToDatabase } = require('../utils/database');
 const path = require('path')
 router.use(bodyParser.json());
+const { insertIntoDB, updateClientInDB, deleteClientFromDB } = require('../utils/insertClientMagento');
 router.use(xmlparser());
 const { verificarToken } = require('../autenticacion/authenticationMiddleware');
 
@@ -28,9 +29,9 @@ router.get('/nuevo-cliente', verificarToken, (req, res) => {
 
 // Ruta POST para procesar el formulario
 router.post('/post', verificarToken, async (req, res) => {
-    const { NombreEndpoint, UrlTienda, UrlWebService, ApiKey, ConsumerKey, AccessToken, AccessTokenSecret, IdCustomer, SessionCode, TransportCompany } = req.body;
+    const { NombreEndpoint, UrlTienda, UrlWebService, ApiKey, ConsumerKey, ConsumerSecret, AccessToken, AccessTokenSecret, IdCustomer, SessionCode, TransportCompany } = req.body;
     try {
-      await insertIntoDB(NombreEndpoint, UrlTienda, UrlWebService, ApiKey, ConsumerKey, AccessToken, AccessTokenSecret, IdCustomer, SessionCode, TransportCompany);
+      await insertIntoDB(NombreEndpoint, UrlTienda, UrlWebService, ApiKey, ConsumerKey, ConsumerSecret, AccessToken, AccessTokenSecret, IdCustomer, SessionCode, TransportCompany);
       res.redirect(`/magento/`);
     } catch (error) {
       console.error('Error al agregar el cliente:', error);
@@ -113,11 +114,7 @@ async function initDynamicEndpoints() {
   });
 }
 
-/*
-CREATE TABLE MiddlewareMagento
 
-
-*/
 
 
 // Función para obtener la configuración de la tienda desde la base de datos
@@ -127,7 +124,7 @@ async function obtenerConfiguracionesTiendas() {
     const result = await db.executeQuery(query);
     return result.recordset;
   } catch (error) {
-    console.error('Error al obtener la configuración de las tiendas de WooCommerce:', error);
+    console.error('Error al obtener la configuración de las tiendas de Magento:', error);
     throw error;
   }
 }

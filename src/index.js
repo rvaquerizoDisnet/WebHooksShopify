@@ -78,7 +78,6 @@ const startServer = async () => {
     // Conectarse a la base de datos al iniciar el servidor
     server = app.listen(port, () => {
       console.log(`Servidor escuchando en http://localhost:${port}`);
-      consultarPedidoGLS("cb4b925e-5fee-4ac8-8f25-94114369592d", "2000047453", 932625225 )
     });
   } catch (error) {
     console.error('Error al iniciar el servidor:', error.message);

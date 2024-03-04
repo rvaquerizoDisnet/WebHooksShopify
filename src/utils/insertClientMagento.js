@@ -1,20 +1,25 @@
 // insertClientMagento.js
 const { pool, sql, connectToDatabase } = require('../utils/database');
 
-async function insertIntoDB(nombreEndpoint, urlWebService, apiKey, apiSecret, idCustomer, sessionCode, transportCompany) {
+async function insertIntoDB(nombreEndpoint, urlTienda, urlWebservice, apiKey, consumerKey, consumerSecret, accessToken, accessTokenSecret, idCustomer, sessionCode, transportCompany) {
   try {
     const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
-    INSERT INTO MiddlewareMagento (NombreEndpoint, UrlWebService, ApiKey, ApiSecret, IdCustomer, SessionCode, TransportCompany)
-    VALUES (@nombreEndpoint, @urlWebService, @apiKey, @apiSecret, @idCustomer, @sessionCode, @transportCompany)
+    INSERT INTO MiddlewareMagento (NombreEndpoint, UrlTienda, urlWebservice, ApiKey, ConsumerKey, ConsumerSecret, AccessToken, AccessTokenSecret, IdCustomer, SessionCode, TransportCompany)
+    VALUES (@nombreEndpoint, @urlTienda, @urlWebservice, @apiKey, @consumerKey, @consumerSecret, @accessToken, @accessTokenSecret, @idCustomer, @sessionCode, @transportCompany)
     `;
     console.log('Consulta SQL:', query);
+    console.log('Datos a insertar:', { nombreEndpoint, urlTienda, urlWebservice, apiKey, consumerKey, consumerSecret, accessToken, accessTokenSecret, idCustomer, sessionCode, transportCompany });
     await request
       .input('nombreEndpoint', sql.NVarChar, nombreEndpoint)
-      .input('urlWebService', sql.NVarChar, urlWebService)
+      .input('UrlTienda', sql.NVarChar, urlTienda)
+      .input('UrlWebservice', sql.NVarChar, urlWebservice)
       .input('apiKey', sql.NVarChar, apiKey)
-      .input('apiSecret', sql.NVarChar, apiSecret)
+      .input('consumerKey', sql.NVarChar, consumerKey)
+      .input('consumerSecret', sql.NVarChar, consumerSecret)
+      .input('accessToken', sql.NVarChar, accessToken)
+      .input('accessTokenSecret', sql.NVarChar, accessTokenSecret)
       .input('idCustomer', sql.Int, idCustomer)
       .input('sessionCode', sql.NVarChar, sessionCode)
       .input('transportCompany', sql.NVarChar, transportCompany)
@@ -26,14 +31,15 @@ async function insertIntoDB(nombreEndpoint, urlWebService, apiKey, apiSecret, id
   }
 }
 
-async function updateClientInDB(clientId, nombreEndpoint, urlWebService, idCustomer, sessionCode, transportCompany) {
+async function updateClientInDB(clientId, nombreEndpoint, urlTienda, urlWebservice, idCustomer, sessionCode, transportCompany) {
   try {
     const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
       UPDATE MiddlewareMagento 
       SET NombreEndpoint = @nombreEndpoint, 
-          UrlWebService = @urlWebService, 
+          UrlTienda = @urlTienda,
+          UrlWebservice = @urlWebservice,
           IdCustomer = @idCustomer, 
           SessionCode = @sessionCode, 
           TransportCompany = @transportCompany
@@ -42,7 +48,8 @@ async function updateClientInDB(clientId, nombreEndpoint, urlWebService, idCusto
     console.log('Consulta SQL:', query);
     await request
       .input('nombreEndpoint', sql.NVarChar, nombreEndpoint)
-      .input('urlWebService', sql.NVarChar, urlWebService)
+      .input('urlTienda', sql.NVarChar, urlTienda)
+      .input('urlWebservice', sql.NVarChar, urlWebservice)
       .input('idCustomer', sql.NVarChar, idCustomer)
       .input('sessionCode', sql.NVarChar, sessionCode)
       .input('transportCompany', sql.NVarChar, transportCompany)

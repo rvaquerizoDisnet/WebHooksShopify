@@ -60,7 +60,7 @@ async function obtenerConfiguracionesTiendas() {
     const result = await db.executeQuery(query);
     return result.recordset;
   } catch (error) {
-    console.error('Error al obtener la configuración de las tiendas de WooCommerce:', error);
+    console.error('Error al obtener la configuración de las tiendas de Shopify:', error);
     throw error;
   }
 }

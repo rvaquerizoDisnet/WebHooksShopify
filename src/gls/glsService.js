@@ -110,7 +110,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              ) {
                  rows.push(row);
              } else{
-                console.log("No se ha encontrado ningun pedido ayer")
+
              }
          })
          .on('end', () => {

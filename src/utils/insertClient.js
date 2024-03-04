@@ -44,7 +44,7 @@ async function updateClientInDB(clientId, nombreEndpoint, urlWebService, idCusto
     await request
       .input('nombreEndpoint', sql.NVarChar, nombreEndpoint)
       .input('urlWebService', sql.NVarChar, urlWebService)
-      .input('idCustomer', sql.NVarChar, idCustomer)
+      .input('idCustomer', sql.Int, idCustomer)
       .input('sessionCode', sql.NVarChar, sessionCode)
       .input('transportCompany', sql.NVarChar, transportCompany)
       .input('clientId', sql.Int, clientId)
