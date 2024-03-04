@@ -2,40 +2,93 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const axios = require('axios');
 const sql = require('mssql');
-const { connectToDatabase, closeDatabaseConnection } = require('../utils/database');
 const xml2js = require('xml2js');
 const cron = require('node-cron');
 require('dotenv').config();
 const moment = require('moment');
 const csvParser = require('csv-parser');
+const { pool, sql, connectToDatabase } = require('../utils/database');
+const nodemailer = require('nodemailer');
 
-function consultaAGls() {
-    cron.schedule('56 11 * * *', async () => {
-        // Ejecutar consultas a las 6:00
-        console.log('Ejecutando consulta a GLS a las 6:00');
+//Configuracion de Envio de correos
+async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'outlook',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+  
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: [process.env.EMAIL_2],
+        subject: `Incidencia en un pedido de GLS`,
+        text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nDepartamento: ${departamento}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}`
+      };
+  
+      const info = await transporter.sendMail(mailOptions);
+      logger.info('Correo electrónico enviado:', info.response);
+    } catch (error) {
+      logger.error('Error en sendErrorEmail:', error);
+    }
+  }
+  
 
-        try {
-            // Conectar a la base de datos
-            const pool = await connectToDatabase();
+  async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'outlook',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+  
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: [process.env.EMAIL_2],
+        subject: `Solucion a Incidencia en un pedido de GLS`,
+        text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nDepartamento: ${departamento}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
+      };
+  
+      const info = await transporter.sendMail(mailOptions);
+      logger.info('Correo electrónico enviado:', info.response);
+    } catch (error) {
+      logger.error('Error en sendErrorEmail:', error);
+    }
+  }
 
-            // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
-            const query = `
-                SELECT uid_cliente, departamento_exp
-                FROM MiddlewareGLS;
-            `;
-            const result = await pool.query(query);
 
-            // Recorrer los resultados y realizar las consultas a GLS para cada registro
-            for (const row of result.recordset) {
-                await consultarPedidosGLSYActualizar(row.uid_cliente, row.departamento_exp);
-            }
-
-            // Cerrar la conexión a la base de datos
-            //await closeDatabaseConnection();
-        } catch (error) {
-            console.error('Error al ejecutar la consulta a GLS:', error);
-        }
+function cronGLS(){
+    cron.schedule('15 5 * * *', async () => {
+        console.log('Ejecutando consulta a GLS a las 6:15');
+        await consultaAGls();
     });
+}
+
+async function consultaAGls() {
+    console.log('Ejecutando consulta a GLS');
+    try {
+        // Conectar a la base de datos
+        const pool = await connectToDatabase();
+
+        // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
+        const query = `
+            SELECT uid_cliente, departamento_exp
+            FROM MiddlewareGLS;
+        `;
+        const result = await pool.query(query);
+
+        // Recorrer los resultados y realizar las consultas a GLS para cada registro
+        for (const row of result.recordset) {
+            await consultarPedidosGLSYActualizar(row.uid_cliente, row.departamento_exp);
+        }
+
+    } catch (error) {
+        console.error('Error al ejecutar la consulta a GLS:', error);
+    }
 }
 
 
@@ -95,6 +148,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         });
 
         const xmlData = response.data;
+        //console.log(xmlData)
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
         console.log(peso)
@@ -102,13 +156,15 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         console.log(volumen)
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
-        // Actualizar la tabla DeliveryNoteHeader
-        await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
+        const estadoPedido = await consultarEstadoPedido(xmlData);
+        console.log(estadoPedido)
+        if (estadoPedido == 'CORRECTO' ){
+            await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
+            const { Weight, Displacement, IdOrder } = weightDisplacement;
+            await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+        }
 
-        // Almacenar los valores devueltos por leerWeightDisplacement en variables
-        const { Weight, Displacement, IdOrder } = weightDisplacement;
 
-        await insertarEnOrderHeader(IdOrder, Weight, Displacement)
 
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
@@ -239,6 +295,175 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
     }
 }
 
+
+async function consultarEstadoPedido(xmlData) {
+    try {
+        const parsedData = await xml2js.parseStringPromise(xmlData);
+
+        if (
+            parsedData &&
+            parsedData['soap:Envelope'] &&
+            parsedData['soap:Envelope']['soap:Body'] &&
+            parsedData['soap:Envelope']['soap:Body'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['tracking_list'] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['tracking_list'][0] &&
+            parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['tracking_list'][0]['tracking']
+        ) {
+            const trackingList = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['tracking_list'][0]['tracking'];
+            const ultimoTracking = trackingList[trackingList.length - 1];
+            const tipoUltimoTracking = ultimoTracking['tipo'][0];
+            const codigo = ultimoTracking['fecha'][0];
+            console.log("tipoUltimoTracking ", tipoUltimoTracking)
+
+            if (tipoUltimoTracking === 'INCIDENCIA') {
+                // Obtener información del pedido y de la incidencia
+                const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
+                
+                // Verificar si el albarán ya existe en la tabla MwIncidenciasGLS
+                const existeAlbaran = await verificarAlbaranExistenteIncidencia(albaran);
+                
+                // Si el albarán no existe, procedemos con la inserción
+                if (!existeAlbaran) {
+                    const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
+                    const eventoIncidencia = ultimoTracking['evento'][0];
+                    const fechaIncidencia = ultimoTracking['fecha'][0];
+
+                    // Construir la consulta SQL
+                    const query = `
+                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia)
+                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}')
+                    `;
+
+                    // Ejecutar la consulta
+                    const pool = await sql.connect(config);
+                    const result = await pool.request().query(query);
+                    await enviarCorreoIncidencia(albaran, departamento, codexp, eventoIncidencia, fechaIncidencia);
+                    console.log("Información del pedido guardada en la base de datos.");
+                } else {
+                    console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
+                }
+            } else if (tipoUltimoTracking && (codigo == 0 || codigo == 2 || codigo == 19 || codigo == 3 || codigo == 9 || codigo == 21 || codigo == 14 || codigo == 6 || codigo == 22 || codigo == 25 || codigo == 7 || codigo == 8)) {
+                tipoUltimoTracking = 'CORRECTO'
+                const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
+                
+                const existeAlbaranIncidencia = await verificarAlbaranExistenteIncidencia(albaran);
+
+                const existeAlbaranPesado = await verificarAlbaranExistentePesado(albaran);
+                // Si el albarán existe, eliminar la línea correspondiente
+                if (existeAlbaranIncidencia) {
+                    await enviarCorreoSolucion(albaran, departamento, codexp, eventoIncidencia, fechaIncidencia);
+                    await eliminarAlbaran(albaran);
+                    console.log(`La línea del albarán ${albaran} fue eliminada de la base de datos.`);
+                } else if (existeAlbaranPesado){
+                    await eliminarAlbaranPesado(albaran)
+                    console.log(`La línea del albarán ${albaran} fue eliminada de la base de datos.`);
+                }
+            } else if (codigo == -1 || codigo == -10 ){
+                // Obtener información del pedido y de la incidencia
+                const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
+                
+                // Verificar si el albarán ya existe en la tabla MwIncidenciasGLS
+                const existeAlbaran = await verificarAlbaranExistentePesado(albaran);
+                
+                // Si el albarán no existe, procedemos con la inserción
+                if (!existeAlbaran) {
+                    const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
+
+                    // Construir la consulta SQL
+                    const query = `
+                        INSERT INTO MwGLSNoPesado (Albaran, CodExp, Departamento)
+                        VALUES ('${albaran}', '${codexp}', '${departamento}')
+                    `;
+
+                    const pool = await sql.connect(config);
+                    const result = await pool.request().query(query);
+
+                    console.log("Información del pedido guardada en la base de datos.");
+                } else {
+                    console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
+                }
+            }
+            
+            return tipoUltimoTracking;
+        } else {
+            console.error('La estructura del objeto parsedData no es la esperada. No se pudo encontrar la propiedad "tracking_list".');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error al parsear el XML o al interactuar con la base de datos:', error);
+        return null;
+    }
+}
+
+async function verificarAlbaranExistenteIncidencia(albaran) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('albaran', sql.VarChar, albaran)
+            .query('SELECT COUNT(*) AS Count FROM MwIncidenciasGLS WHERE Albaran = @albaran');
+
+        return result.recordset[0].Count > 0;
+    } catch (error) {
+        console.error('Error al verificar la existencia del albarán en la base de datos:', error);
+        return false;
+    }
+}
+
+async function verificarAlbaranExistentePesado(albaran) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('albaran', sql.VarChar, albaran)
+            .query('SELECT COUNT(*) AS Count FROM MwGLSNoPesado WHERE Albaran = @albaran');
+
+        return result.recordset[0].Count > 0;
+    } catch (error) {
+        console.error('Error al verificar la existencia del albarán en la base de datos:', error);
+        return false;
+    }
+}
+
+
+
+async function eliminarAlbaran(albaran) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('albaran', sql.VarChar, albaran)
+            .query('DELETE FROM MwIncidenciasGLS WHERE Albaran = @albaran');
+        
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar el albarán de la base de datos:', error);
+        return false;
+    }
+}
+
+async function eliminarAlbaranPesado(albaran) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('albaran', sql.VarChar, albaran)
+            .query('DELETE FROM MwGLSNoPesado WHERE Albaran = @albaran');
+        
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar el albarán de la base de datos:', error);
+        return false;
+    }
+}
+
+
 // Función para parsear el peso desde XML
 async function parsearPesoDesdeXML(xmlData) {
     try {
@@ -312,66 +537,89 @@ async function parsearVolumenDesdeXML(xmlData) {
 
 //Tracking 
 function consultaAGlsTracking() {
-    cron.schedule('43 11 * * *', async () => {
-        // Ejecutar consultas a las 6:00
-        console.log('Ejecutando consulta a GLS para el tracking a las 6:00');
-
-        try {
-            // Conectar a la base de datos
-            const pool = await connectToDatabase();
-
-            // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
-            const query = `
-                SELECT uid_cliente, departamento_exp
-                FROM MiddlewareGLS;
-            `;
-            const result = await pool.query(query);
-
-            // Recorrer los resultados y realizar las consultas a GLS para cada registro
-            for (const row of result.recordset) {
-                await consultarTrackingyActualizar(row.uid_cliente, row.departamento_exp);
-            }
-
-            // Cerrar la conexión a la base de datos
-            //await closeDatabaseConnection();
-        } catch (error) {
-            console.error('Error al ejecutar la consulta a GLS:', error);
-        }
+    // Consulta a las 17:15 (Debido a la hora del servidor ponemos -1 a la hora)
+    cron.schedule('15 16 * * *', async () => {
+        console.log('Ejecutando consulta a GLS para el tracking a las 17:15');
+        await ejecutarConsultaTracking();
     });
+
+    // Consulta a las 18:15
+    cron.schedule('15 17 * * *', async () => {
+        console.log('Ejecutando consulta a GLS para el tracking a las 17:15');
+        await ejecutarConsultaTracking();
+    });
+
+    // Consulta a las 19:15
+    cron.schedule('15 18 * * *', async () => {
+        console.log('Ejecutando consulta a GLS para el tracking a las 18:15');
+        await ejecutarConsultaTracking();
+    });
+
+    // Consulta a las 20:15
+    cron.schedule('15 19 * * *', async () => {
+        console.log('Ejecutando consulta a GLS para el tracking a las 19:15');
+        await ejecutarConsultaTracking();
+    });
+}
+
+
+async function ejecutarConsultaTracking() {
+    console.log('Ejecutando consulta para el tracking');
+    try {
+        // Conectar a la base de datos
+        const pool = await connectToDatabase();
+
+        // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
+        const query = `
+            SELECT uid_cliente, departamento_exp
+            FROM MiddlewareGLS;
+        `;
+        const result = await pool.query(query);
+
+        // Recorrer los resultados y realizar las consultas a GLS para cada registro
+        for (const row of result.recordset) {
+            await consultarTrackingyActualizar(row.uid_cliente, row.departamento_exp);
+        }
+
+        // Cerrar la conexión a la base de datos
+        //await closeDatabaseConnection();
+    } catch (error) {
+        console.error('Error al ejecutar la consulta a GLS:', error);
+    }
 }
 
 async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
     try {
-        const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
+        const fechaActualStr = moment().format('MM/DD/YYYY');
 
         // Leer el archivo CSV
         const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
         const rows = [];
 
         fs.createReadStream(csvFilePath)
-        .pipe(csvParser())
-        .on('data', (row) => {
-            // Filtrar los registros del día anterior con el departamento_exp correspondiente
-            if (
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) &&
-                row.departamento_exp === departamentoExp
-            ) {
-                rows.push(row);
-            }
-        })
-        .on('end', () => {
-            // Iterar sobre los registros filtrados
-            for (const pedido of rows) {
-                ActualizarBBDDTracking(pedido.referencia_exp, pedido.codbarras_exp); // Pasar el campo codbarras_EXP como argumento
-            }
-            
-            console.log(`Consultados y actualizados el tracking de GLS para el departamento ${departamentoExp}.`);
-        });
+            .pipe(csvParser())
+            .on('data', (row) => {
+                // Filtrar los registros del día actual con el departamento_exp correspondiente
+                if (
+                    moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSame(moment(fechaActualStr, 'MM/DD/YYYY')) &&
+                    row.departamento_exp === departamentoExp
+                ) {
+                    rows.push(row);
+                }
+            })
+            .on('end', () => {
+                // Iterar sobre los registros filtrados
+                for (const pedido of rows) {
+                    ActualizarBBDDTracking(pedido.referencia_exp, pedido.codbarras_exp); // Pasar el campo codbarras_EXP como argumento
+                }
+
+                console.log(`Consultados y actualizados el tracking de GLS para el departamento ${departamentoExp} con la fecha ${fechaActualStr}.`);
+            });
     } catch (error) {
         console.error('Error al consultar pedidos y actualizar la base de datos:', error);
     }
 }
+
 
 async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
     try {
@@ -425,5 +673,94 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
     }
 }
 
+//Incidencias y no pesados:
 
-module.exports = { consultarPedidoGLS, consultaAGls, consultaAGlsTracking };
+// Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
+function consultarIncidenciasYPesos() {
+    // Consulta a las 9:00
+    cron.schedule('0 8 * * *', async () => {
+        await ejecutarConsulta();
+    });
+
+    // Consulta a las 14:00
+    cron.schedule('0 13 * * *', async () => {
+        await ejecutarConsulta();
+    });
+
+    // Consulta a las 18:00
+    cron.schedule('0 17 * * *', async () => {
+        await ejecutarConsulta();
+    });
+}
+
+async function ejecutarConsulta() {
+    console.log('Consultando datos de las tablas MwIncidenciasGLS y MwGLSNoPesado...');
+    try {
+        // Conectar a la base de datos
+        const pool = await connectToDatabase();
+
+        // Consultar datos de MwIncidenciasGLS
+        const queryIncidencias = `
+            SELECT *
+            FROM MwIncidenciasGLS;
+        `;
+        const resultIncidencias = await pool.query(queryIncidencias);
+
+        // Consultar datos de MwGLSNoPesado
+        const queryNoPesado = `
+            SELECT *
+            FROM MwGLSNoPesado;
+        `;
+        const resultNoPesado = await pool.query(queryNoPesado);
+
+        // Procesar los resultados y volver a ejecutar consultarPedidoGLS
+        const incidencias = resultIncidencias.recordset;
+        const noPesados = resultNoPesado.recordset;
+
+        // Iterar sobre las incidencias
+        for (const incidencia of incidencias) {
+            await reconsultarPedidoGLS(incidencia.Albaran, incidencia.CodExp, incidencia.Departamento);
+        }
+
+        // Iterar sobre los registros no pesados
+        for (const noPesado of noPesados) {
+            await reconsultarPedidoGLS(noPesado.Albaran, noPesado.CodExp, noPesado.Departamento );
+        }
+
+
+        console.log('Consultas y actualizaciones realizadas con éxito.');
+    } catch (error) {
+        console.error('Error al consultar datos de las tablas:', error);
+    }
+}
+
+// Función para volver a ejecutar consultarPedidoGLS
+async function reconsultarPedidoGLS(orderNumber, codexp, departamento) {
+    console.log(`Reconsultando pedido GLS para OrderNumber ${orderNumber}...`);
+    try {
+        const pool = await connectToDatabase();
+        let uidCliente = '';
+        const queryUidCliente = `
+            SELECT uid_cliente
+            FROM MiddlewareGLS
+            WHERE departamento_exp = @departamentoExp;
+        `;
+        const requestUidCliente = pool.request();
+        requestUidCliente.input('departamentoExp', sql.NVarChar, departamento);
+        const resultUidCliente = await requestUidCliente.query(queryUidCliente);
+        if (resultUidCliente.recordset.length > 0) {
+            uidCliente = resultUidCliente.recordset[0].uid_cliente;
+        } else {
+            console.error('No se encontró el uid_cliente correspondiente al departamentoExp en la tabla MiddlewareGLS.');
+            return;
+        }
+        await consultarPedidoGLS(uidCliente, orderNumber, codexp);
+    } catch (error) {
+        console.error('Error al reconsultar pedido GLS:', error);
+    }
+}
+
+
+
+
+module.exports = { consultarPedidoGLS, consultaAGls, consultaAGlsTracking, cronGLS, consultarIncidenciasYPesos };

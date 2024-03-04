@@ -219,7 +219,7 @@ async function mapJsonToXml(jsonData, store) {
   const destinatario = jsonData.shipping_address || {};
 
   // Obtener notas del cliente desde note y combinarlas en una cadena separada por comas
-  let notasCliente = jsonData.note? jsonData.note : 'Sin observaciones';
+  let notasCliente = jsonData.note? jsonData.note : ' ';
 
   // Add the following lines to handle the case when notasCliente is an empty string
   if (!notasCliente.trim()) {
@@ -262,12 +262,15 @@ async function mapJsonToXml(jsonData, store) {
 
   // Ajustar dirección
   let direccion1 = destinatario.address1 || '-';
-  let direccion2 = null;
-
-  // Cortar la dirección1 si es mayor a 40 caracteres
-  if (direccion1.length > 40) {
-    direccion2 = direccion1.substring(40);
-    direccion1 = direccion1.substring(0, 40);
+  let direccion2 = destinatario.address2 || null;
+  
+  // Verificar si direccion2 es nulo
+  if (direccion2 === null) {
+    // Cortar la dirección1 si es mayor a 40 caracteres
+    if (direccion1.length > 40) {
+      direccion2 = direccion1.substring(40);
+      direccion1 = direccion1.substring(0, 40);
+    }
   }
 
   // Obtener el código de provincia según el código de país
