@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('05 12 * * *', async () => {
+    cron.schedule('10 12 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -94,8 +94,8 @@ async function consultaAGls() {
 async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-        const fechaInicioMes = moment().startOf('month').format('MM/DD/YYYY');
-        const fechaFinMes = moment().endOf('month').format('MM/DD/YYYY');
+        const fechaInicioMes = moment().startOf('january').format('MM/DD/YYYY');
+        const fechaFinMes = moment().endOf('january').format('MM/DD/YYYY');
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
          const rows = [];
