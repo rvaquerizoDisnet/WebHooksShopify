@@ -1,7 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const axios = require('axios');
-const sql = require('mssql');
 const xml2js = require('xml2js');
 const cron = require('node-cron');
 require('dotenv').config();
@@ -62,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('15 5 * * *', async () => {
+    cron.schedule('21 10 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -538,7 +537,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 //Tracking 
 function consultaAGlsTracking() {
     // Consulta a las 17:15 (Debido a la hora del servidor ponemos -1 a la hora)
-    cron.schedule('15 16 * * *', async () => {
+    cron.schedule('16 10 * * *', async () => {
         console.log('Ejecutando consulta a GLS para el tracking a las 17:15');
         await ejecutarConsultaTracking();
     });
