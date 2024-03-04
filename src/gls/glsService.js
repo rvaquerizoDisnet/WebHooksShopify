@@ -238,10 +238,10 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
 
 
 async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
-    let pool;
+
     try {
         // Conectar a la base de datos
-        pool = await connectToDatabase();
+        const pool = await connectToDatabase();
 
         // Consultar el IdOrder relacionado con el OrderNumber
         const queryConsultaIdOrder = `

@@ -142,7 +142,6 @@ async function obtenerCodigoSesionCliente(reqBody) {
     const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareMagento');
     const tiendas = result.recordset;
 
-    //await db.closeDatabaseConnection(pool);
 
     for (const idCustomer of idCustomerArray) {
       const tienda = tiendas.find(t => t.IdCustomer == idCustomer);

@@ -1,5 +1,5 @@
 // insertClientMagento.js
-const { pool, sql, connectToDatabase } = require('../utils/database');
+const { sql, connectToDatabase } = require('../utils/database');
 
 async function insertIntoDB(nombreEndpoint, urlTienda, urlWebservice, apiKey, consumerKey, consumerSecret, accessToken, accessTokenSecret, idCustomer, sessionCode, transportCompany) {
   try {
