@@ -35,7 +35,7 @@ app.use('/users', usersRouter);
 app.use('/', homeRouter);
 app.use('/nuevo-cliente', newCustomerRouter);
 app.use('/woocommerce', woocommerceRouter.router)
-app.use('/magento', magentoRouter.router)
+//app.use('/magento', magentoRouter.router)
 
 app.use((err, req, res, next) => {
   if (err.name === 'UnauthorizedError') {
@@ -62,9 +62,9 @@ woocommerce.initWebhooks(app, providedUrl);
 woocommerceRouter.initDynamicEndpoints();
 
 
-magento.initWebhooks(app, providedUrl);
+//magento.initWebhooks(app, providedUrl);
 
-magentoRouter.initDynamicEndpoints();
+//magentoRouter.initDynamicEndpoints();
 
 // Configurar CORS
 app.use(cors());

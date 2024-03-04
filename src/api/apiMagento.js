@@ -1,5 +1,4 @@
-// api.js
-const express = require('express');
+/*const express = require('express');
 const bodyParser = require('body-parser');
 const router = express.Router();
 const shopify = require('../magento/magento');
@@ -158,4 +157,4 @@ async function obtenerCodigoSesionCliente(reqBody) {
   }
 }
 
-module.exports = { router, initDynamicEndpoints, obtenerConfiguracionesTiendas };
+module.exports = { router, initDynamicEndpoints, obtenerConfiguracionesTiendas };*/
