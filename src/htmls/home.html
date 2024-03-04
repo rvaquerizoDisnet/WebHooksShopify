@@ -70,6 +70,7 @@
     <div class="btn-group" role="group">
       <button type="button" class="btn btn-primary" onclick="redirectToShopify()">Shopify</button>
       <button type="button" class="btn btn-primary" onclick="redirectToGLS()"">GLS</button>
+      <button type="button" class="btn btn-primary" onclick="redirectToMagento()"">WooCommerce</button>
       <button type="button" class="btn btn-primary" onclick="redirectToWooCommerce()"">WooCommerce</button>
     </div>
   </div>
@@ -139,6 +140,26 @@
         .then(response => {
           if (response.ok) {
             window.location.href = '/woocommerce/';
+          } else {
+            console.error('Hubo un problema al acceder a la ruta:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Error al realizar la solicitud:', error);
+        });
+    }
+
+    function redirectToMagento() {
+      const token = getCookie2('token');
+        fetch("/magento/", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/magento/';
           } else {
             console.error('Hubo un problema al acceder a la ruta:', response.statusText);
           }

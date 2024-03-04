@@ -24,9 +24,9 @@ router.get('/', verificarToken, (req, res) => {
   res.sendFile(htmlFilePath);
 });
 
-// Ruta GET para abrir el formulario HTML addcustomergls.html
+// Ruta GET para abrir el formulario HTML addcustomerwoocommerce.html
 router.get('/nuevo-cliente', verificarToken, (req, res) => {
-  // Construye la ruta absoluta al archivo addcustomergls.html
+  // Construye la ruta absoluta al archivo addcustomerwoocommerce.html
   const htmlFilePath = path.join(__dirname, '../htmls/addcustomerwoocommerce.html');
   // Envía el archivo como respuesta
   res.sendFile(htmlFilePath);
