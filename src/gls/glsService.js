@@ -92,6 +92,8 @@ async function consultaAGls() {
 
 async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
+        let contadorPedidos = 0; // Inicializar el contador de pedidos
+
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
         const fechaInicioMes = '01/01/2024'; // Fecha de inicio del mes
         const fechaFinMes = '01/05/2024'; 
@@ -110,8 +112,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
                  row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
-             } else{
-
+                 contadorPedidos++; // Incrementar el contador de pedidos
              }
          })
          .on('end', () => {
@@ -119,7 +120,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              for (const pedido of rows) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
              }
-             console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
+             console.log(`Consultados y actualizados ${contadorPedidos} pedidos de GLS para el departamento ${departamentoExp}.`);
          });
  } catch (error) {
      console.error('Error al consultar pedidos y actualizar la base de datos:', error);
@@ -140,6 +141,8 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         </soap12:Envelope>`;
 
     try {
+        let pedidosActualizados = 0; // Inicializar el contador de pedidos actualizados
+
         const response = await axios.post(url, xmlBody, {
             headers: {
                 'Content-Type': 'text/xml; charset=UTF-8',
@@ -160,16 +163,18 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
             await insertarEnOrderHeader(IdOrder, Weight, Displacement)
-            console.log("Pedido actualizado con IdOrder: ", IdOrder)
+            console.log("Pedido actualizado con IdOrder: ", IdOrder);
+            pedidosActualizados++; // Incrementar el contador de pedidos actualizados
         }
 
-
+        console.log(pedidosActualizados+ "pedidosActualizados")
 
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
         throw error;
     }
 }
+
 
 async function leerWeightDisplacement(OrderNumber) {
     while (true) {
