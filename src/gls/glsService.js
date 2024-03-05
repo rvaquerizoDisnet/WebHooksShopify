@@ -335,7 +335,6 @@ async function consultarEstadoPedido(xmlData) {
             const ultimoTracking = trackingList[trackingList.length - 1];
             const tipoUltimoTracking = ultimoTracking['tipo'][0];
             const codigo = ultimoTracking['fecha'][0];
-            //console.log("tipoUltimoTracking ", tipoUltimoTracking)
 
             if (tipoUltimoTracking === 'INCIDENCIA') {
                 // Obtener información del pedido y de la incidencia
