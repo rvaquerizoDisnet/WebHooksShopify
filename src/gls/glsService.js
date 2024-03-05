@@ -95,8 +95,8 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
         let contadorPedidos = 0; // Inicializar el contador de pedidos
 
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-        const fechaInicioMes = '01/01/2024'; // Fecha de inicio del mes
-        const fechaFinMes = '01/31/2024'; 
+        const fechaInicioMes = '02/01/2024'; // Fecha de inicio del mes
+        const fechaFinMes = '02/29/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -671,7 +671,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 10000)); 
+            await new Promise(resolve => setTimeout(resolve, 5000)); 
             const pool = await connectToDatabase();
             const query = `
                 UPDATE DeliveryNoteHeader

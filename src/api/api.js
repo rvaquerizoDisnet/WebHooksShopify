@@ -12,10 +12,14 @@ router.use(bodyParser.json());
 router.use(xmlparser());
 const { verificarToken } = require('../autenticacion/authenticationMiddleware');
 
+
 router.get('/clientes/', verificarToken, (req, res) => {
+  // Envía un mensaje junto con el archivo HTML utilizando el método send
   // Utiliza el método sendFile para enviar el archivo HTML
   res.sendFile(path.join(__dirname, '../htmls/shopify.html'));
+  res.status(200)
 });
+
 
 
 async function initDynamicEndpoints() {
@@ -33,6 +37,7 @@ async function initDynamicEndpoints() {
 
     // Configurar el endpoint para obtener pedidos no cumplidos
     router.get(`${rutaWebhook}orders/unfulfilled`, verificarToken, async (req, res) => {
+      console.log("unfulfilled")
       await shopify.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
     });
 

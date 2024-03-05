@@ -20,6 +20,9 @@ const cookieParser = require('cookie-parser');
 const { obtenerConfiguracionesTiendas } = require('./api/api');
 const { consultaAGlsTracking, consultarPedidoGLS, cronGLS, consultarIncidenciasYPesos } = require('./gls/glsService');
 const { convertTableToCSV, deleteCSVFile,  convertTableToCSV2, deleteCSVFile2} = require('./gls/convertMDBinSQLite');
+const { cronUPS } = require('./ups/ups');
+const { cronCorreos } = require('./correos/correos');
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -99,7 +102,9 @@ process.on('SIGTERM', () => {
 });
 
 
-// Llamada a las tareas automaticas por Cron
+// Llamada a las tareas automaticas por Cron 
+
+//GLS
 //convertTableToCSV();
 //deleteCSVFile();
 //cronGLS();
@@ -108,3 +113,9 @@ process.on('SIGTERM', () => {
 //deleteCSVFile2();
 //consultaAGlsTracking();
 //consultarIncidenciasYPesos();
+
+//UPS
+//cronUPS();
+
+//Correos
+//cronCorreos();

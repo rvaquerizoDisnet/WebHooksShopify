@@ -24,7 +24,7 @@
       justify-content: space-between; /* Añade espacio entre los botones */
     }
     .btn {
-      width: 80px;
+      width: 100px;
       margin: 5px; /* Añade margen entre los botones */
     }
     .logout{
@@ -76,9 +76,6 @@
 
   <div class="container d-flex justify-content-between">
     <h2>Shopify</h2>
-    <button type="button" class="btn btn-primary import-orders" data-toggle="modal" data-target="#importModal">
-      Importar Pedidos Unfulfilled
-    </button>
     <button type="button" class="btn btn-success newclient" onclick="redirectToNewCustomer()">Nuevo Cliente</button>
   </div>
   <div id="clientsTableContainer" class="container">
@@ -99,28 +96,6 @@
           <!-- Los datos de la tabla se llenarán aquí mediante JavaScript -->
         </tbody>
       </table>
-    </div>
-    <!-- Modal -->
-    <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="importModalLabel">Importar Pedidos Unfulfilled</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <p>Selecciona la tienda de la que deseas importar pedidos:</p>
-            <div id="importButtonsContainer">
-              <!-- Aquí se agregarán dinámicamente los botones para importar de cada tienda -->
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
   <footer>
@@ -169,6 +144,7 @@
                   <td>
                     <button class="btn btn-primary btn-edit" onclick="editClient(${cliente.Id})">Editar</button>
                     <button class="btn btn-danger btn-delete" onclick="deleteClient(${cliente.Id})">Eliminar</button>
+                    <button class="btn btn-info btn-import" onclick="importUnfulfilledOrders('${cliente.NombreEndpoint}')">Importar</button>
                   </td>
                 </tr>
               `).join('')}
@@ -189,23 +165,24 @@
     }
 
     async function importUnfulfilledOrders(storeName) {
-      alert(`Importar pedidos unfulfilled de la tienda: ${storeName}`);
-      try {
-          const token = getCookie2('token');
-          const response = await fetch("/shopify/${storeName}/orders/unfulfilled", {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${token}`
-            }
-          });
-          if (!response.ok) {
-            throw new Error('Hubo un problema.');
-          }
-
-        } catch (error) {
-          console.error('Error: ', error);
+    alert(`Estas seguro que quieres importar pedidos unfulfilled de la tienda: ${storeName},
+    Ten en cuenta que estos pedidos ya pueden estar en ABC`);
+    try {
+      const token = getCookie2('token');
+      const response = await fetch(`/shopify/${storeName}/orders/unfulfilled`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
         }
+      });
+      if (!response.ok) {
+        throw new Error('Hubo un problema.');
+      }
+    } catch (error) {
+      console.error('Error: ', error);
     }
+  }
+
 
     function getCookie2(name) {
       const value = `; ${document.cookie}`;
