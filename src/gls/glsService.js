@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('52 8 * * *', async () => {
+    cron.schedule('05 9 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -116,12 +116,9 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          })
          .on('end', () => {
              // Iterar sobre los registros filtrados
-             let cont = 0;
              for (const pedido of rows) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
-                  cont =+1 ;
              }
-             console.log("contador "+cont)
              console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
          });
  } catch (error) {
@@ -175,32 +172,42 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
 }
 
 async function leerWeightDisplacement(OrderNumber) {
-    try {
-        const pool = await connectToDatabase();
-        const query = `
-            SELECT dh.Weight, dh.Displacement, oh.IdOrder
-            FROM DeliveryNoteHeader dh
-            INNER JOIN OrderHeader oh ON dh.IdOrder = oh.IdOrder
-            WHERE oh.OrderNumber = @OrderNumber;
-        `;
-        const request = pool.request();
-        request.input('OrderNumber', sql.NVarChar, OrderNumber);
-        const result = await request.query(query);
+    while (true) {
+        try {
+            const pool = await connectToDatabase();
+            const query = `
+                SELECT dh.Weight, dh.Displacement, oh.IdOrder
+                FROM DeliveryNoteHeader dh
+                INNER JOIN OrderHeader oh ON dh.IdOrder = oh.IdOrder
+                WHERE oh.OrderNumber = @OrderNumber;
+            `;
+            const request = pool.request();
+            request.input('OrderNumber', sql.NVarChar, OrderNumber);
+            const result = await request.query(query);
 
-        if (result.recordset.length === 0) {
-            console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
-            return { Weight: null, Displacement: null, IdOrder: null };
+            if (result.recordset.length === 0) {
+                console.log('No se encontró el OrderNumber en la tabla OrderHeader.');
+                return { Weight: null, Displacement: null, IdOrder: null };
+            }
+            return {
+                Weight: result.recordset[0].Weight,
+                Displacement: result.recordset[0].Displacement,
+                IdOrder: result.recordset[0].IdOrder
+            };
+        } catch (error) {
+            const esErrorDeConexion = error.code === 'ETIMEOUT' || error.code === 'ECONNRESET';
+
+            if (esErrorDeConexion) {
+                console.error('Error de conexión. Reintentando en 1 segundo...');
+                await delay(1000); // Espera 1 segundo antes de reintentar
+            } else {
+                console.error('Error al leer Weight y Displacement desde DeliveryNoteHeader:', error);
+                return { Weight: null, Displacement: null, IdOrder: null };
+            }
         }
-        return {
-            Weight: result.recordset[0].Weight,
-            Displacement: result.recordset[0].Displacement,
-            IdOrder: result.recordset[0].IdOrder
-        };
-    } catch (error) {
-        console.error('Error al leer Weight y Displacement desde DeliveryNoteHeader:', error);
-        return { Weight: null, Displacement: null, IdOrder: null };
     }
 }
+
 
 async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
     try {
@@ -221,7 +228,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 5000)); 
+            await new Promise(resolve => setTimeout(resolve, 10000)); 
             const pool = await connectToDatabase();
             const query = `
                 UPDATE OrderHeader
@@ -284,7 +291,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Espera de 1 segundo
+            await new Promise(resolve => setTimeout(resolve, 10000)); // Espera de 1 segundo
             // Reintentar la operación
             await actualizarBaseDeDatos(OrderNumber, peso, volumen);
         } else {
@@ -346,7 +353,7 @@ async function consultarEstadoPedido(xmlData) {
                     `;
 
                     // Ejecutar la consulta
-                    const pool = await sql.connect(config);
+                    const pool = await connectToDatabase();
                     const result = await pool.request().query(query);
                     await enviarCorreoIncidencia(albaran, departamento, codexp, eventoIncidencia, fechaIncidencia);
                     console.log("Información del pedido guardada en la base de datos.");
@@ -387,7 +394,7 @@ async function consultarEstadoPedido(xmlData) {
                         VALUES ('${albaran}', '${codexp}', '${departamento}')
                     `;
 
-                    const pool = await sql.connect(config);
+                    const pool = await connectToDatabase();
                     const result = await pool.request().query(query);
 
                     console.log("Información del pedido guardada en la base de datos.");
@@ -410,7 +417,8 @@ async function consultarEstadoPedido(xmlData) {
 
 async function verificarAlbaranExistenteIncidencia(albaran) {
     try {
-        const pool = await sql.connect(config);
+         // Conectar a la base de datos
+        const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwIncidenciasGLS WHERE Albaran = @albaran');
@@ -424,7 +432,8 @@ async function verificarAlbaranExistenteIncidencia(albaran) {
 
 async function verificarAlbaranExistentePesado(albaran) {
     try {
-        const pool = await sql.connect(config);
+         // Conectar a la base de datos
+        const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwGLSNoPesado WHERE Albaran = @albaran');
@@ -440,7 +449,7 @@ async function verificarAlbaranExistentePesado(albaran) {
 
 async function eliminarAlbaran(albaran) {
     try {
-        const pool = await sql.connect(config);
+        const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('DELETE FROM MwIncidenciasGLS WHERE Albaran = @albaran');
@@ -454,7 +463,7 @@ async function eliminarAlbaran(albaran) {
 
 async function eliminarAlbaranPesado(albaran) {
     try {
-        const pool = await sql.connect(config);
+        const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('DELETE FROM MwGLSNoPesado WHERE Albaran = @albaran');
@@ -658,7 +667,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 5000)); 
+            await new Promise(resolve => setTimeout(resolve, 10000)); 
             const pool = await connectToDatabase();
             const query = `
                 UPDATE DeliveryNoteHeader
