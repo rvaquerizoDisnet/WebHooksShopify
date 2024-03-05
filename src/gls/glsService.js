@@ -61,14 +61,13 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('46 8 * * *', async () => {
+    cron.schedule('52 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
 }
 
 async function consultaAGls() {
-    console.log('Ejecutando consulta a GLS');
     try {
         // Conectar a la base de datos
         const pool = await connectToDatabase();
@@ -95,7 +94,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
         const fechaInicioMes = '01/01/2024'; // Fecha de inicio del mes
-        const fechaFinMes = '01/31/2024'; 
+        const fechaFinMes = '05/31/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -122,7 +121,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
                   cont =+1 ;
              }
-             console.log(cont)
+             console.log("contador "+cont)
              console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
          });
  } catch (error) {
@@ -160,7 +159,6 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         const estadoPedido = await consultarEstadoPedido(xmlData);
-        console.log(estadoPedido)
         if (estadoPedido == 'CORRECTO' || estadoPedido == 'ESTADO'){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
