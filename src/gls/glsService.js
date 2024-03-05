@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('31 8 * * *', async () => {
+    cron.schedule('40 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -117,12 +117,12 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          })
          .on('end', () => {
              // Iterar sobre los registros filtrados
-             let cont = 0;
+             
              for (const pedido of rows) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
-                 cont =+1 ;
+                 const cont =+1 ;
              }
-             
+             console.log(cont)
              console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
          });
  } catch (error) {
@@ -161,7 +161,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
 
         const estadoPedido = await consultarEstadoPedido(xmlData);
         console.log(estadoPedido)
-        if (estadoPedido == 'CORRECTO' ){
+        if (estadoPedido == 'CORRECTO' || estadoPedido == 'ESTADO'){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
             await insertarEnOrderHeader(IdOrder, Weight, Displacement)
@@ -396,8 +396,6 @@ async function consultarEstadoPedido(xmlData) {
                 } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
-            } else{
-                tipoUltimoTracking = 'CORRECTO'
             }
 
             
