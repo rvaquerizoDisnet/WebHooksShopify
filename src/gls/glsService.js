@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('22 9 * * *', async () => {
+    cron.schedule('28 9 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -150,7 +150,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         });
 
         const xmlData = response.data;
-        //console.log(xmlData)
+        console.log(xmlData)
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
         //console.log(peso)
