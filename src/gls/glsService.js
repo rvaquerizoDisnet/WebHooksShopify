@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('05 8 * * *', async () => {
+    cron.schedule('22 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -117,8 +117,10 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          })
          .on('end', () => {
              // Iterar sobre los registros filtrados
+             let cont = 0;
              for (const pedido of rows) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
+                 cont =+1 ;
              }
              
              console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
@@ -152,9 +154,9 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         //console.log(xmlData)
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
-        console.log(peso)
+        //console.log(peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
-        console.log(volumen)
+        //console.log(volumen)
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         const estadoPedido = await consultarEstadoPedido(xmlData);
@@ -162,7 +164,8 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         if (estadoPedido == 'CORRECTO' ){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
-            await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+            //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+            console.log("Pedido actualizado con IdOrder: ", IdOrder)
         }
 
 
@@ -322,7 +325,7 @@ async function consultarEstadoPedido(xmlData) {
             const ultimoTracking = trackingList[trackingList.length - 1];
             const tipoUltimoTracking = ultimoTracking['tipo'][0];
             const codigo = ultimoTracking['fecha'][0];
-            console.log("tipoUltimoTracking ", tipoUltimoTracking)
+            //console.log("tipoUltimoTracking ", tipoUltimoTracking)
 
             if (tipoUltimoTracking === 'INCIDENCIA') {
                 // Obtener información del pedido y de la incidencia
