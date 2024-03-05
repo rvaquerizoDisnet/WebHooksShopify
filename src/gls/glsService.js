@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('30 8 * * *', async () => {
+    cron.schedule('31 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -164,7 +164,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         if (estadoPedido == 'CORRECTO' ){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
-            //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+            await insertarEnOrderHeader(IdOrder, Weight, Displacement)
             console.log("Pedido actualizado con IdOrder: ", IdOrder)
         }
 
