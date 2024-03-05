@@ -396,7 +396,10 @@ async function consultarEstadoPedido(xmlData) {
                 } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
+            } else{
+                tipoUltimoTracking = 'CORRECTO'
             }
+
             
             return tipoUltimoTracking;
         } else {
