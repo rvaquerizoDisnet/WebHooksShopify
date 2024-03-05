@@ -96,7 +96,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
 
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
         const fechaInicioMes = '01/01/2024'; // Fecha de inicio del mes
-        const fechaFinMes = '01/05/2024'; 
+        const fechaFinMes = '01/31/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -109,7 +109,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              if (
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
-                 row.departamento_exp === departamentoExp && row.referencia_exp == '2000041660'
+                 row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
                  contadorPedidos++; // Incrementar el contador de pedidos
@@ -159,7 +159,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         const estadoPedido = await consultarEstadoPedido(xmlData);
-        if (estadoPedido == 'CORRECTO' || estadoPedido == 'ESTADO'){
+        if (!(estadoPedido == 'INCIDENCIA')){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
             await insertarEnOrderHeader(IdOrder, Weight, Displacement)
