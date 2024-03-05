@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('28 9 * * *', async () => {
+    cron.schedule('34 9 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -109,7 +109,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              if (
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
-                 row.departamento_exp === departamentoExp
+                 row.departamento_exp === departamentoExp && row.referencia_exp == '2000041660'
              ) {
                  rows.push(row);
                  contadorPedidos++; // Incrementar el contador de pedidos
