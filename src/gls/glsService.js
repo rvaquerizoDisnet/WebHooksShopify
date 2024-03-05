@@ -94,7 +94,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
         const fechaInicioMes = '01/01/2024'; // Fecha de inicio del mes
-        const fechaFinMes = '05/31/2024'; 
+        const fechaFinMes = '01/31/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -198,8 +198,8 @@ async function leerWeightDisplacement(OrderNumber) {
             const esErrorDeConexion = error.code === 'ETIMEOUT' || error.code === 'ECONNRESET';
 
             if (esErrorDeConexion) {
-                console.error('Error de conexión. Reintentando en 1 segundo...');
-                await delay(1000); // Espera 1 segundo antes de reintentar
+                console.error('Error de conexión. Reintentando en 10 segundos...');
+                await new Promise(resolve => setTimeout(resolve, 10000)); // Espera 10 segundos antes de reintentar
             } else {
                 console.error('Error al leer Weight y Displacement desde DeliveryNoteHeader:', error);
                 return { Weight: null, Displacement: null, IdOrder: null };
