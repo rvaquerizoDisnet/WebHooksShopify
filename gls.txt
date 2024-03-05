@@ -1,6 +1,6 @@
--Crear tabla MwIncidenciasGLS
--Crear tabla de Magento
--Hacer archivo insertClientMagento
+-Crear tabla MwIncidenciasGLS-----
+-Crear tabla de Magento-----
+-Hacer archivo insertClientMagento------
 -Funcion que envie Mail a info y al cliente cuando haya una incidencia en un pedido solo durante el horario laboral entre
 -Correos Tracking automatico ruta L:\CLIENTS FITXERS\24UOC\Export\GECO
 -UPS Tracking L:\TTE\FITXERS\UPS\Tracking 

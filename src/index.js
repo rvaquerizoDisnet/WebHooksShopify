@@ -104,7 +104,7 @@ convertTableToCSV();
 deleteCSVFile();
 cronGLS();
 //Tracking
-//convertTableToCSV2();
-//deleteCSVFile2();
-//consultaAGlsTracking();
+convertTableToCSV2();
+deleteCSVFile2();
+consultaAGlsTracking();
 //consultarIncidenciasYPesos();

@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('10 12 * * *', async () => {
+    cron.schedule('05 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -94,8 +94,9 @@ async function consultaAGls() {
 async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-        const fechaInicioMes = moment().startOf('january').format('MM/DD/YYYY');
-        const fechaFinMes = moment().endOf('january').format('MM/DD/YYYY');
+        const fechaInicioMes = '01/01/2024'; // Fecha de inicio del mes
+        const fechaFinMes = '01/31/2024'; 
+
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
          const rows = [];
@@ -538,7 +539,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 //Tracking 
 function consultaAGlsTracking() {
     // Consulta a las 17:15 (Debido a la hora del servidor ponemos -1 a la hora)
-    cron.schedule('21 10 * * *', async () => {
+    cron.schedule('10 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS para el tracking a las 17:15');
         await ejecutarConsultaTracking();
     });
