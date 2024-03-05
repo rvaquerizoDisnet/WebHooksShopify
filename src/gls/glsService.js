@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('40 8 * * *', async () => {
+    cron.schedule('43 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -117,10 +117,10 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          })
          .on('end', () => {
              // Iterar sobre los registros filtrados
-             
+             const cont = 0;
              for (const pedido of rows) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
-                 const cont =+1 ;
+                  cont =+1 ;
              }
              console.log(cont)
              console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
