@@ -19,7 +19,7 @@ function convertTableToCSV() {
 
 
 function deleteCSVFile() {
-    cron.schedule('36 8 * * *', () => {
+    cron.schedule('38 8 * * *', () => {
         const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
         try {
             fs.unlinkSync(csvFilePath);
@@ -32,7 +32,7 @@ function deleteCSVFile() {
 
 //Tracking
 function convertTableToCSV2() {
-    cron.schedule('08 8 * * *', () => {
+    cron.schedule('40 8 * * *', () => {
         try {
             const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
             execSync(exportToCSVCommand);

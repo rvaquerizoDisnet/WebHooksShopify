@@ -24,7 +24,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
         from: process.env.EMAIL_USER,
         to: [process.env.EMAIL_2],
         subject: `Incidencia en un pedido de GLS`,
-        text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nDepartamento: ${departamento}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}`
+        text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}`
       };
   
       const info = await transporter.sendMail(mailOptions);
@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('34 8 * * *', async () => {
+    cron.schedule('39 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
