@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('34 9 * * *', async () => {
+    cron.schedule('20 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -95,8 +95,8 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
         let contadorPedidos = 0; // Inicializar el contador de pedidos
 
         //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-        const fechaInicioMes = '02/01/2024'; // Fecha de inicio del mes
-        const fechaFinMes = '02/29/2024'; 
+        const fechaInicioMes = '03/01/2024'; // Fecha de inicio del mes
+        const fechaFinMes = '03/06/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -107,9 +107,11 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
              if (
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
-                 row.departamento_exp === departamentoExp
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
+                row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
                  contadorPedidos++; // Incrementar el contador de pedidos
@@ -150,7 +152,6 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         });
 
         const xmlData = response.data;
-        console.log(xmlData)
         // Parsear el XML para obtener peso y volumen
         const peso = await parsearPesoDesdeXML(xmlData);
         //console.log(peso)
@@ -167,7 +168,6 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
             pedidosActualizados++; // Incrementar el contador de pedidos actualizados
         }
 
-        console.log(pedidosActualizados+ "pedidosActualizados")
 
     } catch (error) {
         console.error('Error al realizar la consulta a GLS:', error);
@@ -364,8 +364,7 @@ async function consultarEstadoPedido(xmlData) {
                 } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
-            } else if (tipoUltimoTracking && (codigo == 0 || codigo == 2 || codigo == 19 || codigo == 3 || codigo == 9 || codigo == 21 || codigo == 14 || codigo == 6 || codigo == 22 || codigo == 25 || codigo == 7 || codigo == 8)) {
-                tipoUltimoTracking = 'CORRECTO'
+            } else if (tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER') {
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
                 
                 const existeAlbaranIncidencia = await verificarAlbaranExistenteIncidencia(albaran);
@@ -705,6 +704,11 @@ function consultarIncidenciasYPesos() {
 
     // Consulta a las 18:00
     cron.schedule('0 17 * * *', async () => {
+        await ejecutarConsulta();
+    });
+
+    // Consulta a las 20:00
+    cron.schedule('0 19 * * *', async () => {
         await ejecutarConsulta();
     });
 }
