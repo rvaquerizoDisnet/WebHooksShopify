@@ -10,3 +10,8 @@ OrderNumber;DeliveryNoteNumber;TrackingNumber;fecha
 
 -UPS Tracking L:\TTE\FITXERS\UPS\Tracking 
 PQ43DN2500230680115008T TrackingNumber //  0001469696 CustomerOrderNumber
+
+-DHL
+L:\TTE\FITXERS\DHL\TRAKING
+"0137488201","0835421240"
+CustomerOrderNumber;TrackingNumber

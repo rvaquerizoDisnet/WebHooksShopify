@@ -167,6 +167,8 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
             const { Weight, Displacement, IdOrder } = weightDisplacement;
             //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
             console.log("Pedido actualizado con IdOrder: ", IdOrder);
+        }else {
+            console.log("Este pedido tiene una incidencia")
         }
 
 

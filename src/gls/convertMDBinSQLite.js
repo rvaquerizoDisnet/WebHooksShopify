@@ -15,6 +15,46 @@ function convertTableToCSV() {
             console.error('Error al exportar la tabla expediciones a CSV:', error);
         }
     });
+
+    cron.schedule('14 16 * * *', () => {
+        try {
+            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
+            execSync(exportToCSVCommand);
+            console.log('Tabla expediciones exportada a CSV correctamente.');
+        } catch (error) {
+            console.error('Error al exportar la tabla expediciones a CSV:', error);
+        }
+    });
+
+    cron.schedule('14 17 * * *', () => {
+        try {
+            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
+            execSync(exportToCSVCommand);
+            console.log('Tabla expediciones exportada a CSV correctamente.');
+        } catch (error) {
+            console.error('Error al exportar la tabla expediciones a CSV:', error);
+        }
+    });
+
+    cron.schedule('14 18 * * *', () => {
+        try {
+            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
+            execSync(exportToCSVCommand);
+            console.log('Tabla expediciones exportada a CSV correctamente.');
+        } catch (error) {
+            console.error('Error al exportar la tabla expediciones a CSV:', error);
+        }
+    });
+
+    cron.schedule('14 19 * * *', () => {
+        try {
+            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
+            execSync(exportToCSVCommand);
+            console.log('Tabla expediciones exportada a CSV correctamente.');
+        } catch (error) {
+            console.error('Error al exportar la tabla expediciones a CSV:', error);
+        }
+    });
 }
 
 
@@ -28,24 +68,40 @@ function deleteCSVFile() {
             console.error('Error al eliminar el archivo CSV:', error);
         }
     });
-}
 
-//Tracking
-function convertTableToCSV2() {
-    cron.schedule('40 9 * * *', () => {
+    cron.schedule('20 16 * * *', () => {
+        const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
         try {
-            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
-            execSync(exportToCSVCommand);
-            console.log('Tabla expediciones exportada a CSV correctamente.');
+            fs.unlinkSync(csvFilePath);
+            console.log('Archivo CSV eliminado.');
         } catch (error) {
-            console.error('Error al exportar la tabla expediciones a CSV:', error);
+            console.error('Error al eliminar el archivo CSV:', error);
         }
     });
-}
 
+    cron.schedule('20 17 * * *', () => {
+        const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+        try {
+            fs.unlinkSync(csvFilePath);
+            console.log('Archivo CSV eliminado.');
+        } catch (error) {
+            console.error('Error al eliminar el archivo CSV:', error);
+        }
+    });
 
-function deleteCSVFile2() {
-    cron.schedule('45 9 * * *', () => {
+    
+    cron.schedule('20 18 * * *', () => {
+        const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+        try {
+            fs.unlinkSync(csvFilePath);
+            console.log('Archivo CSV eliminado.');
+        } catch (error) {
+            console.error('Error al eliminar el archivo CSV:', error);
+        }
+    });
+
+    
+    cron.schedule('20 19 * * *', () => {
         const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
         try {
             fs.unlinkSync(csvFilePath);
@@ -55,6 +111,7 @@ function deleteCSVFile2() {
         }
     });
 }
-module.exports = { convertTableToCSV, deleteCSVFile, deleteCSVFile2, convertTableToCSV2 };
+
+module.exports = { convertTableToCSV, deleteCSVFile };
 
 

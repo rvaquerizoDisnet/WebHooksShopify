@@ -19,7 +19,7 @@ const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
 const { obtenerConfiguracionesTiendas } = require('./api/api');
 const { consultaAGlsTracking, consultarPedidoGLS, cronGLS, consultarIncidenciasYPesos } = require('./gls/glsService');
-const { convertTableToCSV, deleteCSVFile,  convertTableToCSV2, deleteCSVFile2} = require('./gls/convertMDBinSQLite');
+const { convertTableToCSV, deleteCSVFile} = require('./gls/convertMDBinSQLite');
 const { cronUPS } = require('./ups/ups');
 const { cronCorreos } = require('./correos/correos');
 
@@ -108,14 +108,11 @@ process.on('SIGTERM', () => {
 convertTableToCSV();
 deleteCSVFile();
 cronGLS();
-//Tracking
-convertTableToCSV2();
-deleteCSVFile2();
-consultaAGlsTracking();
+//incidencias
 consultarIncidenciasYPesos();
 
 //UPS
 //cronUPS();
 
 //Correos
-//cronCorreos();
+cronCorreos();

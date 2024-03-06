@@ -6,107 +6,119 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 const { pool, sql, connectToDatabase } = require('../utils/database');
 
+const fs = require('fs');
+const cron = require('node-cron');
+
+
+
+const carpeta = 'C:\\Users\\RaulV\\Documents\\correos';
+
+
+// Función para procesar un archivo .txt
+function procesarArchivo(archivo) {
+    const rutaArchivo = `${carpeta}\\${archivo}`;
+
+    // Lee el contenido del archivo
+    fs.readFile(rutaArchivo, 'utf8', (err, contenido) => {
+        if (err) {
+            console.error('Error al leer el archivo:', err);
+            return;
+        }
+
+        // Divide el contenido del archivo en líneas
+        const lineas = contenido.split('\n');
+
+        // Itera sobre cada línea para extraer los datos
+        lineas.forEach(linea => {
+            // Divide la línea en campos separados por tabulaciones
+            const campos = linea.split('\t');
+
+            // Busca la secuencia '000' en la línea
+            const indice000 = campos.findIndex(campo => campo.startsWith('000'));
+            if (indice000 !== -1 && indice000 < campos.length - 1) {
+                console.log('Dato encontrado en el archivo', archivo, ':', campos[indice000 + 1]);
+            }
+
+            // Busca la secuencia 'PQ4' en la línea
+            const indicePQ4 = campos.findIndex(campo => campo.startsWith('PQ4'));
+            if (indicePQ4 !== -1 && indicePQ4 < campos.length) {
+                console.log('Dato PQ4 encontrado en el archivo', archivo, ':', campos[indicePQ4]);
+            }
+        });
+
+        // Elimina el archivo después de procesarlo
+        fs.unlink(rutaArchivo, err => {
+            if (err) {
+                console.error('Error al eliminar el archivo:', err);
+                return;
+            }
+            console.log('Archivo eliminado:', archivo);
+        });
+    });
+}
+
+// Función para procesar todos los archivos en la carpeta
+async function procesarArchivos() {
+    // Lee la lista de archivos en la carpeta
+    fs.readdir(carpeta, (err, archivos) => {
+        if (err) {
+            console.error('Error al leer la carpeta:', err);
+            return;
+        }
+
+        // Filtra los archivos .txt
+        const archivosTxt = archivos.filter(archivo => archivo.endsWith('.txt'));
+
+        // Si hay al menos un archivo .txt
+        if (archivosTxt.length > 0) {
+            console.log('Se encontraron los siguientes archivos .txt:', archivosTxt);
+            archivosTxt.forEach(archivo => {
+                procesarArchivo(archivo);
+            });
+        } else {
+            console.log('No se encontraron archivos .txt en la carpeta.');
+        }
+    });
+}
+
+
 
 function cronCorreos(){
-    cron.schedule('45 5 * * *', async () => {
+    cron.schedule('30 10 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
-        await consultaCorreos();
+        await procesarArchivos();
     });
 
     cron.schedule('45 9 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 10:45');
-        await consultaCorreos();
+        await procesarArchivos();
     });
 
     cron.schedule('45 13 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 14:45');
-        await consultaCorreos();
+        await procesarArchivos();
     });
 
     cron.schedule('45 16 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 17:45');
-        await consultaCorreos();
+        await procesarArchivos();
     });
 
     cron.schedule('45 17 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 18:45');
-        await consultaCorreos();
+        await procesarArchivos();
     });
 
     cron.schedule('45 18 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 19:45');
-        await consultaCorreos();
+        await procesarArchivos();
     });
 
     cron.schedule('45 19 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 20:45');
-        await consultaCorreos();
+        await procesarArchivos();
     });
 }
 
-async function consultaCorreos() {
-    try {
-    const fechaHoy = moment().format('YYYY/MM/DD');
-
-    const csvFilePath = '/home/admin81/shares/UPS/tracking/UPS_CSV_EXPORT.csv';
-    const rows = []; 
-
-    fs.createReadStream(csvFilePath)
-         .pipe(csvParser())
-         .on('data', (row) => {
-             // Filtrar los registros del día anterior con el departamento_exp correspondiente
-             if (
-                moment(row.fechaTransmision, 'YYYY/MM/DD').isSame(moment(fechaHoy, 'YYYY/MM/DD')) 
-             ) {
-                 rows.push(row);
-             }
-         })
-         .on('end', () => {
-             // Iterar sobre los registros filtrados
-             for (const pedido of rows) {
-                actualizarTracking(pedido.PaqueteReferencia1, pedido.PaqueteNumerodeseguimiento);
-             }
-             console.log(`Consultados y actualizados pedidos de UPS`);
-         });
-
-    } catch (error) {
-        console.error('Error al ejecutar la consulta a UPS:', error);
-    }
-}
-
-
-async function actualizarTracking(NumeroAlbaran, TrackingNumber){
-    try {
-        const pool = await connectToDatabase();
-        const query = `
-            UPDATE DeliveryNoteHeader
-            SET TrackingNumber = @TrackingNumber
-            WHERE IdOrder = @NumeroAlbaran;
-        `;
-        const request = pool.request();
-        request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran.toString());
-        request.input('TrackingNumber', sql.NVarChar, TrackingNumber);
-        await request.query(query);
-        console.log("Tracking Number actualizado")
-    } catch (error) {
-        if (error.message.includes('deadlocked')) {
-            console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
-            // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 5000)); 
-            const pool = await connectToDatabase();
-            const query = `
-                UPDATE DeliveryNoteHeader
-                SET TrackingNumber = @TrackingNumber
-                WHERE IdOrder = @NumeroAlbaran;
-            `;
-            const request = pool.request();
-            request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran.toString());
-            request.input('TrackingNumber', sql.NVarChar, TrackingNumber);
-            await request.query(query);
-        } else {
-            console.error('Error al actualizar el tracking number', error.message);
-        }
-    }
-}
 
 module.exports = { cronCorreos };
