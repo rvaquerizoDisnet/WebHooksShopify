@@ -61,7 +61,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('20 8 * * *', async () => {
+    cron.schedule('24 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -107,10 +107,10 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
              if (
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
                 row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
@@ -366,13 +366,17 @@ async function consultarEstadoPedido(xmlData) {
                 }
             } else if (tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER') {
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
+                const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+                const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
+                const eventoResolucion = ultimoTracking['evento'][0];
+                const fechaResolucion = ultimoTracking['fecha'][0];
                 
                 const existeAlbaranIncidencia = await verificarAlbaranExistenteIncidencia(albaran);
 
                 const existeAlbaranPesado = await verificarAlbaranExistentePesado(albaran);
                 // Si el albarán existe, eliminar la línea correspondiente
                 if (existeAlbaranIncidencia) {
-                    await enviarCorreoSolucion(albaran, departamento, codexp, eventoIncidencia, fechaIncidencia);
+                    await enviarCorreoSolucion(albaran, departamento, codexp, eventoResolucion, fechaResolucion);
                     await eliminarAlbaran(albaran);
                     console.log(`La línea del albarán ${albaran} fue eliminada de la base de datos.`);
                 } else if (existeAlbaranPesado){
