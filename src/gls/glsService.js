@@ -65,7 +65,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('13 11 * * *', async () => {
+    cron.schedule('16 11 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
