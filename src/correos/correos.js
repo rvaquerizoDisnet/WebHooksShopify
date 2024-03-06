@@ -80,7 +80,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('30 10 * * *', async () => {
+    cron.schedule('33 11 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });
