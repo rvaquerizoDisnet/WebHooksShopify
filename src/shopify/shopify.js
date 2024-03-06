@@ -42,8 +42,10 @@ async function handleRetry(job, retryCount) {
 
 async function sendErrorEmail(job, retryCount) {
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'outlook',
+      const transporter = nodemailer.createTransport({
+        host: 'mail.disnet.es',
+        port: 25,
+        secure: false,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
@@ -298,7 +300,7 @@ async function mapJsonToXml(jsonData, store) {
     Pedidos: {
       Sesion_Cliente: sc,
       Pedido: {
-        OrderNumber: `#${jsonData.order_number || '-'}`,
+        OrderNumber: `${jsonData.order_number || '-'}`,
         FechaPedido: formattedFechaPedido,
         OrderCustomer: `#${jsonData.order_number || '-'}`,
         ObservAgencia: notasCliente,
