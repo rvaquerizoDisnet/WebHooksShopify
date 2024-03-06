@@ -28,9 +28,9 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
       };
   
       const info = await transporter.sendMail(mailOptions);
-      logger.info('Correo electrónico enviado:', info.response);
+      console.log('Correo electrónico enviado:', info.response);
     } catch (error) {
-      logger.error('Error en sendErrorEmail:', error);
+        console.log('Error en sendErrorEmail:', error);
     }
   }
   
@@ -53,9 +53,9 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
       };
   
       const info = await transporter.sendMail(mailOptions);
-      logger.info('Correo electrónico enviado:', info.response);
+      console.log('Correo electrónico enviado:', info.response);
     } catch (error) {
-      logger.error('Error en sendErrorEmail:', error);
+        console.log('Error en sendErrorEmail:', error);
     }
   }
 
@@ -114,7 +114,6 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
                 row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
-                 contadorPedidos++; // Incrementar el contador de pedidos
              }
          })
          .on('end', () => {
@@ -122,7 +121,7 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
              for (const pedido of rows) {
                  consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
              }
-             console.log(`Consultados y actualizados ${contadorPedidos} pedidos de GLS para el departamento ${departamentoExp}.`);
+             console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
          });
  } catch (error) {
      console.error('Error al consultar pedidos y actualizar la base de datos:', error);
@@ -143,7 +142,6 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         </soap12:Envelope>`;
 
     try {
-        let pedidosActualizados = 0; // Inicializar el contador de pedidos actualizados
 
         const response = await axios.post(url, xmlBody, {
             headers: {
@@ -163,9 +161,8 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         if (!(estadoPedido == 'INCIDENCIA')){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
-            await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+            //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
             console.log("Pedido actualizado con IdOrder: ", IdOrder);
-            pedidosActualizados++; // Incrementar el contador de pedidos actualizados
         }
 
 
@@ -557,7 +554,7 @@ async function parsearVolumenDesdeXML(xmlData) {
 //Tracking 
 function consultaAGlsTracking() {
     // Consulta a las 17:15 (Debido a la hora del servidor ponemos -1 a la hora)
-    cron.schedule('10 8 * * *', async () => {
+    cron.schedule('10 9 * * *', async () => {
         console.log('Ejecutando consulta a GLS para el tracking a las 17:15');
         await ejecutarConsultaTracking();
     });
