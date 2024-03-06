@@ -3,4 +3,10 @@
 -Hacer archivo insertClientMagento------
 -Funcion que envie Mail a info y al cliente cuando haya una incidencia en un pedido solo durante el horario laboral entre
 -Correos Tracking automatico ruta L:\CLIENTS FITXERS\24UOC\Export\GECO
+PaqueteReferencia1;PaqueteReferencia2;PaqueteN�merodeseguimiento
+OrderNumber;DeliveryNoteNumber;TrackingNumber;fecha
+"0137488199";"347436";"1Z961V726850375931";"20240301"
+
+
 -UPS Tracking L:\TTE\FITXERS\UPS\Tracking 
+PQ43DN2500230680115008T TrackingNumber //  0001469696 CustomerOrderNumber

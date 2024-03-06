@@ -13,7 +13,9 @@ const nodemailer = require('nodemailer');
 async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha) {
     try {
       const transporter = nodemailer.createTransport({
-        service: 'outlook',
+        host: 'mail.disnet.es',
+        port: 25,
+        secure: false,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASSWORD,
@@ -37,8 +39,10 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
   async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha) {
     try {
-      const transporter = nodemailer.createTransport({
-        service: 'outlook',
+        const transporter = nodemailer.createTransport({
+            host: 'mail.disnet.es',
+            port: 25,
+            secure: false,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASSWORD,
@@ -61,7 +65,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('41 8 * * *', async () => {
+    cron.schedule('21 9 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
