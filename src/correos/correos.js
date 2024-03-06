@@ -27,19 +27,23 @@ function procesarArchivo(archivo) {
 
         // Itera sobre cada línea para extraer los datos
         lineas.forEach(linea => {
-            // Divide la línea en campos separados por tabulaciones
-            const campos = linea.split('\t');
+            // Divide la línea en campos usando una expresión regular para buscar tabulaciones
+            const campos = linea.split(/\t+/);
 
-            // Busca la posición de 'ST' en la línea
-            const indiceST = campos.findIndex(campo => campo === 'ST');
-            if (indiceST !== -1 && indiceST > 0) {
-                console.log('Dato encontrado en el archivo', archivo, ':', campos[indiceST - 1]);
+            // Busca la secuencia '000' en la línea
+            const indice000 = campos.findIndex(campo => campo.startsWith('000'));
+            if (indice000 !== -1 && indice000 < campos.length - 1) {
+                console.log('Dato encontrado en el archivo', archivo, ':', campos[indice000 + 1]);
+
+                // Aquí puedes agregar lo que necesites hacer con el dato encontrado
             }
 
             // Busca la secuencia 'PQ4' en la línea
             const indicePQ4 = campos.findIndex(campo => campo.startsWith('PQ4'));
             if (indicePQ4 !== -1 && indicePQ4 < campos.length) {
                 console.log('Dato PQ4 encontrado en el archivo', archivo, ':', campos[indicePQ4]);
+
+                // Aquí puedes agregar lo que necesites hacer con el dato encontrado
             }
         });
 
@@ -82,7 +86,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('45 11 * * *', async () => {
+    cron.schedule('52 11 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });
