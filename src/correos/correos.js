@@ -11,6 +11,7 @@ const carpeta = 'C:\\Users\\RaulV\\Documents\\correos';
 
 
 // Función para procesar un archivo .txt
+// Función para procesar un archivo .txt
 function procesarArchivo(archivo) {
     const rutaArchivo = `${carpeta}\\${archivo}`;
 
@@ -29,10 +30,10 @@ function procesarArchivo(archivo) {
             // Divide la línea en campos separados por tabulaciones
             const campos = linea.split('\t');
 
-            // Busca la secuencia '000' en la línea
-            const indice000 = campos.findIndex(campo => campo.startsWith('000'));
-            if (indice000 !== -1 && indice000 < campos.length - 1) {
-                console.log('Dato encontrado en el archivo', archivo, ':', campos[indice000 + 1]);
+            // Busca la posición de 'ST' en la línea
+            const indiceST = campos.findIndex(campo => campo === 'ST');
+            if (indiceST !== -1 && indiceST > 0) {
+                console.log('Dato encontrado en el archivo', archivo, ':', campos[indiceST - 1]);
             }
 
             // Busca la secuencia 'PQ4' en la línea
@@ -52,6 +53,7 @@ function procesarArchivo(archivo) {
         });
     });
 }
+
 
 // Función para procesar todos los archivos en la carpeta
 async function procesarArchivos() {
@@ -80,7 +82,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('33 11 * * *', async () => {
+    cron.schedule('45 11 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });

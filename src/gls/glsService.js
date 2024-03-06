@@ -14,7 +14,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
     try {
       const transporter = nodemailer.createTransport({
         host: 'mail.disnet.es',
-        port: 587,
+        port: 25,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASSWORD,
@@ -40,7 +40,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
     try {
         const transporter = nodemailer.createTransport({
             host: 'mail.disnet.es',
-            port: 587,
+            port: 25,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASSWORD,
@@ -63,7 +63,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('41 10 * * *', async () => {
+    cron.schedule('50 10 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
