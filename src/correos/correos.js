@@ -6,10 +6,6 @@ const moment = require('moment');
 const csvParser = require('csv-parser');
 const { pool, sql, connectToDatabase } = require('../utils/database');
 
-const fs = require('fs');
-const cron = require('node-cron');
-
-
 
 const carpeta = 'C:\\Users\\RaulV\\Documents\\correos';
 
