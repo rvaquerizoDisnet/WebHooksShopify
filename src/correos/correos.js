@@ -31,9 +31,8 @@ function procesarArchivo(archivo) {
 
             // Busca la secuencia '000' en la línea
             const indice000 = campos.findIndex(campo => campo.startsWith('000'));
-            if (indice000 !== -1 && indice000 < campos.length - 1) {
-                const datoSiguiente = campos[indice000 + 1];
-                console.log('Dato encontrado en el archivo', archivo, ':', datoSiguiente);
+            if (indice000 !== -1 && indice000 < campos.length) {
+                console.log('Dato encontrado en el archivo', archivo, ':', indice000);
 
                 // Aquí puedes agregar lo que necesites hacer con el dato encontrado
             }
@@ -86,7 +85,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('56 11 * * *', async () => {
+    cron.schedule('00 12 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });

@@ -15,7 +15,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
       const transporter = nodemailer.createTransport({
         host: 'mail.disnet.es',
         port: 587,
-        secure: true,
+        secure: false,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASSWORD,
