@@ -188,7 +188,6 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         });
 
         const xmlData = response.data;
-        console.log(xmlData)
         const peso = await parsearPesoDesdeXML(xmlData);
         //console.log(peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
@@ -372,11 +371,11 @@ async function consultarEstadoPedido(xmlData) {
             const ultimoTracking = trackingList[trackingList.length - 1];
             const tipoUltimoTracking = ultimoTracking['tipo'][0];
             const codigo = ultimoTracking['fecha'][0];
-            const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+            let codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
             if (tipoUltimoTracking === 'INCIDENCIA') {
                 // Obtener información del pedido y de la incidencia
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
-                const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+                codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                 // Verificar si el albarán ya existe en la tabla MwIncidenciasGLS
                 const existeAlbaran = await verificarAlbaranExistenteIncidencia(albaran);
 
