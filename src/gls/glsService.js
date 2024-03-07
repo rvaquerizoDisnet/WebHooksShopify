@@ -99,7 +99,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('59 10 * * *', async () => {
+    cron.schedule('53 11 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -385,14 +385,15 @@ async function consultarEstadoPedido(xmlData) {
                 if (!existeAlbaran) {
                     codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                     const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
+                    const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_exp'][0];
                     const eventoIncidencia = ultimoTracking['evento'][0];
                     const fechaIncidencia = ultimoTracking['fecha'][0];
                     const codigo = ultimoTracking['codigo'][0];
 
                     // Construir la consulta SQL
                     const query = `
-                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo)
-                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}', '${codigo}')
+                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo, Departamento2)
+                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}', '${codigo}', '${departamento2}')
                     `;
 
                     // Ejecutar la consulta
@@ -403,8 +404,8 @@ async function consultarEstadoPedido(xmlData) {
                 } else if(codigo != codigoAlbaran){
                     await eliminarAlbaran(albaran);
                     const query = `
-                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo)
-                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}', '${codigo}')
+                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo, Departamento2)
+                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}', '${codigo}', '${departamento2}')
                     `;
 
                     // Ejecutar la consulta
@@ -446,11 +447,11 @@ async function consultarEstadoPedido(xmlData) {
                 if (!existeAlbaran) {
                     codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                     const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
-
+                    const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_exp'][0];
                     // Construir la consulta SQL
                     const query = `
-                        INSERT INTO MwGLSNoPesado (Albaran, CodExp, Departamento)
-                        VALUES ('${albaran}', '${codexp}', '${departamento}')
+                        INSERT INTO MwGLSNoPesado (Albaran, CodExp, Departamento, Departamento2)
+                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${departamento2}')
                     `;
 
                     const pool = await connectToDatabase();
@@ -771,7 +772,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('40 11 * * *', async () => {
+    cron.schedule('57 11 * * *', async () => {
         await ejecutarConsulta();
     });
 
@@ -817,12 +818,12 @@ async function ejecutarConsulta() {
 
         // Iterar sobre las incidencias
         for (const incidencia of incidencias) {
-            await reconsultarPedidoGLS(incidencia.Albaran, incidencia.CodExp, incidencia.Departamento);
+            await reconsultarPedidoGLS(incidencia.Albaran, incidencia.CodExp, incidencia.Departamento2);
         }
 
         // Iterar sobre los registros no pesados
         for (const noPesado of noPesados) {
-            await reconsultarPedidoGLS(noPesado.Albaran, noPesado.CodExp, noPesado.Departamento );
+            await reconsultarPedidoGLS(noPesado.Albaran, noPesado.CodExp, noPesado.Departamento2);
         }
 
 
@@ -833,7 +834,7 @@ async function ejecutarConsulta() {
 }
 
 // Función para volver a ejecutar consultarPedidoGLS
-async function reconsultarPedidoGLS(orderNumber, codexp, departamento) {
+async function reconsultarPedidoGLS(orderNumber, codexp, departamento2) {
     console.log(`Reconsultando pedido GLS para OrderNumber ${orderNumber}...`);
     try {
         const pool = await connectToDatabase();
@@ -844,9 +845,9 @@ async function reconsultarPedidoGLS(orderNumber, codexp, departamento) {
             WHERE departamento_exp = @departamentoExp;
         `;
         const requestUidCliente = pool.request();
-        requestUidCliente.input('departamentoExp', sql.NVarChar, departamento);
+        requestUidCliente.input('departamentoExp', sql.NVarChar, departamento2);
         const resultUidCliente = await requestUidCliente.query(queryUidCliente);
-        console.log("departamento", departamento)
+        console.log("departamento", departamento2)
         if (resultUidCliente.recordset.length > 0) {
             uidCliente = resultUidCliente.recordset[0].uid_cliente;
         } else {
