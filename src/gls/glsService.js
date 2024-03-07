@@ -67,7 +67,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('24 8 * * *', async () => {
+    cron.schedule('30 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -100,9 +100,9 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         let contadorPedidos = 0; // Inicializar el contador de pedidos
 
-        const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-        //const fechaInicioMes = '03/01/2024'; // Fecha de inicio del mes
-        //const fechaFinMes = '03/07/2024'; 
+        //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
+        const fechaInicioMes = '03/01/2024'; // Fecha de inicio del mes
+        const fechaFinMes = '03/07/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -113,10 +113,10 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
              if (
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
                 row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
@@ -167,7 +167,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         if (!(estadoPedido == 'INCIDENCIA')){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
-            await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+            //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
             console.log("Pedido actualizado con IdOrder: ", IdOrder);
         }else {
             console.log("Este pedido tiene una incidencia")
