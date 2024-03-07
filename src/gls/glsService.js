@@ -9,65 +9,97 @@ const csvParser = require('csv-parser');
 const { pool, sql, connectToDatabase } = require('../utils/database');
 const nodemailer = require('nodemailer');
 
-//Configuracion de Envio de correos
+async function obtenerCorreoDepartamento(departamento) {
+    try {
+        const pool = await connectToDatabase(); // Suponiendo que ya tienes una función llamada connectToDatabase para establecer la conexión a la base de datos
+        const query = `
+            SELECT Correo
+            FROM MwClientesGLS
+            WHERE Departamento = '${departamento}'
+        `;
+        const result = await pool.request().query(query);
+        if (result.recordset.length > 0) {
+            return result.recordset[0].Correo; // Devuelve el correo del departamento si se encuentra en la base de datos
+        } else {
+            return null; // Devuelve null si el departamento no existe en la base de datos
+        }
+    } catch (error) {
+        console.error('Error al obtener el correo del departamento desde la base de datos:', error);
+        throw error; // Propaga el error para que sea manejado por el código que llama a esta función
+    }
+}
+
 async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha) {
     try {
-      const transporter = nodemailer.createTransport({
-        host: 'mail.disnet.es',
-        port: 25,
-        secure: false,
-        ignoreTLS: true,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      });
-  
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: [process.env.EMAIL_2],
-        subject: `Incidencia en un pedido de GLS`,
-        text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}`
-      };
-  
-      const info = await transporter.sendMail(mailOptions);
-      console.log('Correo electrónico enviado:', info.response);
-    } catch (error) {
-        console.log('Error en sendErrorEmail:', error);
-    }
-  }
-  
+        const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
+        if (destinatarioCorreo) {
+            const transporter = nodemailer.createTransport({
+                host: 'mail.disnet.es',
+                port: 25,
+                secure: false,
+                ignoreTLS: true,
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASSWORD,
+                },
+            });
 
-  async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha) {
-    try {
-        const transporter = nodemailer.createTransport({
-            host: 'mail.disnet.es',
-            port: 25,
-            secure: false,
-            ignoreTLS: true,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      });
-  
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: [process.env.EMAIL_2],
-        subject: `Solucion a Incidencia en un pedido de GLS`,
-        text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nDepartamento: ${departamento}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
-      };
-  
-      const info = await transporter.sendMail(mailOptions);
-      console.log('Correo electrónico enviado:', info.response);
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: [destinatarioCorreo],
+                subject: `Incidencia en un pedido de GLS`,
+                text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}`
+            };
+
+            const info = await transporter.sendMail(mailOptions);
+            console.log('Correo electrónico enviado:', info.response);
+        } else {
+            console.log(`No se encontró el correo asociado al departamento ${departamento}. Se enviará a la dirección genérica.`);
+            // Puedes agregar aquí lógica adicional si deseas enviar el correo a una dirección genérica
+        }
     } catch (error) {
-        console.log('Error en sendErrorEmail:', error);
+        console.log('Error en enviarCorreoIncidencia:', error);
     }
-  }
+}
+
+
+async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha) {
+    try {
+        const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
+        if (destinatarioCorreo) {
+            const transporter = nodemailer.createTransport({
+                host: 'mail.disnet.es',
+                port: 25,
+                secure: false,
+                ignoreTLS: true,
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASSWORD,
+                },
+            });
+
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: [process.env.EMAIL_2, destinatarioCorreo],
+                subject: `Solucion a Incidencia en un pedido de GLS`,
+                text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
+            };
+
+            const info = await transporter.sendMail(mailOptions);
+            console.log('Correo electrónico enviado:', info.response);
+        } else {
+            console.log(`No se encontró el correo asociado al departamento ${departamento}. Se enviará a la dirección genérica.`);
+            // Puedes agregar aquí lógica adicional si deseas enviar el correo a una dirección genérica
+        }
+    } catch (error) {
+        console.log('Error en enviarCorreoSolucion:', error);
+    }
+}
+
 
 
 function cronGLS(){
-    cron.schedule('15 10 * * *', async () => {
+    cron.schedule('59 10 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -156,7 +188,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         });
 
         const xmlData = response.data;
-        // Parsear el XML para obtener peso y volumen
+        console.log(xmlData)
         const peso = await parsearPesoDesdeXML(xmlData);
         //console.log(peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
@@ -340,11 +372,11 @@ async function consultarEstadoPedido(xmlData) {
             const ultimoTracking = trackingList[trackingList.length - 1];
             const tipoUltimoTracking = ultimoTracking['tipo'][0];
             const codigo = ultimoTracking['fecha'][0];
-
+            const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
             if (tipoUltimoTracking === 'INCIDENCIA') {
                 // Obtener información del pedido y de la incidencia
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
-                
+                const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                 // Verificar si el albarán ya existe en la tabla MwIncidenciasGLS
                 const existeAlbaran = await verificarAlbaranExistenteIncidencia(albaran);
 
@@ -352,8 +384,8 @@ async function consultarEstadoPedido(xmlData) {
                 
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
-                    const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
-                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
+                    codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
                     const eventoIncidencia = ultimoTracking['evento'][0];
                     const fechaIncidencia = ultimoTracking['fecha'][0];
                     const codigo = ultimoTracking['codigo'][0];
@@ -386,7 +418,7 @@ async function consultarEstadoPedido(xmlData) {
                 }
             } else if (tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER') {
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
-                const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+                codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                 const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                 const eventoResolucion = ultimoTracking['evento'][0];
                 const fechaResolucion = ultimoTracking['fecha'][0];
@@ -413,7 +445,7 @@ async function consultarEstadoPedido(xmlData) {
                 
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
-                    const codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
+                    codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                     const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
 
                     // Construir la consulta SQL
@@ -739,23 +771,23 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
-    // Consulta a las 9:00
-    cron.schedule('19 10 * * *', async () => {
+    // Consulta a las 9:05
+    cron.schedule('04 11 * * *', async () => {
         await ejecutarConsulta();
     });
 
     // Consulta a las 14:00
-    cron.schedule('0 10 * * *', async () => {
+    cron.schedule('05 13 * * *', async () => {
         await ejecutarConsulta();
     });
 
     // Consulta a las 18:00
-    cron.schedule('0 11 * * *', async () => {
+    cron.schedule('05 17 * * *', async () => {
         await ejecutarConsulta();
     });
 
     // Consulta a las 20:00
-    cron.schedule('45 11 * * *', async () => {
+    cron.schedule('05 19 * * *', async () => {
         await ejecutarConsulta();
     });
 }
