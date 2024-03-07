@@ -72,8 +72,7 @@
 
   <div class="container d-flex justify-content-between">
     <h2>GLS</h2>
-    <button type="button" class="btn btn-success newclient" onclick="redirectToCorreo()">Ver Correos electronicos</button>
-    <button type="button" class="btn btn-success newclient" onclick="redirectToNewCustomer()">Nuevo Cliente</button>
+    <button type="button" class="btn btn-success newclient" onclick="redirectToNewCorreo()">Añadir correo electronico</button>
   </div>
   <div id="clientesTableContainer" class="container">
     <div class="table-container">
@@ -81,9 +80,8 @@
       <table class="table">
         <thead>
           <tr>
-            <th>Nombre Cliente</th>
-            <th>Departamento</th>
-            <th>ID Cliente</th>
+            <th>Nombre Remitente</th>
+            <th>Correo</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -98,19 +96,19 @@
   </footer>
 
   <script> 
-    // Llamar a la función para obtener y mostrar los clientes al cargar la página
-    window.onload = fetchClientes;
+    window.onload = fetchRemitentes;
 
-    async function fetchClientes() {
+
+    async function fetchRemitentes() {
       try {
         const token = getCookie2('token');
-        const response = await fetch("/gls/clientes", {
+        const response = await fetch("/gls/remitentes2", {
           headers: {
             "Authorization": `Bearer ${token}`
           }
         });
         if (!response.ok) {
-          throw new Error('Hubo un problema al obtener los datos de los clientes.');
+          throw new Error('Hubo un problema al obtener los datos de los remitentes.');
         }
         const data = await response.json();
         // Construir la tabla de clientes y agregarla al contenedor en el HTML
@@ -119,21 +117,19 @@
           <table class="table">
             <thead>
               <tr>
-                <th>Nombre Cliente</th>
-                <th>Departamento</th>
-                <th>ID Cliente</th>
+                <th>Nombre Remitente</th>
+                <th>Correo</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               ${data.map(cliente => `
                 <tr data-id="${cliente.Id}">
-                  <td>${cliente.nombre}</td>
-                  <td>${cliente.departamento_exp}</td>
-                  <td>${cliente.uid_cliente}</td>
+                  <td>${cliente.Departamento}</td>
+                  <td>${cliente.Correo}</td>
                   <td>
-                    <button class="btn btn-primary btn-edit" onclick="editClient(${cliente.Id})">Editar</button>
-                    <button class="btn btn-danger btn-delete" onclick="deleteClient(${cliente.Id})">Eliminar</button>
+                    <button class="btn btn-primary btn-edit" onclick="editRemitente(${cliente.Id})">Editar</button>
+                    <button class="btn btn-danger btn-delete" onclick="deleteRemitente(${cliente.Id})">Eliminar</button>
                   </td>
                 </tr>
               `).join('')}
@@ -141,7 +137,7 @@
           </table>
         `;
       } catch (error) {
-        console.error('Error al obtener y mostrar los clientes:', error);
+        console.error('Error al obtener y mostrar los remitentes:', error);
       }
     }
 
@@ -151,9 +147,9 @@
       if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
-    function redirectToNewCustomer() {
+    function redirectToNewCorreo() {
       const token = getCookie2('token');
-      fetch("/gls/nuevo-cliente/", {
+      fetch("/gls/nuevo-correo/", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -161,7 +157,7 @@
       })
       .then(response => {
         if (response.ok) {
-          window.location.href = '/gls/nuevo-cliente/';
+          window.location.href = '/gls/nuevo-correo/';
         } else {
           console.error('Hubo un problema al acceder a la ruta:', response.statusText);
         }
@@ -171,29 +167,10 @@
       });
     }
 
-    function redirectToCorreo() {
+
+    function deleteRemitente(clientId) {
       const token = getCookie2('token');
-      fetch("/gls/remitentes/", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      })
-      .then(response => {
-        if (response.ok) {
-          window.location.href = '/gls/remitentes/';
-        } else {
-          console.error('Hubo un problema al acceder a la ruta:', response.statusText);
-        }
-      })
-      .catch(error => {
-        console.error('Error al realizar la solicitud:', error);
-      });
-    }
-    
-    function deleteClient(clientId) {
-      const token = getCookie2('token');
-      fetch(`/gls/clientes/${clientId}`, {
+      fetch(`/gls/remitentes/${clientId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -203,7 +180,7 @@
         if (response.ok) {
           fetchClientes();
         } else {
-          console.error('Hubo un problema al eliminar el cliente:', response.statusText);
+          console.error('Hubo un problema al eliminar el remitente:', response.statusText);
         }
       })
       .catch(error => {
@@ -211,38 +188,33 @@
       });
     }
 
-    function editClient(clientId) {
+    function editRemitente(clientId) {
       const tableRow = document.querySelector(`#clientesTableContainer tbody tr[data-id="${clientId}"]`);
       if (!tableRow) {
-        console.error(`No se encontró el cliente con el ID ${clientId}`);
+        console.error(`No se encontró el remitente con el ID ${clientId}`);
         return;
       }
 
       // Obtener los elementos de la fila para editar
-      const nombreClienteElement = tableRow.querySelector('td:nth-child(1)');
-      const departamentoElement = tableRow.querySelector('td:nth-child(2)');
-      const idClienteElement = tableRow.querySelector('td:nth-child(3)');
-      const actionsElement = tableRow.querySelector('td:nth-child(4)');
+      const nombreRemitenteElement = tableRow.querySelector('td:nth-child(1)');
+      const correoElement = tableRow.querySelector('td:nth-child(2)');
 
       // Convertir los elementos de texto en campos de entrada para edición
-      nombreClienteElement.innerHTML = `<input type="text" class="form-control" value="${nombreClienteElement.textContent}">`;
-      departamentoElement.innerHTML = `<input type="text" class="form-control" value="${departamentoElement.textContent}">`;
-      idClienteElement.innerHTML = `<input type="text" class="form-control" value="${idClienteElement.textContent}">`;
+      nombreRemitenteElement.innerHTML = `<input type="text" class="form-control" value="${nombreClienteElement.textContent}">`;
+      correoElement.innerHTML = `<input type="text" class="form-control" value="${departamentoElement.textContent}">`;
 
       // Agregar botón de guardar cambios
       actionsElement.innerHTML = `<button class="btn btn-primary btn-save" onclick="saveChanges(${clientId})">Guardar</button>`;
     }
 
     async function saveChanges(clientId) {
-      const nombreCliente = document.querySelector(`#clientesTableContainer tbody tr[data-id="${clientId}"] td:nth-child(1) input`).value;
-      const departamento = document.querySelector(`#clientesTableContainer tbody tr[data-id="${clientId}"] td:nth-child(2) input`).value;
-      const idCliente = document.querySelector(`#clientesTableContainer tbody tr[data-id="${clientId}"] td:nth-child(3) input`).value;
+      const nombreRemitente = document.querySelector(`#clientesTableContainer tbody tr[data-id="${clientId}"] td:nth-child(1) input`).value;
+      const correo = document.querySelector(`#clientesTableContainer tbody tr[data-id="${clientId}"] td:nth-child(2) input`).value;
 
       // Construye el objeto con los datos del cliente
       const newData = {
-        NombreCliente: nombreCliente,
-        Departamento: departamento,
-        IdCliente: idCliente
+        NombreRemitente: nombreRemitente,
+        Correo: correo,
       };
 
       // Realiza una solicitud PUT al servidor para actualizar los datos del cliente

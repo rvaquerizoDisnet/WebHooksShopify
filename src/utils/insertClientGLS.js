@@ -21,6 +21,26 @@ async function insertIntoDB(nombre, uid_cliente, departamento_exp) {
   }
 }
 
+async function insertIntoDBCli(Departamento, Correo) {
+  try {
+    const pool = await connectToDatabase();
+    const request = pool.request();
+    const query = `
+    INSERT INTO MwClientesGLS (Departamento, Correo)
+    VALUES (@Departamento, @Correo)
+    `;
+    console.log('Consulta SQL:', query);
+    await request
+      .input('Departamento', sql.NVarChar, Departamento)
+      .input('Correo', sql.NVarChar, Correo)
+      .query(query);
+    console.log('Datos insertados correctamente en la base de datos.');
+  } catch (error) {
+    console.error('Error al insertar en la base de datos:', error);
+    throw error;
+  }
+}
+
 async function updateClientInDB(clientId, nombre, uid_cliente, departamento_exp) {
   try {
     const pool = await connectToDatabase();
@@ -65,4 +85,4 @@ async function deleteClientFromDB(clientId) {
   }
 }
 
-module.exports = { insertIntoDB, updateClientInDB, deleteClientFromDB };
+module.exports = { insertIntoDB, updateClientInDB, deleteClientFromDB, insertIntoDBCli };

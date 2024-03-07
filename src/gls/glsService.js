@@ -771,7 +771,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('04 11 * * *', async () => {
+    cron.schedule('40 11 * * *', async () => {
         await ejecutarConsulta();
     });
 
@@ -846,6 +846,7 @@ async function reconsultarPedidoGLS(orderNumber, codexp, departamento) {
         const requestUidCliente = pool.request();
         requestUidCliente.input('departamentoExp', sql.NVarChar, departamento);
         const resultUidCliente = await requestUidCliente.query(queryUidCliente);
+        console.log("departamento", departamento)
         if (resultUidCliente.recordset.length > 0) {
             uidCliente = resultUidCliente.recordset[0].uid_cliente;
         } else {
