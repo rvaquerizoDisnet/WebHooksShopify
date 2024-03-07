@@ -89,7 +89,6 @@ const startServer = async () => {
 };
 
 startServer();
-consultarPedidoGLS("fb05281f-d818-455f-8545-754778289180", '7679', 935277317)
 
 // Manejar eventos de cierre para cerrar correctamente el servidor y la conexión a la base de datos
 process.on('SIGTERM', () => {
