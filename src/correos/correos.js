@@ -35,10 +35,9 @@ function procesarArchivo(archivo) {
                 let CustomerOrderNumber = campos[19];
                 if (CustomerOrderNumber.includes('@')) {
                     console.log("Correo electrónico:", CustomerOrderNumber);
-                    // Aquí puedes agregar lo que necesites hacer con el correo electrónico
                 } else {
                     console.log("CustomerOrderNumber ", CustomerOrderNumber);
-                    // Aquí puedes agregar lo que necesites hacer con el número de orden
+                    CustomerOrderNumber = campos[20]
                 }
             } else {
                 console.log("CustomerOrderNumber no está definido para esta línea.");
@@ -85,7 +84,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('01 13 * * *', async () => {
+    cron.schedule('30 9 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });

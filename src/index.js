@@ -109,10 +109,10 @@ convertTableToCSV();
 deleteCSVFile();
 cronGLS();
 //incidencias
-//consultarIncidenciasYPesos();
+consultarIncidenciasYPesos();
 
 //UPS
 //cronUPS();
 
 //Correos
-cronCorreos();
+//cronCorreos();
