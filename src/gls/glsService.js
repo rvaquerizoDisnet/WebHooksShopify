@@ -385,7 +385,7 @@ async function consultarEstadoPedido(xmlData) {
                 if (!existeAlbaran) {
                     codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                     const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
-                    const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_exp'][0];
+                    const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                     const eventoIncidencia = ultimoTracking['evento'][0];
                     const fechaIncidencia = ultimoTracking['fecha'][0];
                     const codigo = ultimoTracking['codigo'][0];
@@ -446,8 +446,8 @@ async function consultarEstadoPedido(xmlData) {
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
                     codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
-                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
-                    const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_exp'][0];
+                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
+                    const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                     // Construir la consulta SQL
                     const query = `
                         INSERT INTO MwGLSNoPesado (Albaran, CodExp, Departamento, Departamento2)
