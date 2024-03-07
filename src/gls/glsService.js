@@ -707,17 +707,17 @@ function consultarIncidenciasYPesos() {
     });
 
     // Consulta a las 14:00
-    cron.schedule('0 13 * * *', async () => {
+    cron.schedule('0 10 * * *', async () => {
         await ejecutarConsulta();
     });
 
     // Consulta a las 18:00
-    cron.schedule('0 17 * * *', async () => {
+    cron.schedule('0 11 * * *', async () => {
         await ejecutarConsulta();
     });
 
     // Consulta a las 20:00
-    cron.schedule('0 19 * * *', async () => {
+    cron.schedule('45 11 * * *', async () => {
         await ejecutarConsulta();
     });
 }
