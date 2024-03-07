@@ -67,7 +67,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 
 function cronGLS(){
-    cron.schedule('59 8 * * *', async () => {
+    cron.schedule('15 10 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -347,6 +347,8 @@ async function consultarEstadoPedido(xmlData) {
                 
                 // Verificar si el albarán ya existe en la tabla MwIncidenciasGLS
                 const existeAlbaran = await verificarAlbaranExistenteIncidencia(albaran);
+
+                const codigoAlbaran = await obtenerCodigoAlbaranDesdeBD(albaran);
                 
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
@@ -354,11 +356,12 @@ async function consultarEstadoPedido(xmlData) {
                     const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                     const eventoIncidencia = ultimoTracking['evento'][0];
                     const fechaIncidencia = ultimoTracking['fecha'][0];
+                    const codigo = ultimoTracking['codigo'][0];
 
                     // Construir la consulta SQL
                     const query = `
-                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia)
-                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}')
+                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo)
+                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}', '${codigo}')
                     `;
 
                     // Ejecutar la consulta
@@ -366,7 +369,19 @@ async function consultarEstadoPedido(xmlData) {
                     const result = await pool.request().query(query);
                     await enviarCorreoIncidencia(albaran, departamento, codexp, eventoIncidencia, fechaIncidencia);
                     console.log("Información del pedido guardada en la base de datos.");
-                } else {
+                } else if(codigo != codigoAlbaran){
+                    await eliminarAlbaran(albaran);
+                    const query = `
+                        INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo)
+                        VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}', '${codigo}')
+                    `;
+
+                    // Ejecutar la consulta
+                    const pool = await connectToDatabase();
+                    const result = await pool.request().query(query);
+                    await enviarCorreoIncidencia(albaran, departamento, codexp, eventoIncidencia, fechaIncidencia);
+               
+               } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
             } else if (tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER') {
@@ -379,6 +394,7 @@ async function consultarEstadoPedido(xmlData) {
                 const existeAlbaranIncidencia = await verificarAlbaranExistenteIncidencia(albaran);
 
                 const existeAlbaranPesado = await verificarAlbaranExistentePesado(albaran);
+
                 // Si el albarán existe, eliminar la línea correspondiente
                 if (existeAlbaranIncidencia) {
                     await enviarCorreoSolucion(albaran, departamento, codexp, eventoResolucion, fechaResolucion);
@@ -426,6 +442,28 @@ async function consultarEstadoPedido(xmlData) {
         return null;
     }
 }
+
+
+async function obtenerCodigoAlbaranDesdeBD(albaran) {
+    try {
+        const pool = await connectToDatabase(); // Suponiendo que ya tienes una función llamada connectToDatabase para establecer la conexión a la base de datos
+        const query = `
+            SELECT Codigo
+            FROM MwIncidenciasGLS
+            WHERE Albaran = '${albaran}'
+        `;
+        const result = await pool.request().query(query);
+        if (result.recordset.length > 0) {
+            return result.recordset[0].Codigo; // Devuelve el código del albarán si se encuentra en la base de datos
+        } else {
+            return null; // Devuelve null si el albarán no existe en la base de datos
+        }
+    } catch (error) {
+        console.error('Error al obtener el código del albarán desde la base de datos:', error);
+        throw error; // Propaga el error para que sea manejado por el código que llama a esta función
+    }
+}
+
 
 async function verificarAlbaranExistenteIncidencia(albaran) {
     try {
@@ -702,7 +740,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:00
-    cron.schedule('05 9 * * *', async () => {
+    cron.schedule('19 10 * * *', async () => {
         await ejecutarConsulta();
     });
 
