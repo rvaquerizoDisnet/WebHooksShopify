@@ -99,7 +99,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('53 11 * * *', async () => {
+    cron.schedule('15 5 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -772,7 +772,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('57 11 * * *', async () => {
+    cron.schedule('05 8 * * *', async () => {
         await ejecutarConsulta();
     });
 
