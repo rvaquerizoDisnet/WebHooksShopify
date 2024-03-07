@@ -29,31 +29,31 @@ function procesarArchivo(archivo) {
             // Divide la línea en campos usando una expresión regular para buscar tabulaciones
             const campos = linea.split(/\t+/);
 
-            // Busca la secuencia '000' en la línea
-            const indice000 = campos.findIndex(campo => campo.startsWith('000'));
-            if (indice000 !== -1 && indice000 < campos.length) {
-                console.log('Dato encontrado en el archivo', archivo, ':', indice000);
-
-                // Aquí puedes agregar lo que necesites hacer con el dato encontrado
-            }
-
-            // Busca la secuencia 'PQ4' en la línea
-            const indicePQ4 = campos.findIndex(campo => campo.startsWith('PQ4'));
-            if (indicePQ4 !== -1 && indicePQ4 < campos.length) {
-                console.log('Dato PQ4 encontrado en el archivo', archivo, ':', campos[indicePQ4]);
-
-                // Aquí puedes agregar lo que necesites hacer con el dato encontrado
+            const Tracking = campos[5];
+            console.log("Tracking ", Tracking)
+            if (campos[19]) {
+                let CustomerOrderNumber = campos[19];
+                if (CustomerOrderNumber.includes('@')) {
+                    console.log("Correo electrónico:", CustomerOrderNumber);
+                    // Aquí puedes agregar lo que necesites hacer con el correo electrónico
+                } else {
+                    console.log("CustomerOrderNumber ", CustomerOrderNumber);
+                    // Aquí puedes agregar lo que necesites hacer con el número de orden
+                }
+            } else {
+                console.log("CustomerOrderNumber no está definido para esta línea.");
             }
         });
 
         // Elimina el archivo después de procesarlo
+        /*
         fs.unlink(rutaArchivo, err => {
             if (err) {
                 console.error('Error al eliminar el archivo:', err);
                 return;
             }
             console.log('Archivo eliminado:', archivo);
-        });
+        });*/
     });
 }
 
@@ -85,7 +85,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('00 12 * * *', async () => {
+    cron.schedule('01 13 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });
