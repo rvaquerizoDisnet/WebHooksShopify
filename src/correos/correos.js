@@ -14,6 +14,8 @@ const carpeta = 'C:\\Users\\RaulV\\Documents\\correos';
 function procesarArchivo(archivo) {
     const rutaArchivo = `${carpeta}\\${archivo}`;
 
+    let CustomerOrderNumber = null;
+    const Tracking = null;
     // Lee el contenido del archivo
     fs.readFile(rutaArchivo, 'utf8', (err, contenido) => {
         if (err) {
@@ -30,10 +32,10 @@ function procesarArchivo(archivo) {
             if (linea.trim() !== '') { // Verifica que la línea no esté vacía ni undefined
                 const campos = linea.split(/\t+/);
 
-                const Tracking = campos[5];
+                Tracking = campos[5];
                 console.log("Tracking ", Tracking, " linea ", cont);
                 if (campos[19]) {
-                    let CustomerOrderNumber = campos[19];
+                    CustomerOrderNumber = campos[19];
                     if (CustomerOrderNumber.includes('@')) {
                         CustomerOrderNumber = campos[20]
                         console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", cont);
@@ -108,16 +110,8 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         if (resultConsultaIdOrder.recordset.length === 1) {
             IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
         } else {
-            // Si hay más de un IdOrder, seleccionar el que tenga TrackingNumber NULL
-            const nullTracking = resultConsultaIdOrder.recordset.filter(record => record.TrackingNumber === null);
-            if (nullTracking.length === 0) {
-                throw new Error('No se pudo determinar un IdOrder adecuado.');
-            } else if (nullTracking.length === 1) {
-                IdOrder = nullTracking[0].IdOrder;
-            } else {
-                throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
+             throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
             }
-        }
 
         const query = `
             UPDATE MiddlewareDNH
@@ -154,7 +148,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
 
 
 function cronCorreos(){
-    cron.schedule('06 10 * * *', async () => {
+    cron.schedule('24 10 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });

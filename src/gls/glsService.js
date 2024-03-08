@@ -102,7 +102,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('22 9 * * *', async () => {
+    cron.schedule('29 9 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -350,7 +350,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
 async function consultarEstadoPedido(xmlData) {
     try {
         const parsedData = await xml2js.parseStringPromise(xmlData);
-
+        let departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
         if (
             parsedData &&
             parsedData['soap:Envelope'] &&
@@ -385,7 +385,7 @@ async function consultarEstadoPedido(xmlData) {
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
                     codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
-                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
+                    departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
                     console.log("!existeAlbaran", departamento)
                     const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                     const eventoIncidencia = ultimoTracking['evento'][0];
@@ -424,7 +424,7 @@ async function consultarEstadoPedido(xmlData) {
                 console.log("El pedido esta en estado correcto.")
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
                 codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
-                const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
+                departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
                 console.log("tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER'", departamento)
                 const eventoResolucion = ultimoTracking['evento'][0];
                 const fechaResolucion = ultimoTracking['fecha'][0];
@@ -456,7 +456,7 @@ async function consultarEstadoPedido(xmlData) {
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
                     codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
-                    const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
+                    departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
                     console.log("Si el albarán no existe, procedemos con la inserción", depa)
                     const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                     // Construir la consulta SQL
@@ -784,7 +784,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('24 9 * * *', async () => {
+    cron.schedule('33 9 * * *', async () => {
         await ejecutarConsulta();
     });
 
