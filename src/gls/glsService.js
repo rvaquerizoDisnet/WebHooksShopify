@@ -101,7 +101,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('58 9 * * *', async () => {
+    cron.schedule('04 10 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -358,7 +358,7 @@ async function consultarEstadoPedido(xmlData) {
         let codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
         let albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
         let evento = ultimoTracking['evento'][0];
-        let fecha = new Date(ultimoTracking['fecha'][0]).toString();
+        let fecha = ultimoTracking['fecha'][0];
         if (
             parsedData &&
             parsedData['soap:Envelope'] &&
@@ -441,10 +441,6 @@ async function consultarEstadoPedido(xmlData) {
                 
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
-                    codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
-                    departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_org'][0];
-                    console.log("Si el albarán no existe, procedemos con la inserción", depa)
-                    const departamento2 = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                     // Construir la consulta SQL
                     const query = `
                         INSERT INTO MwGLSNoPesado (Albaran, CodExp, Departamento, Departamento2)
@@ -770,7 +766,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('01 10 * * *', async () => {
+    cron.schedule('08 10 * * *', async () => {
         await ejecutarConsulta();
     });
 
