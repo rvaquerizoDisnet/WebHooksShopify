@@ -101,7 +101,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('04 10 * * *', async () => {
+    cron.schedule('10 10 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -359,6 +359,7 @@ async function consultarEstadoPedido(xmlData) {
         let albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
         let evento = ultimoTracking['evento'][0];
         let fecha = ultimoTracking['fecha'][0];
+        fecha = moment(fecha, 'DD/MM/YYYY HH:mm:ss').format('YYYY-MM-DD HH:mm:ss');
         if (
             parsedData &&
             parsedData['soap:Envelope'] &&
@@ -766,7 +767,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('08 10 * * *', async () => {
+    cron.schedule('13 10 * * *', async () => {
         await ejecutarConsulta();
     });
 
