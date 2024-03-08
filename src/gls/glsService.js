@@ -92,7 +92,6 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
             console.log('Correo electrónico enviado:', info.response);
         } else {
             console.log(`No se encontró el correo asociado al departamento ${departamento}. Se enviará a la dirección genérica.`);
-            // Puedes agregar aquí lógica adicional si deseas enviar el correo a una dirección genérica
         }
     } catch (error) {
         console.log('Error en enviarCorreoSolucion:', error);
@@ -102,7 +101,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('50 9 * * *', async () => {
+    cron.schedule('58 9 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -359,7 +358,7 @@ async function consultarEstadoPedido(xmlData) {
         let codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
         let albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
         let evento = ultimoTracking['evento'][0];
-        let fecha = new Date(ultimoTracking['fecha'][0]);
+        let fecha = new Date(ultimoTracking['fecha'][0]).toString();
         if (
             parsedData &&
             parsedData['soap:Envelope'] &&
@@ -771,7 +770,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('54 9 * * *', async () => {
+    cron.schedule('01 10 * * *', async () => {
         await ejecutarConsulta();
     });
 

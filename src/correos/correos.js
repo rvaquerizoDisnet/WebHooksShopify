@@ -111,6 +111,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
         } else {
              throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
+             enviarCorreoIncidencia(CustomerOrderNumber, Tracking)
             }
 
         const query = `
@@ -142,6 +143,33 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         } else {
             console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
         }
+    }
+}
+
+async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
+    try {
+        const transporter = nodemailer.createTransport({
+            host: 'mail.disnet.es',
+            port: 25,
+            secure: false,
+            ignoreTLS: true,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD,
+            },
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_2,
+            subject: `Incidencia en un pedido de Correos`,
+            text: `No se ha podido añadir el tracking number al pedido ${CustomerOrderNumber} con el tracking ${Tracking}`
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Correo electrónico enviado:', info.response);
+    } catch (error) {
+        console.log('Error en enviarCorreoIncidencia:', error);
     }
 }
 
