@@ -23,25 +23,29 @@ function procesarArchivo(archivo) {
 
         // Divide el contenido del archivo en líneas
         const lineas = contenido.split('\n');
-        let cont = 0
+        let cont = 0;
         // Itera sobre cada línea para extraer los datos
         lineas.forEach(linea => {
             cont++;
-            const campos = linea.split(/\t+/);
+            if (linea.trim() !== '') { // Verifica que la línea no esté vacía ni undefined
+                const campos = linea.split(/\t+/);
 
-            const Tracking = campos[5];
-            console.log("Tracking ", Tracking, " linea ", cont);
-            if (campos[19]) {
-                let CustomerOrderNumber = campos[19];
-                if (CustomerOrderNumber.includes('@')) {
-                    CustomerOrderNumber = campos[20]
-                    console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", cont);
+                const Tracking = campos[5];
+                console.log("Tracking ", Tracking, " linea ", cont);
+                if (campos[19]) {
+                    let CustomerOrderNumber = campos[19];
+                    if (CustomerOrderNumber.includes('@')) {
+                        CustomerOrderNumber = campos[20]
+                        console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", cont);
+                    } else {
+                        console.log("CustomerOrderNumber ", CustomerOrderNumber, " linea ", cont);
+                    }
                 } else {
-                    console.log("CustomerOrderNumber ", CustomerOrderNumber, " linea ", cont);
+                    console.log("CustomerOrderNumber no está definido para esta línea.");
                 }
-            } else {
-                console.log("CustomerOrderNumber no está definido para esta línea.");
             }
+
+            ActualizarBBDDTracking(CustomerOrderNumber, Tracking)
         });
 
         // Elimina el archivo después de procesarlo
@@ -82,9 +86,61 @@ async function procesarArchivos() {
 }
 
 
+async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
+    try {
+        const pool = await connectToDatabase();
+        const queryConsultaIdOrder = `
+            SELECT IdOrder
+            FROM OrderHeader
+            WHERE CustomerOrderNumber = @CustomerOrderNumber;
+        `;
+
+        const requestConsultaIdOrder = pool.request();
+        requestConsultaIdOrder.input('CustomerOrderNumber', sql.NVarChar, CustomerOrderNumber.toString()); 
+
+        const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
+        if (resultConsultaIdOrder.recordset.length === 0) {
+            console.log('No se encontró el CustomerOrderNumber en la tabla OrderHeader.');
+            return;
+        }
+
+        const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
+
+        const query = `
+            UPDATE DeliveryNoteHeader
+            SET TrackingNumber = @Tracking
+            WHERE IdOrder = @IdOrder;
+        `;
+        const request = pool.request();
+        request.input('Tracking', sql.NVarChar, Tracking);
+        request.input('IdOrder', sql.NVarChar, IdOrder.toString());
+        await request.query(query);
+        console.log(`Se ha actualizado el campo TrackingNumber con el valor ${Tracking} y el IdOrder ${IdOrder}.`);
+    } catch (error) {
+        if (error.message.includes('deadlocked')) {
+            console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
+            // Esperar un breve intervalo antes de reintentar la operación
+            await new Promise(resolve => setTimeout(resolve, 5000)); 
+            const pool = await connectToDatabase();
+            const query = `
+                UPDATE DeliveryNoteHeader
+                SET TrackingNumber = @codbarrasExp
+                WHERE IdOrder = @IdOrder;
+            `;
+            const request = pool.request();
+            request.input('codbarrasExp', sql.NVarChar, codbarrasExp);
+            request.input('IdOrder', sql.NVarChar, IdOrder.toString());
+            await request.query(query);
+            console.log(`Se ha actualizado el campo TrackingNumber con el valor ${codbarrasExp} y el IdOrder ${IdOrder}.`);
+        } else {
+            console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
+        }
+    }
+}
+
 
 function cronCorreos(){
-    cron.schedule('39 9 * * *', async () => {
+    cron.schedule('49 9 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });

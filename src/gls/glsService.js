@@ -68,7 +68,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
     try {
         console.log("enviarCorreoSolucion")
         const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
-        console.log("destinatarioCorreo")
+        console.log("destinatarioCorreo", destinatarioCorreo)
         if (destinatarioCorreo) {
             const transporter = nodemailer.createTransport({
                 host: 'mail.disnet.es',
@@ -102,7 +102,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('48 8 * * *', async () => {
+    cron.schedule('59 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -434,6 +434,7 @@ async function consultarEstadoPedido(xmlData) {
 
                 // Si el albarán existe, eliminar la línea correspondiente
                 if (existeAlbaranIncidencia) {
+                    console.log("ha entrado en enviar correo solucion")
                     await enviarCorreoSolucion(albaran, departamento, codexp, eventoResolucion, fechaResolucion);
                     await eliminarAlbaran(albaran);
                     console.log(`La línea del albarán ${albaran} fue eliminada de la base de datos.`);
@@ -779,7 +780,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('52 8 * * *', async () => {
+    cron.schedule('04 9 * * *', async () => {
         await ejecutarConsulta();
     });
 
