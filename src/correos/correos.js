@@ -148,7 +148,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
 
 
 function cronCorreos(){
-    cron.schedule('30 10 * * *', async () => {
+    cron.schedule('43 10 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });
