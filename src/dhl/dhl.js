@@ -7,59 +7,34 @@ const csvParser = require('csv-parser');
 const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
-const carpeta = 'C:\\Users\\RaulV\\Documents\\correos';
+const carpeta = 'C:\\Users\\RaulV\\Documents\\dhl';
 
 
-// Función para procesar un archivo .txt
+// Función para procesar un archivo .csv
 function procesarArchivo(archivo) {
     const rutaArchivo = `${carpeta}\\${archivo}`;
 
-    let CustomerOrderNumber = null;
-    let Tracking = null;
-    // Lee el contenido del archivo
-    fs.readFile(rutaArchivo, 'utf8', (err, contenido) => {
-        if (err) {
-            console.error('Error al leer el archivo:', err);
-            return;
-        }
-
-        // Divide el contenido del archivo en líneas
-        const lineas = contenido.split('\n');
-        let cont = 0;
-        // Itera sobre cada línea para extraer los datos
-        lineas.forEach(linea => {
-            cont++;
-            if (linea.trim() !== '') { // Verifica que la línea no esté vacía ni undefined
-                const campos = linea.split(/\t+/);
-
-                Tracking = campos[5];
-                console.log("Tracking ", Tracking, " linea ", cont);
-                if (campos[19]) {
-                    CustomerOrderNumber = campos[19];
-                    if (CustomerOrderNumber.includes('@')) {
-                        CustomerOrderNumber = campos[20]
-                        console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", cont);
-                    } else {
-                        console.log("CustomerOrderNumber ", CustomerOrderNumber, " linea ", cont);
-                    }
-                } else {
-                    console.log("CustomerOrderNumber no está definido para esta línea.");
+    // Lee el contenido del archivo CSV
+    fs.createReadStream(rutaArchivo)
+        .pipe(csvParser())
+        .on('data', async (row) => {
+            const CustomerOrderNumber = row[0];
+            const Tracking = row[1];
+            console.log('CustomerOrderNumber:', CustomerOrderNumber);
+            console.log('Tracking:', Tracking);
+            // Procesa los datos y actualiza la base de datos
+            await ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
+        })
+        .on('end', () => {
+            // Elimina el archivo después de procesarlo
+            fs.unlink(rutaArchivo, err => {
+                if (err) {
+                    console.error('Error al eliminar el archivo:', err);
+                    return;
                 }
-            }
-
-            ActualizarBBDDTracking(CustomerOrderNumber, Tracking)
+                console.log('Archivo eliminado:', archivo);
+            });
         });
-
-        // Elimina el archivo después de procesarlo
-        
-        fs.unlink(rutaArchivo, err => {
-            if (err) {
-                console.error('Error al eliminar el archivo:', err);
-                return;
-            }
-            console.log('Archivo eliminado:', archivo);
-        });
-    });
 }
 
 
@@ -72,17 +47,17 @@ async function procesarArchivos() {
             return;
         }
 
-        // Filtra los archivos .txt
-        const archivosTxt = archivos.filter(archivo => archivo.endsWith('.txt'));
+        // Filtra los archivos .csv
+        const archivoscsv = archivos.filter(archivo => archivo.endsWith('.csv'));
 
-        // Si hay al menos un archivo .txt
-        if (archivosTxt.length > 0) {
-            console.log('Se encontraron los siguientes archivos .txt:', archivosTxt);
-            archivosTxt.forEach(archivo => {
+        // Si hay al menos un archivo .csv
+        if (archivoscsv.length > 0) {
+            console.log('Se encontraron los siguientes archivos .csv:', archivoscsv);
+            archivoscsv.forEach(archivo => {
                 procesarArchivo(archivo);
             });
         } else {
-            console.log('No se encontraron archivos .txt en la carpeta.');
+            console.log('No se encontraron archivos .csv en la carpeta.');
         }
     });
 }
@@ -115,7 +90,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             }
 
         const query = `
-            UPDATE DeliveryNoteHeader
+            UPDATE MiddlewareDNH
             SET TrackingNumber = @Tracking
             WHERE IdOrder = @IdOrder;
         `;
@@ -131,7 +106,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             await new Promise(resolve => setTimeout(resolve, 5000)); 
             const pool = await connectToDatabase();
             const query = `
-                UPDATE DeliveryNoteHeader
+                UPDATE MiddlewareDNH
                 SET TrackingNumber = @Tracking
                 WHERE IdOrder = @IdOrder;
             `;
@@ -162,8 +137,8 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: process.env.EMAIL_2,
-            subject: `Incidencia en un pedido de Correos`,
-            text: `No se ha podido añadir el tracking number al pedido ${CustomerOrderNumber} con el tracking ${Tracking}`
+            subject: `Incidencia en un pedido de dhl`,
+            text: `No se ha podido añadir el tracking number al pedido ${CustomerOrderNumber} con el tracking ${Tracking} por haber mas de un idOrder para el CustomerOrderNumber`
         };
 
         const info = await transporter.sendMail(mailOptions);
@@ -175,42 +150,42 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 
-function cronCorreos(){
+function crondhl(){
     cron.schedule('43 10 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 6:45');
+        console.log('Ejecutando consulta a dhl a las 6:45');
         await procesarArchivos();
     });
 
     cron.schedule('45 9 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 10:45');
+        console.log('Ejecutando consulta a dhl a las 10:45');
         await procesarArchivos();
     });
 
     cron.schedule('45 13 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 14:45');
+        console.log('Ejecutando consulta a dhl a las 14:45');
         await procesarArchivos();
     });
 
     cron.schedule('45 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 17:45');
+        console.log('Ejecutando consulta a dhl a las 17:45');
         await procesarArchivos();
     });
 
     cron.schedule('45 17 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 18:45');
+        console.log('Ejecutando consulta a dhl a las 18:45');
         await procesarArchivos();
     });
 
     cron.schedule('45 18 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 19:45');
+        console.log('Ejecutando consulta a dhl a las 19:45');
         await procesarArchivos();
     });
 
     cron.schedule('45 19 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 20:45');
+        console.log('Ejecutando consulta a dhl a las 20:45');
         await procesarArchivos();
     });
 }
 
 
-module.exports = { cronCorreos };
+module.exports = { crondhl };

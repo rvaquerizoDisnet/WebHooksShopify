@@ -156,8 +156,6 @@ async function handleOrderWebhook(jsonData, store) {
 
 async function enviarDatosAlWebService(xmlData, store) {
   try {
-
-    console.log('XML Data:', xmlData);
     const pool = await db.connectToDatabase();
     const request = pool.request();
 

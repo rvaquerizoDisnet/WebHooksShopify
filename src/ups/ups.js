@@ -8,7 +8,7 @@ const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
 function cronUPS(){
-    cron.schedule('35 5 * * *', async () => {
+    cron.schedule('25 12 * * *', async () => {
         console.log('Ejecutando consulta a UPS a las 6:35');
         await consultaUPS();
     });
@@ -46,28 +46,28 @@ function cronUPS(){
 
 async function consultaUPS() {
     try {
-    const fechaHoy = moment().format('YYYYMMDD');
+        const fechaHoy = moment().format('YYYYMMDD');
 
-    const csvFilePath = '/home/admin81/shares/UPS/tracking/UPS_CSV_EXPORT.csv';
-    const rows = []; 
+        const csvFilePath = 'C:\\Users\\RaulV\\Documents\\correos\\ups\\UPSTracking.csv';
+        const rows = [];
 
-    fs.createReadStream(csvFilePath)
-         .pipe(csvParser())
-         .on('data', (row) => {
-            
-             if (
-                moment(row[3], 'YYYYMMDD').isSame(moment(fechaHoy, 'YYYYMMDD')) 
-             ) {
-                 rows.push(row);
-             }
-         })
-         .on('end', () => {
-             // Iterar sobre los registros filtrados
-             for (const pedido of rows) {
-                actualizarTracking();
-             }
-             console.log(`Consultados y actualizados pedidos de UPS`);
-         });
+        fs.createReadStream(csvFilePath)
+        .pipe(csvParser({ separator: ';', headers: false }))
+        .on('data', (row) => {
+            const fechaCSV = row[3];
+            if (fechaCSV == fechaHoy) {
+                rows.push(row);
+                console.log('Coincide la fecha:', row);
+            }
+        })
+        .on('end', () => {
+            // Iterar sobre los registros filtrados
+            for (const pedido of rows) {
+                actualizarTracking(pedido[1], pedido[2]);
+            }
+            console.log(`Consultados y actualizados pedidos de UPS`);
+        });
+
 
     } catch (error) {
         console.error('Error al ejecutar la consulta a UPS:', error);
@@ -75,16 +75,17 @@ async function consultaUPS() {
 }
 
 
+
 async function actualizarTracking(NumeroAlbaran, TrackingNumber){
     try {
         const pool = await connectToDatabase();
         const query = `
-            UPDATE DeliveryNoteHeader
+            UPDATE MiddlewareDNH
             SET TrackingNumber = @TrackingNumber
             WHERE IdOrder = @NumeroAlbaran;
         `;
         const request = pool.request();
-        request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran.toString());
+        request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran);
         request.input('TrackingNumber', sql.NVarChar, TrackingNumber);
         await request.query(query);
         console.log("Tracking Number actualizado")
@@ -95,12 +96,12 @@ async function actualizarTracking(NumeroAlbaran, TrackingNumber){
             await new Promise(resolve => setTimeout(resolve, 5000)); 
             const pool = await connectToDatabase();
             const query = `
-                UPDATE DeliveryNoteHeader
+                UPDATE MiddlewareDNH
                 SET TrackingNumber = @TrackingNumber
                 WHERE IdOrder = @NumeroAlbaran;
             `;
             const request = pool.request();
-            request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran.toString());
+            request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran);
             request.input('TrackingNumber', sql.NVarChar, TrackingNumber);
             await request.query(query);
         } else {

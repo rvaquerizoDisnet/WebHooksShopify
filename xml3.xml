@@ -7,82 +7,82 @@
             <GetExpCliResult>
                 <expediciones xmlns="">
                     <exp>
-                        <expedicion>726-935277317</expedicion>
-                        <albaran>7679</albaran>
-                        <fecha>06/03/2024 0:00:00</fecha>
-                        <FPEntrega>11/03/2024 0:00:00</FPEntrega>
+                        <expedicion>726-934265879</expedicion>
+                        <albaran>2000047594</albaran>
+                        <fecha>05/03/2024 0:00:00</fecha>
+                        <FPEntrega>08/03/2024 0:00:00</FPEntrega>
                         <servicio>EconomyParcel</servicio>
                         <horario></horario>
                         <tipo_portes>P</tipo_portes>
                         <codServicio>37</codServicio>
                         <codHorario>18</codHorario>
                         <nif_org></nif_org>
-                        <nombre_org>Decodex UNO S.L</nombre_org>
-                        <calle_org>Via Barcelona, 
-    2</calle_org>
-                        <localidad_org>Pallej</localidad_org>
-                        <cp_org>08753</cp_org>
+                        <nombre_org>Bixoto.com</nombre_org>
+                        <calle_org>.....</calle_org>
+                        <localidad_org>Sabadell</localidad_org>
+                        <cp_org>08205</cp_org>
                         <tfno_org></tfno_org>
-                        <departamento_org>21DIS</departamento_org>
+                        <departamento_org>11BIX</departamento_org>
                         <codpais_org>34</codpais_org>
                         <nif_dst></nif_dst>
-                        <nombre_dst>LUCÍA ALONSO BAHLSEN</nombre_dst>
-                        <calle_dst>CALLE JORDI SOLÉ TURA 8 TORRE 2 7A</calle_dst>
-                        <localidad_dst>MADRID</localidad_dst>
-                        <cp_dst>28055</cp_dst>
-                        <tfno_dst>627642126</tfno_dst>
-                        <departamento_dst>21DIS</departamento_dst>
+                        <nombre_dst>ESPERANZA  PÉREZ SACRISTÁN</nombre_dst>
+                        <calle_dst>FAUSTO ELHUYAR N6 PORTAL H 1C</calle_dst>
+                        <localidad_dst>ALCALÁ DE HANERES</localidad_dst>
+                        <cp_dst>28806</cp_dst>
+                        <tfno_dst>636267080</tfno_dst>
+                        <departamento_dst>11BIX</departamento_dst>
                         <codpais_dst>34</codpais_dst>
                         <codplaza_cli>726</codplaza_cli>
-                        <codcli>11856</codcli>
-                        <nmCliente>DISNET                            </nmCliente>
+                        <codcli>9052</codcli>
+                        <nmCliente>BIXOTO.COM                        </nmCliente>
                         <codcli_may></codcli_may>
                         <codcli_red_pag>3457</codcli_red_pag>
                         <nmClired>DIR MENSAJERIA Y TRANSPORTES SL   </nmClired>
                         <codprov_red_org></codprov_red_org>
                         <ProvOrg></ProvOrg>
-                        <codprov_red_dst>10005</codprov_red_dst>
-                        <ProvDst>GUIDA EXPRESS SL                  </ProvDst>
+                        <codprov_red_dst>20485</codprov_red_dst>
+                        <ProvDst>HENARES COURIER SL                </ProvDst>
                         <codplaza_prv></codplaza_prv>
                         <codprov></codprov>
                         <bultos>1</bultos>
-                        <kgs>0,8</kgs>
-                        <vol>0,008</vol>
+                        <kgs>0,5</kgs>
+                        <vol>0,006</vol>
                         <kgsvol_prv_red_org></kgsvol_prv_red_org>
-                        <kgsvol_prv_red_dst>2,0</kgsvol_prv_red_dst>
+                        <kgsvol_prv_red_dst>0,5</kgsvol_prv_red_dst>
                         <kgsvol_cli>2,0</kgsvol_cli>
                         <kgsvol_prv></kgsvol_prv>
-                        <hoja>89775</hoja>
-                        <codrepartidor>98</codrepartidor>
-                        <repartidor>RECOGERAN PRIVALIA</repartidor>
-                        <fHoja>23/05/2023 0:00:00</fHoja>
+                        <hoja>27493</hoja>
+                        <codrepartidor>15</codrepartidor>
+                        <repartidor>Jose Angel</repartidor>
+                        <fHoja>16/01/2024 0:00:00</fHoja>
                         <estHoja>2</estHoja>
                         <punteados>1</punteados>
                         <reasignados>0</reasignados>
-                        <fPunteo>07/03/2024 9:01:33</fPunteo>
+                        <fPunteo>05/03/2024 9:48:57</fPunteo>
                         <plzorg>X02</plzorg>
                         <plazaorg>HOSPITALET FIRA</plazaorg>
-                        <plzdst>A33</plzdst>
-                        <plazadst>LAS TABLAS</plazadst>
+                        <plzdst>A02</plzdst>
+                        <plazadst>LA GARENA</plazadst>
                         <plzpag>X02</plzpag>
                         <plazapag>HOSPITALET FIRA</plazapag>
                         <codplaza_org>726</codplaza_org>
-                        <codplaza_dst>329</codplaza_dst>
+                        <codplaza_dst>402</codplaza_dst>
                         <codplaza_pag>726</codplaza_pag>
                         <borrado>N</borrado>
                         <codestado>7</codestado>
                         <estado>ENTREGADO</estado>
-                        <pod>07/03/2024 11:31:00</pod>
+                        <pod>06/03/2024 12:56:00</pod>
                         <tipopod>2</tipopod>
-                        <nmtipopod>Firma </nmtipopod>
+                        <nmtipopod>Firma 
+                        </nmtipopod>
                         <firma></firma>
-                        <DniEntrega>11846732F</DniEntrega>
-                        <NombreEntrega>lucia alonso</NombreEntrega>
+                        <DniEntrega>09107564R</DniEntrega>
+                        <NombreEntrega>Darío Gómez </NombreEntrega>
                         <digCaja></digCaja>
                         <digLote></digLote>
                         <digPosicion></digPosicion>
                         <digTipo></digTipo>
-                        <incidencia>SIN INCIDENCIA</incidencia>
+                        <incidencia>ENTREGA EN MAX 72H</incidencia>
                         <Observacion></Observacion>
                         <codplaza_vlj></codplaza_vlj>
                         <codvalija></codvalija>
@@ -90,10 +90,10 @@
                         <codsaca></codsaca>
                         <columna>0</columna>
                         <calidad>0</calidad>
-                        <codexp>935277317</codexp>
-                        <nuo>935277317</nuo>
-                        <codbar>61726171883924</codbar>
-                        <uidExp>a498de6b-347d-4814-aead-69172f5fde51</uidExp>
+                        <codexp>934265879</codexp>
+                        <nuo>934265879</nuo>
+                        <codbar>61726171587049</codbar>
+                        <uidExp>b422a0c9-a061-433c-9367-d1a9f352bc5f</uidExp>
                         <solCli>0</solCli>
                         <TipoMercancia></TipoMercancia>
                         <DescMercancia></DescMercancia>
@@ -104,20 +104,20 @@
                         <refGlsN></refGlsN>
                         <refZ></refZ>
                         <Reembolso>0,0000</Reembolso>
-                        <email_dst>luabahlsen@gmail.com</email_dst>
+                        <email_dst>ansi.alda@hotmail.com</email_dst>
                         <detallebultos>
                             <bulto>
                                 <bulto>1</bulto>
-                                <kilos>0,8</kilos>
-                                <largo>23,8</largo>
-                                <ancho>23,4</ancho>
-                                <alto>14,6</alto>
+                                <kilos>0,5</kilos>
+                                <largo>6,5</largo>
+                                <ancho>31,5</ancho>
+                                <alto>31,5</alto>
                             </bulto>
                         </detallebultos>
                         <referenciasxbulto />
                         <tracking_list>
                             <tracking>
-                                <fecha>06/03/2024 12:48:57</fecha>
+                                <fecha>04/03/2024 14:26:42</fecha>
                                 <tipo>ESTADO</tipo>
                                 <plaza>-1</plaza>
                                 <evento>GRABADO </evento>
@@ -126,16 +126,7 @@
                                 <nombreplaza>OFICINA CENTRAL</nombreplaza>
                             </tracking>
                             <tracking>
-                                <fecha>06/03/2024 19:53:45</fecha>
-                                <tipo>ESTADO</tipo>
-                                <plaza>650</plaza>
-                                <evento>RECIBIDA INFORMACION </evento>
-                                <prioridad>1</prioridad>
-                                <codigo>0</codigo>
-                                <nombreplaza>PLT.HOSPITALET</nombreplaza>
-                            </tracking>
-                            <tracking>
-                                <fecha>07/03/2024 5:28:32</fecha>
+                                <fecha>05/03/2024 7:05:54</fecha>
                                 <tipo>ESTADO</tipo>
                                 <plaza>2800</plaza>
                                 <evento>EN PLATAFORMA DE DESTINO </evento>
@@ -144,47 +135,91 @@
                                 <nombreplaza>MADRID KM0</nombreplaza>
                             </tracking>
                             <tracking>
-                                <fecha>07/03/2024 6:33:47</fecha>
+                                <fecha>05/03/2024 7:07:01</fecha>
                                 <tipo>ESTADO</tipo>
-                                <plaza>329</plaza>
+                                <plaza>2800</plaza>
+                                <evento>RECIBIDA INFORMACION </evento>
+                                <prioridad>1</prioridad>
+                                <codigo>0</codigo>
+                                <nombreplaza>MADRID KM0</nombreplaza>
+                            </tracking>
+                            <tracking>
+                                <fecha>05/03/2024 9:42:06</fecha>
+                                <tipo>ESTADO</tipo>
+                                <plaza>402</plaza>
                                 <evento>EN DELEGACION DESTINO </evento>
                                 <prioridad>1</prioridad>
                                 <codigo>3</codigo>
-                                <nombreplaza>LAS TABLAS</nombreplaza>
+                                <nombreplaza>LA GARENA</nombreplaza>
                             </tracking>
                             <tracking>
-                                <fecha>07/03/2024 8:57:50</fecha>
+                                <fecha>06/03/2024 9:06:29</fecha>
                                 <tipo>ESTADO</tipo>
-                                <plaza>329</plaza>
+                                <plaza>402</plaza>
+                                <evento>EN DELEGACION DESTINO </evento>
+                                <prioridad>1</prioridad>
+                                <codigo>3</codigo>
+                                <nombreplaza>LA GARENA</nombreplaza>
+                            </tracking>
+                            <tracking>
+                                <fecha>06/03/2024 9:11:11</fecha>
+                                <tipo>ESTADO</tipo>
+                                <plaza>402</plaza>
                                 <evento>EN REPARTO </evento>
                                 <prioridad>1</prioridad>
                                 <codigo>6</codigo>
-                                <nombreplaza>LAS TABLAS</nombreplaza>
+                                <nombreplaza>LA GARENA</nombreplaza>
                             </tracking>
                             <tracking>
-                                <fecha>07/03/2024 11:33:00</fecha>
+                                <fecha>06/03/2024 9:28:06</fecha>
                                 <tipo>ESTADO</tipo>
-                                <plaza>329</plaza>
+                                <plaza>402</plaza>
+                                <evento>EN REPARTO </evento>
+                                <prioridad>1</prioridad>
+                                <codigo>6</codigo>
+                                <nombreplaza>LA GARENA</nombreplaza>
+                            </tracking>
+                            <tracking>
+                                <fecha>06/03/2024 12:58:00</fecha>
+                                <tipo>ESTADO</tipo>
+                                <plaza>402</plaza>
                                 <evento>ENTREGADO (ThinkGreen:{0}) </evento>
                                 <prioridad>1</prioridad>
                                 <codigo>7</codigo>
-                                <nombreplaza>LAS TABLAS</nombreplaza>
+                                <nombreplaza>LA GARENA</nombreplaza>
                             </tracking>
                             <tracking>
-                                <fecha>07/03/2024 11:32:00</fecha>
+                                <fecha>05/03/2024 14:47:00</fecha>
+                                <tipo>INCIDENCIA</tipo>
+                                <plaza>402</plaza>
+                                <evento>ENTREGA EN MAX 72H (Anotado 05/03/2024 14:48:09) --  </evento>
+                                <prioridad>10</prioridad>
+                                <codigo>69</codigo>
+                                <nombreplaza>LA GARENA</nombreplaza>
+                            </tracking>
+                            <tracking>
+                                <fecha>06/03/2024 12:56:00</fecha>
+                                <tipo>SOLUCION</tipo>
+                                <plaza>-1</plaza>
+                                <evento>SOLUCIONADA POR EL SISTEMA </evento>
+                                <prioridad>5</prioridad>
+                                <codigo>35</codigo>
+                                <nombreplaza>OFICINA CENTRAL</nombreplaza>
+                            </tracking>
+                            <tracking>
+                                <fecha>06/03/2024 12:57:00</fecha>
                                 <tipo>POD</tipo>
                                 <plaza></plaza>
-                                <evento>POD Anotado en 
-    DST </evento>
+                                <evento>POD Anotado en DST </evento>
                                 <prioridad>0</prioridad>
                                 <codigo></codigo>
                                 <nombreplaza></nombreplaza>
                             </tracking>
                             <tracking>
-                                <fecha>07/03/2024 11:31:00</fecha>
+                                <fecha>06/03/2024 12:56:00</fecha>
                                 <tipo>ENTREGA</tipo>
                                 <plaza></plaza>
-                                <evento>ENTREGADO con Firma:  DNI:11846732F NOMBRE:lucia alonso </evento>
+                                <evento>ENTREGADO con Firma:  DNI:09107564R NOMBRE:Darío Gómez  </evento>
                                 <prioridad>0</prioridad>
                                 <codigo></codigo>
                                 <nombreplaza></nombreplaza>
@@ -194,8 +229,8 @@
                             <digitalizacion>
                                 <codtipo>1</codtipo>
                                 <tipo>POD (APP)</tipo>
-                                <fecha>07/03/2024 11:32:00</fecha>
-                                <imagen>https://pods.gls-spain.es/Extranet/public/AlbaranDesdeFirma.aspx?codplaza_org=726&amp;codexp=935277317&amp;uid=A498DE6B-347D-4814-AEAD-69172F5FDE51</imagen>
+                                <fecha>06/03/2024 12:56:00</fecha>
+                                <imagen>https://pods.gls-spain.es/Extranet/public/AlbaranDesdeFirma.aspx?codplaza_org=726&amp;codexp=934265879&amp;uid=B422A0C9-A061-433C-9367-D1A9F352BC5F</imagen>
                                 <observaciones>Firma recogida en APP</observaciones>
                             </digitalizacion>
                         </digitalizaciones>

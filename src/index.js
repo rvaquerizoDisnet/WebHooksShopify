@@ -21,6 +21,7 @@ const { obtenerConfiguracionesTiendas } = require('./api/api');
 const { consultaAGlsTracking, consultarPedidoGLS, cronGLS, consultarIncidenciasYPesos } = require('./gls/glsService');
 const { convertTableToCSV, deleteCSVFile} = require('./gls/convertMDBinSQLite');
 const { cronUPS } = require('./ups/ups');
+const { crondhl } = require('./dhl/dhl');
 const { cronCorreos } = require('./correos/correos');
 
 app.use(bodyParser.json());
@@ -115,3 +116,6 @@ consultarIncidenciasYPesos();
 
 //Correos
 //cronCorreos();
+
+//DHL
+//crondhl();
