@@ -11,7 +11,6 @@ const nodemailer = require('nodemailer');
 
 async function obtenerCorreoDepartamento(departamento) {
     try {
-        console.log("obtenerCorreoDepartamento", departamento)
         const pool = await connectToDatabase(); 
         const query = `
             SELECT Correo
@@ -32,7 +31,6 @@ async function obtenerCorreoDepartamento(departamento) {
 
 async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha) {
     try {
-        console.log("enviarCorreoIncidencia", departamento)
         const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
         if (destinatarioCorreo) {
             const transporter = nodemailer.createTransport({
@@ -66,9 +64,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha) {
     try {
-        console.log("enviarCorreoSolucion", departamento)
         const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
-        console.log("destinatarioCorreo", destinatarioCorreo)
         if (destinatarioCorreo) {
             const transporter = nodemailer.createTransport({
                 host: 'mail.disnet.es',
@@ -99,9 +95,8 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 }
 
 
-
 function cronGLS(){
-    cron.schedule('20 10 * * *', async () => {
+    cron.schedule('14 5 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -132,9 +127,9 @@ async function consultaAGls() {
 
 async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
-        //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-        const fechaInicioMes = '03/01/2024'; // Fecha de inicio del mes
-        const fechaFinMes = '03/08/2024'; 
+        const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
+        //const fechaInicioMes = '03/01/2024';
+        //const fechaFinMes = '03/08/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -145,10 +140,10 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
              if (
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
                 row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
@@ -189,16 +184,14 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
 
         const xmlData = response.data;
         const peso = await parsearPesoDesdeXML(xmlData);
-        //console.log(peso)
         const volumen = await parsearVolumenDesdeXML(xmlData);
-        //console.log(volumen)
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         const estadoPedido = await consultarEstadoPedido(xmlData);
         if (!(estadoPedido == 'INCIDENCIA')){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
-            //await insertarEnOrderHeader(IdOrder, Weight, Displacement)
+            await insertarEnOrderHeader(IdOrder, Weight, Displacement)
             console.log("Pedido actualizado con IdOrder: ", IdOrder);
         }else {
             console.log("Este pedido tiene una incidencia")
@@ -263,8 +256,6 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
         request.input('peso', sql.Decimal(18, 8), Weight);
         request.input('volumen', sql.Decimal(18, 8), Displacement);
         await request.query(query);
-        //await pool.close();
-        //console.log('Datos insertados en OrderHeader correctamente.', 'IdOrder:', IdOrder);
     } catch (error) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
@@ -383,8 +374,6 @@ async function consultarEstadoPedido(xmlData) {
                 
                 // Si el albarán no existe, procedemos con la inserción
                 if (!existeAlbaran) {
-                    console.log("!existeAlbaran", departamento)
-
                     const query = `
                         INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo, Departamento2)
                         VALUES ('${albaran}', '${codexp}', '${departamento}', '${evento}', '${fecha}', '${codigo}', '${departamento2}')
@@ -396,43 +385,30 @@ async function consultarEstadoPedido(xmlData) {
                     await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha);
                     console.log("Información del pedido guardada en la base de datos.");
                 } else if(codigo != codigoAlbaran){
-                    console.log("codigo != codigoAlbaran", departamento)
+
                     await eliminarAlbaran(albaran);
                     const query = `
                         INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo, Departamento2)
                         VALUES ('${albaran}', '${codexp}', '${departamento}', '${evento}', '${fecha}', '${codigo}', '${departamento2}')
                     `;
-
-                    console.log("actualiza estado pedido incidencia")
                     const pool = await connectToDatabase();
                     const result = await pool.request().query(query);
-                    console.log("enviarCorreoIncidencia2", departamento)
                     await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha);
                
                } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
             } else if (tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER') {
-                console.log("El pedido esta en estado correcto.")
-                console.log("tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER'", departamento)
-
-                console.log("albaran ", albaran, " codexp ", codexp, " departamento ", departamento, " eventoResolucion ", evento, " fechaResolucion ", fecha)
-                
                 const existeAlbaranIncidencia = await verificarAlbaranExistenteIncidencia(albaran);
-                console.log("existeAlbaranIncidencia", existeAlbaranIncidencia)
 
                 const existeAlbaranPesado = await verificarAlbaranExistentePesado(albaran);
-                console.log("existeAlbaranPesado", existeAlbaranPesado)
 
                 // Si el albarán existe, eliminar la línea correspondiente
                 if (existeAlbaranIncidencia) {
-                    console.log("ha entrado en enviar correo solucion", departamento)
                     await enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha);
                     await eliminarAlbaran(albaran);
-                    console.log(`La línea del albarán ${albaran} fue eliminada de la base de datos.`);
                 } else if (existeAlbaranPesado){
                     await eliminarAlbaranPesado(albaran)
-                    console.log(`La línea del albarán ${albaran} fue eliminada de la base de datos.`);
                 }
             } else if (codigo == -1 || codigo == -10 ){
                 console.log("El pedido no esta pesado")
@@ -492,13 +468,11 @@ async function obtenerCodigoAlbaranDesdeBD(albaran) {
 
 async function verificarAlbaranExistenteIncidencia(albaran) {
     try {
-        console.log("verificarAlbaranExistenteIncidencia")
         const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwIncidenciasGLS WHERE Albaran = @albaran');
 
-        console.log(result.recordset[0].Count)
         return result.recordset[0].Count > 0;
     } catch (error) {
         console.error('Error al verificar la existencia del albarán en la base de datos:', error);
@@ -508,13 +482,11 @@ async function verificarAlbaranExistenteIncidencia(albaran) {
 
 async function verificarAlbaranExistentePesado(albaran) {
     try {
-        console.log("verificarAlbaranExistentePesado")
         const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwGLSNoPesado WHERE Albaran = @albaran');
 
-        console.log(result.recordset[0].Count)
         return result.recordset[0].Count > 0;
     } catch (error) {
         console.error('Error al verificar la existencia del albarán en la base de datos:', error);
@@ -670,8 +642,6 @@ async function ejecutarConsultaTracking() {
             await consultarTrackingyActualizar(row.uid_cliente, row.departamento_exp);
         }
 
-        // Cerrar la conexión a la base de datos
-        //await closeDatabaseConnection();
     } catch (error) {
         console.error('Error al ejecutar la consulta a GLS:', error);
     }
@@ -766,7 +736,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('22 10 * * *', async () => {
+    cron.schedule('05 8 * * *', async () => {
         await ejecutarConsulta();
     });
 
@@ -841,7 +811,6 @@ async function reconsultarPedidoGLS(orderNumber, codexp, departamento2) {
         const requestUidCliente = pool.request();
         requestUidCliente.input('departamentoExp', sql.NVarChar, departamento2);
         const resultUidCliente = await requestUidCliente.query(queryUidCliente);
-        console.log("departamento", departamento2)
         if (resultUidCliente.recordset.length > 0) {
             uidCliente = resultUidCliente.recordset[0].uid_cliente;
         } else {
