@@ -15,7 +15,7 @@ function procesarArchivo(archivo) {
     const rutaArchivo = `${carpeta}\\${archivo}`;
 
     let CustomerOrderNumber = null;
-    const Tracking = null;
+    let Tracking = null;
     // Lee el contenido del archivo
     fs.readFile(rutaArchivo, 'utf8', (err, contenido) => {
         if (err) {
@@ -131,14 +131,14 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             const pool = await connectToDatabase();
             const query = `
                 UPDATE DeliveryNoteHeader
-                SET TrackingNumber = @codbarrasExp
+                SET TrackingNumber = @Tracking
                 WHERE IdOrder = @IdOrder;
             `;
             const request = pool.request();
-            request.input('codbarrasExp', sql.NVarChar, codbarrasExp);
+            request.input('Tracking', sql.NVarChar, Tracking);
             request.input('IdOrder', sql.NVarChar, IdOrder.toString());
             await request.query(query);
-            console.log(`Se ha actualizado el campo TrackingNumber con el valor ${codbarrasExp} y el IdOrder ${IdOrder}.`);
+            console.log(`Se ha actualizado el campo TrackingNumber con el valor ${Tracking} y el IdOrder ${IdOrder}.`);
         } else {
             console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
         }
@@ -148,7 +148,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
 
 
 function cronCorreos(){
-    cron.schedule('24 10 * * *', async () => {
+    cron.schedule('30 10 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });
