@@ -104,10 +104,23 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             return;
         }
 
-        const IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
+        let IdOrder = null;
+        if (resultConsultaIdOrder.recordset.length === 1) {
+            IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
+        } else {
+            // Si hay más de un IdOrder, seleccionar el que tenga TrackingNumber NULL
+            const nullTracking = resultConsultaIdOrder.recordset.filter(record => record.TrackingNumber === null);
+            if (nullTracking.length === 0) {
+                throw new Error('No se pudo determinar un IdOrder adecuado.');
+            } else if (nullTracking.length === 1) {
+                IdOrder = nullTracking[0].IdOrder;
+            } else {
+                throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
+            }
+        }
 
         const query = `
-            UPDATE DeliveryNoteHeader
+            UPDATE MiddlewareDNH
             SET TrackingNumber = @Tracking
             WHERE IdOrder = @IdOrder;
         `;
@@ -139,8 +152,9 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
 }
 
 
+
 function cronCorreos(){
-    cron.schedule('49 9 * * *', async () => {
+    cron.schedule('06 10 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });
