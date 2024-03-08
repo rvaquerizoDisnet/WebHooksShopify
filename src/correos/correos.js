@@ -110,8 +110,8 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         if (resultConsultaIdOrder.recordset.length === 1) {
             IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
         } else {
+             await enviarCorreoIncidencia(CustomerOrderNumber, Tracking)
              throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
-             enviarCorreoIncidencia(CustomerOrderNumber, Tracking)
             }
 
         const query = `
