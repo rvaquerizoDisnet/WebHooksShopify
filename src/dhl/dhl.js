@@ -151,7 +151,7 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function crondhl(){
-    cron.schedule('43 10 * * *', async () => {
+    cron.schedule('48 12 * * *', async () => {
         console.log('Ejecutando consulta a dhl a las 6:45');
         await procesarArchivos();
     });
