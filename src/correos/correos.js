@@ -30,14 +30,14 @@ function procesarArchivo(archivo) {
             const campos = linea.split(/\t+/);
 
             const Tracking = campos[5];
-            console.log("Tracking ", Tracking)
+            console.log("Tracking ", Tracking, " linea ", linea);
             if (campos[19]) {
                 let CustomerOrderNumber = campos[19];
                 if (CustomerOrderNumber.includes('@')) {
-                    console.log("Correo electrónico:", CustomerOrderNumber);
-                } else {
-                    console.log("CustomerOrderNumber ", CustomerOrderNumber);
                     CustomerOrderNumber = campos[20]
+                    console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", linea);
+                } else {
+                    console.log("CustomerOrderNumber ", CustomerOrderNumber, " linea ", linea);
                 }
             } else {
                 console.log("CustomerOrderNumber no está definido para esta línea.");
@@ -84,7 +84,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('30 9 * * *', async () => {
+    cron.schedule('20 9 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });

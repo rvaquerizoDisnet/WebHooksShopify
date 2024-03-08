@@ -11,6 +11,7 @@ const nodemailer = require('nodemailer');
 
 async function obtenerCorreoDepartamento(departamento) {
     try {
+        console.log("obtenerCorreoDepartamento")
         const pool = await connectToDatabase(); // Suponiendo que ya tienes una función llamada connectToDatabase para establecer la conexión a la base de datos
         const query = `
             SELECT Correo
@@ -65,7 +66,9 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha) {
     try {
+        console.log("enviarCorreoSolucion")
         const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
+        console.log("destinatarioCorreo")
         if (destinatarioCorreo) {
             const transporter = nodemailer.createTransport({
                 host: 'mail.disnet.es',
@@ -99,7 +102,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('15 5 * * *', async () => {
+    cron.schedule('39 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 6:15');
         await consultaAGls();
     });
@@ -132,9 +135,9 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
     try {
         let contadorPedidos = 0; // Inicializar el contador de pedidos
 
-        //const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
-        const fechaInicioMes = '03/01/2024'; // Fecha de inicio del mes
-        const fechaFinMes = '03/07/2024'; 
+        const fechaAyerStr = moment().subtract(1, 'days').format('MM/DD/YYYY');
+        //const fechaInicioMes = '03/01/2024'; // Fecha de inicio del mes
+        //const fechaFinMes = '03/07/2024'; 
 
          // Leer el archivo CSV
          const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
@@ -145,10 +148,10 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
          .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
              if (
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
-                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
-                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
+                //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
+                moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
                 row.departamento_exp === departamentoExp
              ) {
                  rows.push(row);
@@ -408,7 +411,7 @@ async function consultarEstadoPedido(xmlData) {
                         VALUES ('${albaran}', '${codexp}', '${departamento}', '${eventoIncidencia}', '${fechaIncidencia}', '${codigo}', '${departamento2}')
                     `;
 
-                    // Ejecutar la consulta
+                    console.log("actualiza estado pedido incidencia")
                     const pool = await connectToDatabase();
                     const result = await pool.request().query(query);
                     await enviarCorreoIncidencia(albaran, departamento, codexp, eventoIncidencia, fechaIncidencia);
@@ -417,15 +420,19 @@ async function consultarEstadoPedido(xmlData) {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
             } else if (tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER') {
+                console.log("El pedido esta en estado correcto.")
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
                 codexp = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['codexp'][0];
                 const departamento = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['departamento_org'][0];
                 const eventoResolucion = ultimoTracking['evento'][0];
                 const fechaResolucion = ultimoTracking['fecha'][0];
+                console.log("albaran ", albaran, " codexp ", codexp, " departamento ", departamento, " eventoResolucion ", eventoResolucion, " fechaResolucion ", fechaResolucion)
                 
                 const existeAlbaranIncidencia = await verificarAlbaranExistenteIncidencia(albaran);
+                console.log("existeAlbaranIncidencia", existeAlbaranIncidencia)
 
                 const existeAlbaranPesado = await verificarAlbaranExistentePesado(albaran);
+                console.log("existeAlbaranPesado", existeAlbaranPesado)
 
                 // Si el albarán existe, eliminar la línea correspondiente
                 if (existeAlbaranIncidencia) {
@@ -437,7 +444,7 @@ async function consultarEstadoPedido(xmlData) {
                     console.log(`La línea del albarán ${albaran} fue eliminada de la base de datos.`);
                 }
             } else if (codigo == -1 || codigo == -10 ){
-                // Obtener información del pedido y de la incidencia
+                console.log("El pedido no esta pesado")
                 const albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
                 
                 // Verificar si el albarán ya existe en la tabla MwIncidenciasGLS
@@ -499,12 +506,13 @@ async function obtenerCodigoAlbaranDesdeBD(albaran) {
 
 async function verificarAlbaranExistenteIncidencia(albaran) {
     try {
-         // Conectar a la base de datos
+        console.log("verificarAlbaranExistenteIncidencia")
         const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwIncidenciasGLS WHERE Albaran = @albaran');
 
+        console.log(result.recordset[0].Count)
         return result.recordset[0].Count > 0;
     } catch (error) {
         console.error('Error al verificar la existencia del albarán en la base de datos:', error);
@@ -514,12 +522,13 @@ async function verificarAlbaranExistenteIncidencia(albaran) {
 
 async function verificarAlbaranExistentePesado(albaran) {
     try {
-         // Conectar a la base de datos
+        console.log("verificarAlbaranExistentePesado")
         const pool = await connectToDatabase();
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwGLSNoPesado WHERE Albaran = @albaran');
 
+        console.log(result.recordset[0].Count)
         return result.recordset[0].Count > 0;
     } catch (error) {
         console.error('Error al verificar la existencia del albarán en la base de datos:', error);
@@ -772,7 +781,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('05 8 * * *', async () => {
+    cron.schedule('45 8 * * *', async () => {
         await ejecutarConsulta();
     });
 
