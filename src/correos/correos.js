@@ -23,21 +23,21 @@ function procesarArchivo(archivo) {
 
         // Divide el contenido del archivo en líneas
         const lineas = contenido.split('\n');
-
+        let cont = 0
         // Itera sobre cada línea para extraer los datos
         lineas.forEach(linea => {
-            // Divide la línea en campos usando una expresión regular para buscar tabulaciones
+            cont++;
             const campos = linea.split(/\t+/);
 
             const Tracking = campos[5];
-            console.log("Tracking ", Tracking, " linea ", linea);
+            console.log("Tracking ", Tracking, " linea ", cont);
             if (campos[19]) {
                 let CustomerOrderNumber = campos[19];
                 if (CustomerOrderNumber.includes('@')) {
                     CustomerOrderNumber = campos[20]
-                    console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", linea);
+                    console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", cont);
                 } else {
-                    console.log("CustomerOrderNumber ", CustomerOrderNumber, " linea ", linea);
+                    console.log("CustomerOrderNumber ", CustomerOrderNumber, " linea ", cont);
                 }
             } else {
                 console.log("CustomerOrderNumber no está definido para esta línea.");
@@ -84,7 +84,7 @@ async function procesarArchivos() {
 
 
 function cronCorreos(){
-    cron.schedule('20 9 * * *', async () => {
+    cron.schedule('39 9 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 6:45');
         await procesarArchivos();
     });
