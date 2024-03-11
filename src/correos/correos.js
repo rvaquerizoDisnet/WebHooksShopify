@@ -113,7 +113,6 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         const request = pool.request();
         request.input('Tracking', sql.NVarChar, Tracking);
         request.input('IdOrder', sql.NVarChar, IdOrder.toString());
-        console.log("actu")
         await request.query(query);
     } catch (error) {
         if (error.message.includes('deadlocked')) {

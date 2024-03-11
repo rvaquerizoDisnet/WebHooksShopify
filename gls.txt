@@ -1,18 +1,24 @@
 -Crear tabla MwIncidenciasGLS-----
 -Crear tabla de Magento-----
 -Hacer archivo insertClientMagento------
--Funcion que envie Mail a info y al cliente cuando haya una incidencia en un pedido solo durante el horario laboral entre
+-Funcion que envie Mail a info y al cliente cuando haya una incidencia-----
+
 -Correos Tracking automatico ruta L:\CLIENTS FITXERS\24UOC\Export\GECO
 PQ43DN2500230680115008T TrackingNumber //  0001469696 CustomerOrderNumber
-
+cada dia se generan 1 informes.
 
 -UPS Tracking L:\TTE\FITXERS\UPS\Tracking 
 PaqueteReferencia1;PaqueteReferencia2;PaqueteN�merodeseguimiento
 OrderNumber;DeliveryNoteNumber;TrackingNumber;fecha
 "0137488199";"347436";"1Z961V726850375931";"20240301"
-
+archivo autoincremental
 
 -DHL
 L:\TTE\FITXERS\DHL\TRAKING
 "0137488201","0835421240"
 CustomerOrderNumber;TrackingNumber
+cada dia se generan varios informes.
+
+
+Ubicaciones y barcodes:
+Aplicacion que leyendo una ubicacion, todos los siguientes lecturas que el codigo que empieze por 07 sea un barcode asigando a esa ubicacion, y cuando lea el siguiente ubicacion cambie de linea y empieze un registro nuevo.
