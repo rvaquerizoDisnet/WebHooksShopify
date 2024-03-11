@@ -8,7 +8,7 @@ const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
 function cronUPS(){
-    cron.schedule('54 13 * * *', async () => {
+    cron.schedule('56 13 * * *', async () => {
         console.log('Ejecutando consulta a UPS a las 6:35');
         await consultaUPS();
     });
