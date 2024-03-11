@@ -6,8 +6,10 @@ const cron = require('node-cron');
 require('dotenv').config();
 const moment = require('moment');
 const csvParser = require('csv-parser');
-const { pool, sql, connectToDatabase } = require('../utils/database');
+const { pool, connectToDatabase } = require('../utils/database');
 const nodemailer = require('nodemailer');
+const sql = require('mssql');
+
 
 async function obtenerCorreoDepartamento(departamento) {
     try {
@@ -742,7 +744,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
 // Función para consultar datos de las tablas MwIncidenciasGLS y MwGLSNoPesado
 function consultarIncidenciasYPesos() {
     // Consulta a las 9:05
-    cron.schedule('58 15 * * *', async () => {
+    cron.schedule('05 08 * * *', async () => {
         await ejecutarConsulta();
     });
 
@@ -815,7 +817,7 @@ async function reconsultarPedidoGLS(orderNumber, codexp, departamento2) {
             WHERE departamento_exp = @departamentoExp;
         `;
         const requestUidCliente = pool.request();
-        requestUidCliente.input('departamentoExp', sql.VarChar, departamento2);
+        requestUidCliente.input('departamentoExp', sql.NVarChar, departamento2);
         const resultUidCliente = await requestUidCliente.query(queryUidCliente);
         if (resultUidCliente.recordset.length > 0) {
             uidCliente = resultUidCliente.recordset[0].uid_cliente;
