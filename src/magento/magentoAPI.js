@@ -112,7 +112,7 @@ function wait(ms) {
 
 async function obtenerCodigoTransportista(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -134,7 +134,7 @@ async function obtenerCodigoTransportista(store) {
 
 async function getAccessTokenFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -156,7 +156,7 @@ async function getAccessTokenFromDB(store) {
 
 async function getConsumerKeyFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -178,7 +178,7 @@ async function getConsumerKeyFromDB(store) {
 
 async function getUrlWebServiceFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -200,7 +200,7 @@ async function getUrlWebServiceFromDB(store) {
 
 async function getAccessTokenSecretFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -222,7 +222,7 @@ async function getAccessTokenSecretFromDB(store) {
 
 async function getConsumerSecretFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)

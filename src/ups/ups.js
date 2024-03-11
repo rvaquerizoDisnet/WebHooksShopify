@@ -77,7 +77,7 @@ async function consultaUPS() {
 
 async function actualizarTracking(NumeroAlbaran, TrackingNumber){
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(1);
         const query = `
             UPDATE DeliveryNoteHeader
             SET TrackingNumber = @TrackingNumber
@@ -93,7 +93,7 @@ async function actualizarTracking(NumeroAlbaran, TrackingNumber){
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
             await new Promise(resolve => setTimeout(resolve, 5000)); 
-            const pool = await connectToDatabase();
+            const pool = await connectToDatabase(1);
             const query = `
                 UPDATE DeliveryNoteHeader
                 SET TrackingNumber = @TrackingNumber

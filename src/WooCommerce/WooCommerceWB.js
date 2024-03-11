@@ -81,7 +81,7 @@ function addToQueue(jobData) {
 
 async function initWebhooks(app, providedUrl) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await db.connectToDatabase(2);
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
@@ -147,7 +147,7 @@ async function handleOrderWebhook(jsonData, store) {
 
 async function enviarDatosAlWebService(xmlData, store) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await db.connectToDatabase(2);
     const request = pool.request();
 
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -299,7 +299,7 @@ function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await db.connectToDatabase(2);
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
@@ -382,7 +382,7 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
 
 async function obtenerSecretsTienda(store) {
     try {
-      const pool = await db.connectToDatabase();
+      const pool = await db.connectToDatabase(2);
       const request = pool.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
@@ -426,7 +426,7 @@ async function handleOrderWebhookCanceled(jsonData, store) {
 async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
   let finalizado = "false";
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(1);
 
     // Consulta para obtener el estado actual de St_DeliverynoteHeader
     const queryEstadoActual = `
@@ -483,7 +483,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
       console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
       // Esperar un breve intervalo antes de reintentar la operación
       await new Promise(resolve => setTimeout(resolve, 5000)); 
-      const pool = await connectToDatabase();
+      const pool = await connectToDatabase(1);
       await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado)
       // Consulta para obtener el estado actual de St_DeliverynoteHeader
       const queryEstadoActual = `
@@ -556,7 +556,7 @@ async function extraerOrderNumberDesdeJson(jsonData) {
 
 async function consultarIdCustomer(store) {
   try {
-    const pool2 = await connectToDatabase2();
+    const pool2 = await connectToDatabase2(2);
     const request = pool2.request();
 
     const result = await request.input('NombreEndpoint', sql.NVarChar, store)

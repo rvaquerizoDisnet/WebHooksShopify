@@ -46,7 +46,7 @@ router.post('/post', verificarToken, async (req, res) => {
 
 router.get('/clientes', verificarToken, async (req, res) => {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       SELECT * FROM MiddlewareWooCommerce;
@@ -137,7 +137,7 @@ async function obtenerCodigoSesionCliente(reqBody) {
     try {
       const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
   
-      const pool = await db.connectToDatabase();
+      const pool = await db.connectToDatabase(2);
       const request = pool.request();
   
       const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareWooCommerce');

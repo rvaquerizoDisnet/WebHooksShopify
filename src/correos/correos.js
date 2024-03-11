@@ -64,7 +64,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
     let IdOrder = null;
 
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(1);
         const queryConsultaIdOrder = `
             SELECT IdOrder
             FROM OrderHeader
@@ -102,7 +102,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             await new Promise(resolve => setTimeout(resolve, 5000));
-            const pool = await connectToDatabase();
+            const pool = await connectToDatabase(1);
             const query = `
                 UPDATE DeliveryNoteHeader
                 SET TrackingNumber = @Tracking

@@ -2,7 +2,7 @@ const { pool, sql, connectToDatabase } = require('../utils/database');
 
 async function insertIntoDB(nombre, uid_cliente, departamento_exp) {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
     INSERT INTO MiddlewareGLS (nombre, uid_cliente, departamento_exp)
@@ -23,7 +23,7 @@ async function insertIntoDB(nombre, uid_cliente, departamento_exp) {
 
 async function insertIntoDBCli(Departamento, Correo) {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
     INSERT INTO MwClientesGLS (Departamento, Correo)
@@ -43,7 +43,7 @@ async function insertIntoDBCli(Departamento, Correo) {
 
 async function updateClientInDB(clientId, nombre, uid_cliente, departamento_exp) {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       UPDATE MiddlewareGLS 
@@ -68,7 +68,7 @@ async function updateClientInDB(clientId, nombre, uid_cliente, departamento_exp)
 
 async function deleteClientFromDB(clientId) {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       DELETE FROM MiddlewareGLS

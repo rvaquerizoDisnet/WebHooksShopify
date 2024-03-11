@@ -33,7 +33,7 @@ router.post('/post', verificarToken, async (req, res) => {
 
 router.get('/clientes', verificarToken, async (req, res) => {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       SELECT * FROM MiddlewareShopify;

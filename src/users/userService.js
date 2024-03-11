@@ -6,7 +6,7 @@ const { pool, connectToDatabase } = require('../utils/database');
 
 const verificarExistenciaUsuario = async (username) => {
   try {
-    await connectToDatabase();
+    await connectToDatabase(2);
 
     const result = await pool
       .request()
@@ -22,7 +22,7 @@ const verificarExistenciaUsuario = async (username) => {
 
 const registrarUsuario = async (username, password, rol = 'admin') => {
   try {
-    await connectToDatabase();
+    await connectToDatabase(2);
 
     const hashContrasena = await bcrypt.hash(password, 10);
 
@@ -39,7 +39,7 @@ const registrarUsuario = async (username, password, rol = 'admin') => {
 
 const iniciarSesion = async (username, password) => {
   try {
-    await connectToDatabase();
+    await connectToDatabase(2);
 
     const result = await pool
       .request()

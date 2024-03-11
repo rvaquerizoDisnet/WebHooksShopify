@@ -85,7 +85,7 @@ function addToQueue(jobData) {
 // Añadir aqui el nombre de la tienda y su ruta asignada en la api
 async function initWebhooks(app, providedUrl) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await db.connectToDatabase(2);
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
@@ -152,7 +152,7 @@ async function enviarDatosAlWebService(xmlData, store) {
   try {
 
     console.log('XML Data:', xmlData);
-    const pool = await db.connectToDatabase();
+    const pool = await db.connectToDatabase(2);
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la URL del servicio web de la tienda
@@ -331,7 +331,7 @@ async function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await db.connectToDatabase(2);
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda

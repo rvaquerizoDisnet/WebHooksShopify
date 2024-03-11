@@ -3,13 +3,12 @@ const { pool, sql, connectToDatabase } = require('../utils/database');
 
 async function insertIntoDB(nombreEndpoint, urlWebService, apiKey, apiSecret, idCustomer, sessionCode, transportCompany) {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
     INSERT INTO MiddlewareWooCommerce (NombreEndpoint, UrlWebService, ApiKey, ApiSecret, IdCustomer, SessionCode, TransportCompany)
     VALUES (@nombreEndpoint, @urlWebService, @apiKey, @apiSecret, @idCustomer, @sessionCode, @transportCompany)
     `;
-    console.log('Consulta SQL:', query);
     await request
       .input('nombreEndpoint', sql.NVarChar, nombreEndpoint)
       .input('urlWebService', sql.NVarChar, urlWebService)
@@ -28,7 +27,7 @@ async function insertIntoDB(nombreEndpoint, urlWebService, apiKey, apiSecret, id
 
 async function updateClientInDB(clientId, nombreEndpoint, urlWebService, idCustomer, sessionCode, transportCompany) {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       UPDATE MiddlewareWooCommerce 
@@ -58,7 +57,7 @@ async function updateClientInDB(clientId, nombreEndpoint, urlWebService, idCusto
 
 async function deleteClientFromDB(clientId) {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       DELETE FROM MiddlewareWooCommerce

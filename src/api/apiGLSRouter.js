@@ -69,7 +69,7 @@ router.post('/remitente/post', verificarToken, async (req, res) => {
 
 router.get('/clientes', verificarToken, async (req, res) => {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       SELECT * FROM MiddlewareGLS;
@@ -112,7 +112,7 @@ router.delete('/clientes/:id', verificarToken, async (req, res) => {
 
 router.get('/remitentes2', verificarToken, async (req, res) => {
   try {
-    const pool = await connectToDatabase();
+    const pool = await connectToDatabase(2);
     const request = pool.request();
     const query = `
       SELECT * FROM MwClientesGLS;

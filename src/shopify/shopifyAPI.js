@@ -157,7 +157,7 @@ function wait(ms) {
 
 async function obtenerNombreCompania(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -179,7 +179,7 @@ async function obtenerNombreCompania(store) {
 
 async function getAdminApiAccessTokenFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -201,7 +201,7 @@ async function getAdminApiAccessTokenFromDB(store) {
 
 async function getApiKeyFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)

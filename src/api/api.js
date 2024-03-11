@@ -78,7 +78,7 @@ async function obtenerCodigoSesionCliente(reqBody) {
   try {
     const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
 
-    const pool = await db.connectToDatabase();
+    const pool = await db.connectToDatabase(2);
     const request = pool.request();
 
     const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareShopify');

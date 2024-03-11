@@ -82,7 +82,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
 async function obtenerNombreCompania(store) {
     try {
-        const pool = await db.connectToDatabase();
+        const pool = await db.connectToDatabase(2);
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -105,7 +105,7 @@ async function obtenerNombreCompania(store) {
 }
 async function obtenerApiKeyTienda(store) {
     try {
-      const pool = await db.connectToDatabase();
+      const pool = await db.connectToDatabase(2);
       const request = pool.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
@@ -132,7 +132,7 @@ async function obtenerApiKeyTienda(store) {
 
   async function obtenerApiSecretTienda(store) {
     try {
-      const pool = await db.connectToDatabase();
+      const pool = await db.connectToDatabase(2);
       const request = pool.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda

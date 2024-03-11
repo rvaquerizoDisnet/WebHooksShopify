@@ -11,7 +11,7 @@ const nodemailer = require('nodemailer');
 
 async function obtenerCorreoDepartamento(departamento) {
     try {
-        const pool = await connectToDatabase(); 
+        const pool = await connectToDatabase(2); 
         const query = `
             SELECT Correo
             FROM MwClientesGLS
@@ -105,7 +105,7 @@ function cronGLS(){
 async function consultaAGls() {
     try {
         // Conectar a la base de datos
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
 
         // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
         const query = `
@@ -208,7 +208,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
 async function leerWeightDisplacement(OrderNumber) {
     while (true) {
         try {
-            const pool = await connectToDatabase();
+            const pool = await connectToDatabase(1);
             const query = `
                 SELECT dh.Weight, dh.Displacement, oh.IdOrder
                 FROM DeliveryNoteHeader dh
@@ -245,7 +245,7 @@ async function leerWeightDisplacement(OrderNumber) {
 
 async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(1);
         const query = `
             UPDATE OrderHeader
             SET nFree7 = @peso, nFree8 = @volumen
@@ -261,7 +261,7 @@ async function insertarEnOrderHeader(IdOrder, Weight, Displacement) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
             await new Promise(resolve => setTimeout(resolve, 10000)); 
-            const pool = await connectToDatabase();
+            const pool = await connectToDatabase(1);
             const query = `
                 UPDATE OrderHeader
                 SET nFree7 = @peso, nFree8 = @volumen
@@ -283,7 +283,7 @@ async function actualizarBaseDeDatos(OrderNumber, peso, volumen) {
 
     try {
         // Conectar a la base de datos
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(1);
 
         // Consultar el IdOrder relacionado con el OrderNumber
         const queryConsultaIdOrder = `
@@ -386,7 +386,7 @@ async function consultarEstadoPedido(xmlData) {
                     `;
 
                     // Ejecutar la consulta
-                    const pool = await connectToDatabase();
+                    const pool = await connectToDatabase(2);
                     const result = await pool.request().query(query);
                     await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst);
                     console.log("Información del pedido guardada en la base de datos.");
@@ -397,7 +397,7 @@ async function consultarEstadoPedido(xmlData) {
                         INSERT INTO MwIncidenciasGLS (Albaran, CodExp, Departamento, EventoIncidencia, FechaIncidencia, Codigo, Departamento2)
                         VALUES ('${albaran}', '${codexp}', '${departamento}', '${evento}', '${fecha}', '${codigo}', '${departamento2}')
                     `;
-                    const pool = await connectToDatabase();
+                    const pool = await connectToDatabase(2);
                     const result = await pool.request().query(query);
                     await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha);
                
@@ -429,7 +429,7 @@ async function consultarEstadoPedido(xmlData) {
                         VALUES ('${albaran}', '${codexp}', '${departamento}', '${departamento2}')
                     `;
 
-                    const pool = await connectToDatabase();
+                    const pool = await connectToDatabase(2);
                     const result = await pool.request().query(query);
 
                     console.log("Información del pedido guardada en la base de datos.");
@@ -453,7 +453,7 @@ async function consultarEstadoPedido(xmlData) {
 
 async function obtenerCodigoAlbaranDesdeBD(albaran) {
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
         const query = `
             SELECT Codigo
             FROM MwIncidenciasGLS
@@ -474,7 +474,7 @@ async function obtenerCodigoAlbaranDesdeBD(albaran) {
 
 async function verificarAlbaranExistenteIncidencia(albaran) {
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwIncidenciasGLS WHERE Albaran = @albaran');
@@ -488,7 +488,7 @@ async function verificarAlbaranExistenteIncidencia(albaran) {
 
 async function verificarAlbaranExistentePesado(albaran) {
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwGLSNoPesado WHERE Albaran = @albaran');
@@ -504,7 +504,7 @@ async function verificarAlbaranExistentePesado(albaran) {
 
 async function eliminarAlbaran(albaran) {
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('DELETE FROM MwIncidenciasGLS WHERE Albaran = @albaran');
@@ -518,7 +518,7 @@ async function eliminarAlbaran(albaran) {
 
 async function eliminarAlbaranPesado(albaran) {
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('DELETE FROM MwGLSNoPesado WHERE Albaran = @albaran');
@@ -634,7 +634,7 @@ async function ejecutarConsultaTracking() {
     console.log('Ejecutando consulta para el tracking');
     try {
         // Conectar a la base de datos
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
 
         // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
         const query = `
@@ -688,7 +688,7 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
 
 async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(1);
         const queryConsultaIdOrder = `
             SELECT IdOrder
             FROM OrderHeader
@@ -721,7 +721,7 @@ async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
             await new Promise(resolve => setTimeout(resolve, 5000)); 
-            const pool = await connectToDatabase();
+            const pool = await connectToDatabase(1);
             const query = `
                 UPDATE DeliveryNoteHeader
                 SET TrackingNumber = @codbarrasExp
@@ -766,7 +766,7 @@ async function ejecutarConsulta() {
     console.log('Consultando datos de las tablas MwIncidenciasGLS y MwGLSNoPesado...');
     try {
         // Conectar a la base de datos
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
 
         // Consultar datos de MwIncidenciasGLS
         const queryIncidencias = `
@@ -807,7 +807,7 @@ async function ejecutarConsulta() {
 async function reconsultarPedidoGLS(orderNumber, codexp, departamento2) {
     console.log(`Reconsultando pedido GLS para OrderNumber ${orderNumber}... `, departamento2);
     try {
-        const pool = await connectToDatabase();
+        const pool = await connectToDatabase(2);
         let uidCliente = '';
         const queryUidCliente = `
             SELECT uid_cliente
