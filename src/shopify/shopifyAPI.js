@@ -11,6 +11,8 @@ async function handleShipmentAdminApi({ req, res, store }) {
         const xmlData = req.body;
         const pedidos = xmlData?.pedidos?.pedido;
 
+        console.log(xmlData)
+
         if (!pedidos || !Array.isArray(pedidos)) {
             console.error('Error de validación: Pedidos no encontrados o no es una lista en los datos XML.');
             return res.status(400).json({ error: 'Pedidos no encontrados o no es una lista en los datos XML.' });
