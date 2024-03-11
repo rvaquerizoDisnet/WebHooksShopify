@@ -64,4 +64,4 @@ const executeQuery = async (query, databaseNumber) => {
   return result;
 };
 
-module.exports = { connectToDatabase, closeDatabaseConnection, executeQuery };
+module.exports = { connectToDatabase, executeQuery };

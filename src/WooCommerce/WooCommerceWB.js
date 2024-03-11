@@ -106,8 +106,6 @@ async function initWebhooks(app, providedUrl) {
     // Establecer un intervalo para procesar la cola
     setInterval(processQueue, 1000);
 
-    // Cerrar la conexión a la base de datos después de configurar los webhooks
-    //await db.closeDatabaseConnection(pool);
   } catch (error) {
     console.error('Error al inicializar los webhooks:', error);
     throw error;
