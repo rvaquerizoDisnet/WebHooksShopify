@@ -4,7 +4,7 @@ const path = require('path');
 const { insertIntoDB, updateClientInDB, deleteClientFromDB, insertIntoDBCli } = require('../utils/insertClientGLS');
 const { verificarToken } = require('../autenticacion/authenticationMiddleware');
 const { connectToDatabase } = require('../utils/database');
-const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
+const { pool, sql, connectToDatabase2 } = require('../utils/database2');
 
 const router = express.Router();
 
@@ -70,8 +70,8 @@ router.post('/remitente/post', verificarToken, async (req, res) => {
 
 router.get('/clientes', verificarToken, async (req, res) => {
   try {
-    const pool2 = await connectToDatabase2();
-    const request = pool2.request();
+    const pool = await connectToDatabase2();
+    const request = pool.request();
     const query = `
       SELECT * FROM MiddlewareGLS;
     `;
@@ -113,8 +113,8 @@ router.delete('/clientes/:id', verificarToken, async (req, res) => {
 
 router.get('/remitentes2', verificarToken, async (req, res) => {
   try {
-    const pool2 = await connectToDatabase2();
-    const request = pool2.request();
+    const pool = await connectToDatabase2();
+    const request = pool.request();
     const query = `
       SELECT * FROM MwClientesGLS;
     `;

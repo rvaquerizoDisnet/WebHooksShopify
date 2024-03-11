@@ -7,19 +7,19 @@ require('dotenv').config();
 const moment = require('moment');
 const csvParser = require('csv-parser');
 const { pool, sql, connectToDatabase } = require('../utils/database');
-const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
+const { connectToDatabase2 } = require('../utils/database2');
 const nodemailer = require('nodemailer');
 
 async function obtenerCorreoDepartamento(departamento) {
     try {
         //CAMBIO DE BBDD
-        const pool2 = await connectToDatabase(); 
+        const pool = await connectToDatabase(); 
         const query = `
             SELECT Correo
             FROM MwClientesGLS
             WHERE Departamento = '${departamento}'
         `;
-        const result = await pool2.request().query(query);
+        const result = await pool.request().query(query);
         if (result.recordset.length > 0) {
             return result.recordset[0].Correo; 
         } else {
@@ -107,14 +107,14 @@ function cronGLS(){
 async function consultaAGls() {
     try {
         //CAMBIO DE BBDD
-        const pool2 = await connectToDatabase();
+        const pool = await connectToDatabase();
 
         // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
         const query = `
             SELECT uid_cliente, departamento_exp
             FROM MiddlewareGLS;
         `;
-        const result = await pool2.query(query);
+        const result = await pool.query(query);
 
         // Recorrer los resultados y realizar las consultas a GLS para cada registro
         for (const row of result.recordset) {
@@ -458,13 +458,13 @@ async function consultarEstadoPedido(xmlData) {
 async function obtenerCodigoAlbaranDesdeBD(albaran) {
     try {
         //CAMBIO DE BBDD
-        const pool2 = await connectToDatabase2();
+        const pool = await connectToDatabase2();
         const query = `
             SELECT Codigo
             FROM MwIncidenciasGLS
             WHERE Albaran = '${albaran}'
         `;
-        const result = await pool2.request().query(query);
+        const result = await pool.request().query(query);
         if (result.recordset.length > 0) {
             return result.recordset[0].Codigo;
         } else {
@@ -479,8 +479,8 @@ async function obtenerCodigoAlbaranDesdeBD(albaran) {
 
 async function verificarAlbaranExistenteIncidencia(albaran) {
     try {
-        const pool2 = await connectToDatabase2();
-        const result = await pool2.request()
+        const pool = await connectToDatabase2();
+        const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwIncidenciasGLS WHERE Albaran = @albaran');
 
@@ -493,8 +493,8 @@ async function verificarAlbaranExistenteIncidencia(albaran) {
 
 async function verificarAlbaranExistentePesado(albaran) {
     try {
-        const pool2 = await connectToDatabase2();
-        const result = await pool2.request()
+        const pool = await connectToDatabase2();
+        const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwGLSNoPesado WHERE Albaran = @albaran');
 
@@ -509,8 +509,8 @@ async function verificarAlbaranExistentePesado(albaran) {
 
 async function eliminarAlbaran(albaran) {
     try {
-        const pool2 = await connectToDatabase2();
-        const result = await pool2.request()
+        const pool = await connectToDatabase2();
+        const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('DELETE FROM MwIncidenciasGLS WHERE Albaran = @albaran');
         
@@ -523,8 +523,8 @@ async function eliminarAlbaran(albaran) {
 
 async function eliminarAlbaranPesado(albaran) {
     try {
-        const pool2 = await connectToDatabase2();
-        const result = await pool2.request()
+        const pool = await connectToDatabase2();
+        const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('DELETE FROM MwGLSNoPesado WHERE Albaran = @albaran');
         
@@ -639,14 +639,14 @@ async function ejecutarConsultaTracking() {
     console.log('Ejecutando consulta para el tracking');
     try {
         // Conectar a la base de datos
-        const pool2 = await connectToDatabase2();
+        const pool = await connectToDatabase2();
 
         // Consultar uid_cliente y departamento_exp de la tabla MiddlewareGLS
         const query = `
             SELECT uid_cliente, departamento_exp
             FROM MiddlewareGLS;
         `;
-        const result = await pool2.query(query);
+        const result = await pool.query(query);
 
         // Recorrer los resultados y realizar las consultas a GLS para cada registro
         for (const row of result.recordset) {
@@ -693,14 +693,14 @@ async function consultarTrackingyActualizar(uidCliente, departamentoExp) {
 
 async function ActualizarBBDDTracking(OrderNumber, codbarrasExp) {
     try {
-        const pool2 = await connectToDatabase2();
+        const pool = await connectToDatabase2();
         const queryConsultaIdOrder = `
             SELECT IdOrder
             FROM OrderHeader
             WHERE OrderNumber = @OrderNumber;
         `;
 
-        const requestConsultaIdOrder = pool2.request();
+        const requestConsultaIdOrder = pool.request();
         requestConsultaIdOrder.input('OrderNumber', sql.NVarChar, OrderNumber.toString()); 
 
         const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
@@ -771,21 +771,21 @@ async function ejecutarConsulta() {
     console.log('Consultando datos de las tablas MwIncidenciasGLS y MwGLSNoPesado...');
     try {
         // Conectar a la base de datos
-        const pool2 = await connectToDatabase2();
+        const pool = await connectToDatabase2();
 
         // Consultar datos de MwIncidenciasGLS
         const queryIncidencias = `
             SELECT *
             FROM MwIncidenciasGLS;
         `;
-        const resultIncidencias = await pool2.query(queryIncidencias);
+        const resultIncidencias = await pool.query(queryIncidencias);
 
         // Consultar datos de MwGLSNoPesado
         const queryNoPesado = `
             SELECT *
             FROM MwGLSNoPesado;
         `;
-        const resultNoPesado = await pool2.query(queryNoPesado);
+        const resultNoPesado = await pool.query(queryNoPesado);
 
         // Procesar los resultados y volver a ejecutar consultarPedidoGLS
         const incidencias = resultIncidencias.recordset;
@@ -812,14 +812,14 @@ async function ejecutarConsulta() {
 async function reconsultarPedidoGLS(orderNumber, codexp, departamento2) {
     console.log(`Reconsultando pedido GLS para OrderNumber ${orderNumber}... `, departamento2);
     try {
-        const pool2 = await connectToDatabase2();
+        const pool = await connectToDatabase2();
         let uidCliente = '';
         const queryUidCliente = `
             SELECT uid_cliente
             FROM MiddlewareGLS
             WHERE departamento_exp = @departamentoExp;
         `;
-        const requestUidCliente = pool2.request();
+        const requestUidCliente = pool.request();
         requestUidCliente.input('departamentoExp', sql.NVarChar, departamento2);
         const resultUidCliente = await requestUidCliente.query(queryUidCliente);
         if (resultUidCliente.recordset.length > 0) {

@@ -4,8 +4,7 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
-const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
-const { pool, sql, connectToDatabase } = require('../utils/database2');
+const { pool, sql, connectToDatabase2 } = require('../utils/database2');
 
 require('dotenv').config();
 
@@ -83,8 +82,8 @@ function addToQueue(jobData) {
 
 async function initWebhooks(app, providedUrl) {
   try {
-    const pool2 = await connectToDatabase2();
-    const request = pool2.request();
+    const pool = await connectToDatabase2();
+    const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
     const result = await request.query('SELECT NombreEndpoint FROM MiddlewareWooCommerce');
@@ -148,8 +147,8 @@ async function handleOrderWebhook(jsonData, store) {
 
 async function enviarDatosAlWebService(xmlData, store) {
   try {
-    const pool2 = await connectToDatabase2();
-    const request = pool2.request();
+    const pool = await connectToDatabase2();
+    const request = pool.request();
 
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
       .query('SELECT UrlWebService FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
@@ -298,11 +297,11 @@ function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
   try {
-    const pool2 = await connectToDatabase2();
-    const request = pool2.request();
+    const pool = await connectToDatabase2();
+    const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
-    const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
+    const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT SessionCode FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
     
     const sessionCode = result.recordset[0]?.SessionCode;
@@ -378,11 +377,11 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
 
 async function obtenerSecretsTienda(store) {
     try {
-      const pool2 = await connectToDatabase2();
-      const request = pool2.request();
+      const pool = await connectToDatabase2();
+      const request = pool.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
-      const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
+      const result = await request.input('NombreEndpoint', sql.NVarChar, store)
         .query('SELECT ApiSecret, ApiKey FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
       
       const ApiSecret = result.recordset[0]?.ApiSecret;
@@ -549,8 +548,8 @@ async function extraerOrderNumberDesdeJson(jsonData) {
 
 async function consultarIdCustomer(store) {
   try {
-    const pool2 = await connectToDatabase2();
-    const request = pool2.request();
+    const pool = await connectToDatabase2();
+    const request = pool.request();
 
     const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT IdCustomer FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');

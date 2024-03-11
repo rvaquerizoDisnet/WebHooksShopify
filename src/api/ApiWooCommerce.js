@@ -6,7 +6,7 @@ const woocommerce = require('../WooCommerce/WooCommerceWB');
 const woocommerceAPI = require('../WooCommerce/WooCommerceAPI');
 const xmlparser = require('express-xml-bodyparser');
 const db = require('../utils/database');
-const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
+const { pool, sql, connectToDatabase2 } = require('../utils/database2');
 const path = require('path');
 const { insertIntoDB, updateClientInDB, deleteClientFromDB } = require('../utils/insertClientWooCommerce');
 const { verificarToken } = require('../autenticacion/authenticationMiddleware');
@@ -46,8 +46,8 @@ router.post('/post', verificarToken, async (req, res) => {
 
 router.get('/clientes', verificarToken, async (req, res) => {
   try {
-    const pool2 = await connectToDatabase2();
-    const request = pool2.request();
+    const pool = await connectToDatabase2();
+    const request = pool.request();
     const query = `
       SELECT * FROM MiddlewareWooCommerce;
     `;
@@ -149,8 +149,8 @@ async function obtenerCodigoSesionCliente(reqBody) {
     try {
       const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
   
-      const pool2 = await connectToDatabase2();
-      const request = pool2.request();
+      const pool = await connectToDatabase2();
+      const request = pool.request();
   
       const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareWooCommerce');
       const tiendas = result.recordset;

@@ -1,6 +1,6 @@
 const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
 require('dotenv').config();
-const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
+const { pool, sql, connectToDatabase2 } = require('../utils/database2');
 
 async function handleShipmentAdminApi({ req, res, store }) {
     let successMessage = 'Solicitud de envío procesada correctamente';
@@ -82,10 +82,10 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
 async function obtenerNombreCompania(store) {
     try {
-        const pool2 = await connectToDatabase2();
-        const request = pool2.request();
+        const pool = await connectToDatabase2();
+        const request = pool.request();
     
-        const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
+        const result = await request.input('NombreEndpoint', sql.NVarChar, store)
             .query('SELECT TransportCompany FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
         
         const { TransportCompany } = result.recordset[0];
@@ -104,11 +104,11 @@ async function obtenerNombreCompania(store) {
 }
 async function obtenerApiKeyTienda(store) {
     try {
-      const pool2 = await connectToDatabase2();
-      const request = pool2.request();
+      const pool = await connectToDatabase2();
+      const request = pool.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
-      const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
+      const result = await request.input('NombreEndpoint', sql.NVarChar, store)
         .query('SELECT ApiKey FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
       
 
@@ -129,11 +129,11 @@ async function obtenerApiKeyTienda(store) {
 
   async function obtenerApiSecretTienda(store) {
     try {
-      const pool2 = await connectToDatabase2();
-      const request = pool2.request();
+      const pool = await connectToDatabase2();
+      const request = pool.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
-      const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
+      const result = await request.input('NombreEndpoint', sql.NVarChar, store)
         .query('SELECT ApiSecret FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
       
       const ApiSecret = result.recordset[0]?.ApiSecret;

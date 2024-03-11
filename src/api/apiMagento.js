@@ -7,7 +7,7 @@ const xmlparser = require('express-xml-bodyparser');
 const util = require('util');
 const db = require('../utils/database');
 const { connectToDatabase } = require('../utils/database');
-const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
+const { pool, sql, connectToDatabase2 } = require('../utils/database2');
 const path = require('path')
 router.use(bodyParser.json());
 const { insertIntoDB, updateClientInDB, deleteClientFromDB } = require('../utils/insertClientMagento');
@@ -41,8 +41,8 @@ router.post('/post', verificarToken, async (req, res) => {
 
   router.get('/clientes', verificarToken, async (req, res) => {
     try {
-      const pool2 = await connectToDatabase2();
-      const request = pool2.request();
+      const pool = await connectToDatabase2();
+      const request = pool.request();
       const query = `
         SELECT * FROM MiddlewareMagento;
       `;
@@ -136,8 +136,8 @@ async function obtenerCodigoSesionCliente(reqBody) {
   try {
     const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
 
-    const pool2 = await db.connectToDatabase2();
-    const request = pool2.request();
+    const pool = await db.connectToDatabase2();
+    const request = pool.request();
 
     const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareMagento');
     const tiendas = result.recordset;
