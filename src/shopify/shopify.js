@@ -4,8 +4,7 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
-const db = require('../utils/database');
-const mssql = require('mssql');
+const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
 require('dotenv').config();
@@ -88,7 +87,7 @@ function addToQueue(jobData) {
 // Añadir aqui el nombre de la tienda y su ruta asignada en la api
 async function initWebhooks(app, providedUrl) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
@@ -112,9 +111,6 @@ async function initWebhooks(app, providedUrl) {
 
     // Establecer un intervalo para procesar la cola
     setInterval(processQueue, 1000);
-
-    // Cerrar la conexión a la base de datos después de configurar los webhooks
-    ////await db.closeDatabaseConnection(pool);
   } catch (error) {
     console.error('Error al inicializar los webhooks:', error);
     throw error;
@@ -155,12 +151,12 @@ async function handleOrderWebhook(jsonData, store) {
 
 async function enviarDatosAlWebService(xmlData, store) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la URL del servicio web de la tienda
     // Cambiar urlwebservice por solo el nombre del webservice de abc y construir la ruta con la ip y la url
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+    const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT UrlWebService FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
     
     const urlWebService = result.recordset[0]?.UrlWebService;
@@ -175,9 +171,7 @@ async function enviarDatosAlWebService(xmlData, store) {
     } else {
       console.error('No se encontró un UrlWebService en la base de datos.');
     }
-    
-    // Cerrar la conexión a la base de datos después de obtener la URL
-    ////await db.closeDatabaseConnection(pool);
+
     
     if (!urlWebServiceConVariableEntorno) {
       throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
@@ -336,19 +330,15 @@ async function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+    const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT SessionCode FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
 
     
     const sessionCode = result.recordset[0]?.SessionCode;
-
-
-    // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    //await db.closeDatabaseConnection(pool);
 
     if (!sessionCode) {
       console.log('No se ha podido obtener el SessionCode para la tienda:', store);
@@ -417,17 +407,16 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
 // Función para obtener el AccessToken desde la base de datos por NombreEndpoint
 async function obtenerAccessTokenTienda(store) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el AccessToken de la tienda
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+    const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT AccessToken FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
     
     const accessToken = result.recordset[0]?.AccessToken;
 
-    // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    //await db.closeDatabaseConnection(pool);
+
 
     if (!accessToken) {
       console.log('No se ha podido obtener el AccessToken para la tienda:', store);
@@ -460,7 +449,7 @@ async function handleOrderWebhookCanceled(jsonData, store) {
 async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
   let finalizado = "false";
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await connectToDatabase();
 
     // Consulta para obtener el estado actual de St_DeliverynoteHeader
     const queryEstadoActual = `
@@ -517,7 +506,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
       console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
       // Esperar un breve intervalo antes de reintentar la operación
       await new Promise(resolve => setTimeout(resolve, 5000)); 
-      const pool = await db.connectToDatabase();
+      const pool = await connectToDatabase();
       await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado)
       // Consulta para obtener el estado actual de St_DeliverynoteHeader
       const queryEstadoActual = `
@@ -590,10 +579,10 @@ async function extraerOrderNumberDesdeJson(jsonData) {
 
 async function consultarIdCustomer(store) {
   try {
-    const pool = await db.connectToDatabase();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
-    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+    const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT IdCustomer FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
     
     const idCustomer = result.recordset[0]?.UrlWebService;
