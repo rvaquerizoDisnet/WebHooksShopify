@@ -19,12 +19,12 @@ const config = {
   },
 };
 
-const pool2 = new mssql.ConnectionPool(config);
+const pool = new mssql.ConnectionPool(config);
 
 const connectToDatabase2 = async () => {
   try {
-    await pool2.connect();
-    return pool2;
+    await pool.connect();
+    return pool;
   } catch (error) {
     console.error('Error al conectar a la base de datos:', error.message);
     throw error;
@@ -32,11 +32,11 @@ const connectToDatabase2 = async () => {
 };
 
 
-const executeQuery2 = async (query) => {
-  const pool2 = await connectToDatabase2();
-  const request = pool2.request();
+const executeQuery = async (query) => {
+  const pool = await connectToDatabase2();
+  const request = pool.request();
   const result = await request.query(query);
   return result;
 };
 
-module.exports = { connectToDatabase2, executeQuery2, pool2, sql2: mssql };
+module.exports = { connectToDatabase2, executeQuery, pool, sql: mssql };
