@@ -45,7 +45,8 @@ async function initDynamicEndpoints() {
     router.post(`${rutaWebhook}orders/canceled`, async (req, res) => {
       console.log('POST request to ' + '/orders/canceled');
       res.json({ message: 'POST request received successfully' });
-      //llamar a la logica para cancelar pedidos
+      const jobData = { tipo: 'orders', req, res, store: store.NombreEndpoint };
+      await shopify.handleCanceledOrder(jobData);
     });
 
     // Configurar el endpoint para manejar envíos POST

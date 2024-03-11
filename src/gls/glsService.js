@@ -29,7 +29,7 @@ async function obtenerCorreoDepartamento(departamento) {
     }
 }
 
-async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha) {
+async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst) {
     try {
         const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
         if (destinatarioCorreo) {
@@ -48,7 +48,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
                 from: process.env.EMAIL_USER,
                 to: [destinatarioCorreo],
                 subject: `Incidencia en un pedido de GLS`,
-                text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}`
+                text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
 
             const info = await transporter.sendMail(mailOptions);
@@ -350,6 +350,12 @@ async function consultarEstadoPedido(xmlData) {
         let albaran = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['albaran'][0];
         let evento = ultimoTracking['evento'][0];
         let fecha = ultimoTracking['fecha'][0];
+        let nombre_dst = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['nombre_dst'][0];
+        let localidad_dst = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['localidad_dst'][0];
+        let cp_dst = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['cp_dst'][0];
+        let tfno_dst = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['tfno_dst'][0];
+        let email_dst = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['email_dst'][0];
+        let calle_dst = parsedData['soap:Envelope']['soap:Body'][0]['GetExpCliResponse'][0]['GetExpCliResult'][0]['expediciones'][0]['exp'][0]['calle_dst'][0];
         if (
             parsedData &&
             parsedData['soap:Envelope'] &&
@@ -382,7 +388,7 @@ async function consultarEstadoPedido(xmlData) {
                     // Ejecutar la consulta
                     const pool = await connectToDatabase();
                     const result = await pool.request().query(query);
-                    await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha);
+                    await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst);
                     console.log("Información del pedido guardada en la base de datos.");
                 } else if(codigo != codigoAlbaran){
 

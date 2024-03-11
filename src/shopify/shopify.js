@@ -443,5 +443,36 @@ async function obtenerAccessTokenTienda(store) {
 }
 
 
+//Cancelacion de pedidos
+async function handleCanceledOrder({ tipo, req, res, store }, retryCount = 0) {
+  try {
+    if (tipo === 'orders') {
+      if (!res.headersSent) {
+        res.status(200).send('OK');
+      }
+      await handleOrderWebhookCanceled(req.body, store);
+    } else if (tipo === 'shipments') {
+      // Lógica para el nuevo evento de albaranes
+      // await shopifyAPI.handleShipment(req.body);
+    } else {
+      console.error(`Tipo de webhook no reconocido: ${tipo}`);
+    }
+  } catch (error) {
+    logger.error(`Error en handleWebhook para el trabajo tipo ${tipo}. Detalles: ${JSON.stringify({ tipo, retryCount, error })}`);
+    await handleRetry({ tipo, req, res, store }, retryCount);
+  }
+}
+
+async function handleOrderWebhookCanceled(jsonData, store) {
+  try {
+    console.log(jsonData)
+
+  } catch (error) {
+    logger.error('Error al procesar el webhook de orders:', error);
+    throw error;
+  }
+}
+
+
 //Exporta los modulos
-module.exports = { initWebhooks, handleWebhook, handleOrderWebhook, sendOrderToWebService, getUnfulfilledOrdersAndSendToWebService };
+module.exports = { initWebhooks, handleWebhook, handleOrderWebhook, handleCanceledOrder, sendOrderToWebService, getUnfulfilledOrdersAndSendToWebService };

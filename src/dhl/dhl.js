@@ -16,15 +16,16 @@ function procesarArchivo(archivo) {
 
     // Lee el contenido del archivo CSV
     fs.createReadStream(rutaArchivo)
-        .pipe(csvParser())
+        .pipe(csvParser({ separator: ',', headers: false }))
         .on('data', async (row) => {
+            console.log('Row Data:', row);
             const CustomerOrderNumber = row[0];
             const Tracking = row[1];
             console.log('CustomerOrderNumber:', CustomerOrderNumber);
             console.log('Tracking:', Tracking);
             // Procesa los datos y actualiza la base de datos
             await ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
-        })
+        })/*
         .on('end', () => {
             // Elimina el archivo después de procesarlo
             fs.unlink(rutaArchivo, err => {
@@ -34,7 +35,7 @@ function procesarArchivo(archivo) {
                 }
                 console.log('Archivo eliminado:', archivo);
             });
-        });
+        });*/
 }
 
 
@@ -48,7 +49,7 @@ async function procesarArchivos() {
         }
 
         // Filtra los archivos .csv
-        const archivoscsv = archivos.filter(archivo => archivo.endsWith('.csv'));
+        const archivoscsv = archivos.filter(archivo => archivo.endsWith('.CSV'));
 
         // Si hay al menos un archivo .csv
         if (archivoscsv.length > 0) {
@@ -64,6 +65,8 @@ async function procesarArchivos() {
 
 
 async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
+    let IdOrder = null; // Declare IdOrder outside the try block
+
     try {
         const pool = await connectToDatabase();
         const queryConsultaIdOrder = `
@@ -81,13 +84,12 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             return;
         }
 
-        let IdOrder = null;
         if (resultConsultaIdOrder.recordset.length === 1) {
             IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
         } else {
-             await enviarCorreoIncidencia(CustomerOrderNumber, Tracking)
-             throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
-            }
+            await enviarCorreoIncidencia(CustomerOrderNumber, Tracking);
+            throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
+        }
 
         const query = `
             UPDATE MiddlewareDNH
@@ -121,6 +123,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
     }
 }
 
+
 async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
     try {
         const transporter = nodemailer.createTransport({
@@ -151,7 +154,7 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function crondhl(){
-    cron.schedule('48 12 * * *', async () => {
+    cron.schedule('52 9 * * *', async () => {
         console.log('Ejecutando consulta a dhl a las 6:45');
         await procesarArchivos();
     });
