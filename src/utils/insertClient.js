@@ -1,6 +1,6 @@
 // insertClient.js
-const { pool, sql, connectToDatabase } = require('../utils/database');
-
+const { pool, connectToDatabase } = require('../utils/database');
+const sql = require('mssql');
 async function insertIntoDB(nombreEndpoint, urlWebService, apiKey, apiSecret, accessToken, idCustomer, sessionCode, transportCompany) {
   try {
     const pool = await connectToDatabase(2);

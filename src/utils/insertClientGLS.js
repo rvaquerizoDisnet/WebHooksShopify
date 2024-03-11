@@ -1,5 +1,5 @@
-const { pool, sql, connectToDatabase } = require('../utils/database');
-
+const { pool, connectToDatabase } = require('../utils/database');
+const sql = require('mssql');
 async function insertIntoDB(nombre, uid_cliente, departamento_exp) {
   try {
     const pool = await connectToDatabase(2);

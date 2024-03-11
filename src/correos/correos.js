@@ -1,8 +1,8 @@
 const fs = require('fs');
 const cron = require('node-cron');
 const moment = require('moment');
-const { pool, sql, connectToDatabase } = require('../utils/database');
-
+const { pool, connectToDatabase } = require('../utils/database');
+const sql = require('mssql');
 const carpeta = '/home/admin81/shares/24UOC/Export/GECO/';
 
 function procesarArchivo(archivo) {

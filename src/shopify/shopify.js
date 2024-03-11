@@ -4,8 +4,8 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
-const { pool, sql, connectToDatabase } = require('../utils/database');
-
+const { pool, connectToDatabase } = require('../utils/database');
+const sql = require('mssql');
 
 require('dotenv').config();
 

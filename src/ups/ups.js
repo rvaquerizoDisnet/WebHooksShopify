@@ -4,8 +4,8 @@ const cron = require('node-cron');
 require('dotenv').config();
 const moment = require('moment');
 const csvParser = require('csv-parser');
-const { pool, sql, connectToDatabase } = require('../utils/database');
-
+const { pool, connectToDatabase } = require('../utils/database');
+const sql = require('mssql');
 
 function cronUPS(){
     cron.schedule('35 5 * * *', async () => {
