@@ -438,7 +438,7 @@ async function handleOrderWebhookCanceled(jsonData, store) {
     let orderNumberCancel = await extraerOrderNumberDesdeJson(jsonData);
     let idCustomerCancel = await consultarIdCustomer(store);
     console.log(orderNumberCancel)
-    console.log(idCustomerCancel)
+    console.log("idCustomerCancel ", idCustomerCancel)
     await cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel);
   } catch (error) {
     logger.error('Error al procesar el webhook de orders:', error);
@@ -467,7 +467,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
     const resultEstadoActual = await requestEstadoActual.query(queryEstadoActual);
 
     if (resultEstadoActual.recordset.length === 0) {
-      console.log('No se encontró el CustomerOrderNumber en la tabla MiddlewareDNH.');
+      console.log('No se encontró el orderNumberCancel en la tabla OrderHeader.');
       return;
     }
 
@@ -524,7 +524,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
       const resultEstadoActual = await requestEstadoActual.query(queryEstadoActual);
 
       if (resultEstadoActual.recordset.length === 0) {
-        console.log('No se encontró el CustomerOrderNumber en la tabla MiddlewareDNH.');
+        console.log('No se encontró el orderNumberCancel en la tabla OrderHeader.');
         return;
       }
 
@@ -585,7 +585,8 @@ async function consultarIdCustomer(store) {
     const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT IdCustomer FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
     
-    const idCustomer = result.recordset[0]?.UrlWebService;
+    const idCustomer = result.recordset[0]?.IdCustomer;
+    console.log("idCustomer: ", idCustomer)
     return idCustomer;
   } catch (error) {
     logger.error('Error al obtener el idCustomer:', error);
