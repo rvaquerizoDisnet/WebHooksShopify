@@ -129,9 +129,8 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
         res.status(200).send('OK');
       }
       await handleOrderWebhook(req.body, store);
-    } else if (tipo === 'shipments') {
-      // Lógica para el nuevo evento de albaranes
-      // await shopifyAPI.handleShipment(req.body);
+    } else if (tipo === 'cancel') {
+       await handleOrderWebhookCanceled(req.body, store);
     } else {
       console.error(`Tipo de webhook no reconocido: ${tipo}`);
     }
@@ -444,34 +443,208 @@ async function obtenerAccessTokenTienda(store) {
 
 
 //Cancelacion de pedidos
-async function handleCanceledOrder({ tipo, req, res, store }, retryCount = 0) {
-  try {
-    if (tipo === 'orders') {
-      if (!res.headersSent) {
-        res.status(200).send('OK');
-      }
-      await handleOrderWebhookCanceled(req.body, store);
-    } else if (tipo === 'shipments') {
-      // Lógica para el nuevo evento de albaranes
-      // await shopifyAPI.handleShipment(req.body);
-    } else {
-      console.error(`Tipo de webhook no reconocido: ${tipo}`);
-    }
-  } catch (error) {
-    logger.error(`Error en handleWebhook para el trabajo tipo ${tipo}. Detalles: ${JSON.stringify({ tipo, retryCount, error })}`);
-    await handleRetry({ tipo, req, res, store }, retryCount);
-  }
-}
-
 async function handleOrderWebhookCanceled(jsonData, store) {
   try {
-    console.log(jsonData)
-
+    let orderNumberCancel = await extraerOrderNumberDesdeJson(jsonData);
+    let idCustomerCancel = await consultarIdCustomer(store);
+    console.log(orderNumberCancel)
+    console.log(idCustomerCancel)
+    await cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel);
   } catch (error) {
     logger.error('Error al procesar el webhook de orders:', error);
     throw error;
   }
 }
+
+async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
+  let finalizado = "false";
+  try {
+    const pool = await connectToDatabase();
+
+    // Consulta para obtener el estado actual de St_DeliverynoteHeader
+    const queryEstadoActual = `
+      SELECT St_DeliverynoteHeader
+      FROM MiddlewareDNH
+      WHERE IdOrder = (
+          SELECT IdOrder
+          FROM OrderHeader
+          WHERE OrderNumber = @orderNumberCancel AND IdCustomer = @idCustomerCancel
+      );
+    `;
+    const requestEstadoActual = pool.request();
+    requestEstadoActual.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
+    requestEstadoActual.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+    const resultEstadoActual = await requestEstadoActual.query(queryEstadoActual);
+
+    if (resultEstadoActual.recordset.length === 0) {
+      console.log('No se encontró el CustomerOrderNumber en la tabla MiddlewareDNH.');
+      return;
+    }
+
+    if (resultConsultaIdOrder.recordset.length > 1) {
+      await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado);
+      throw new Error('Hay múltiples IdOrder.');
+    }
+
+    const estadoActual = resultEstadoActual.recordset[0].St_DeliverynoteHeader;
+
+    // Verificar si el estado es 'FIN' y enviar un correo electrónico si es así
+    if (estadoActual === 'FIN') {
+      finalizado = "true";
+      await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado);
+    }
+
+    // Consulta para actualizar el estado a 'DEL' en la base de datos
+    const queryActualizarEstado = `
+      UPDATE MiddlewareDNH
+      SET St_DeliverynoteHeader = 'DEL'
+      WHERE IdOrder = (
+          SELECT IdOrder
+          FROM OrderHeader
+          WHERE OrderNumber = @orderNumberCancel AND IdCustomer = @idCustomerCancel
+      );
+    `;
+    const requestActualizarEstado = pool.request();
+    requestActualizarEstado.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
+    requestActualizarEstado.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+    await requestActualizarEstado.query(queryActualizarEstado);
+    finalizado = "correcto";
+    await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado);
+    console.log(`Se ha actualizado el estado del pedido a 'DEL' para el OrderNumber ${orderNumberCancel}.`);
+  } catch (error) {
+    if (error.message.includes('deadlocked')) {
+      console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
+      // Esperar un breve intervalo antes de reintentar la operación
+      await new Promise(resolve => setTimeout(resolve, 5000)); 
+      const pool = await connectToDatabase();
+      await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado)
+      // Consulta para obtener el estado actual de St_DeliverynoteHeader
+      const queryEstadoActual = `
+        SELECT St_DeliverynoteHeader
+        FROM MiddlewareDNH
+        WHERE IdOrder = (
+            SELECT IdOrder
+            FROM OrderHeader
+            WHERE OrderNumber = @orderNumberCancel AND IdCustomer = @idCustomerCancel
+        );
+      `;
+      const requestEstadoActual = pool.request();
+      requestEstadoActual.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
+      requestEstadoActual.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+      const resultEstadoActual = await requestEstadoActual.query(queryEstadoActual);
+
+      if (resultEstadoActual.recordset.length === 0) {
+        console.log('No se encontró el CustomerOrderNumber en la tabla MiddlewareDNH.');
+        return;
+      }
+
+      if (resultConsultaIdOrder.recordset.length > 1) {
+        await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado);
+        throw new Error('Hay múltiples IdOrder.');
+      }
+
+      const estadoActual = resultEstadoActual.recordset[0].St_DeliverynoteHeader;
+
+      // Verificar si el estado es 'FIN' y enviar un correo electrónico si es así
+      if (estadoActual === 'FIN') {
+        finalizado = "true";
+        await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado);
+      }
+
+      // Consulta para actualizar el estado a 'DEL' en la base de datos
+      const queryActualizarEstado = `
+        UPDATE MiddlewareDNH
+        SET St_DeliverynoteHeader = 'DEL'
+        WHERE IdOrder = (
+            SELECT IdOrder
+            FROM OrderHeader
+            WHERE OrderNumber = @orderNumberCancel AND IdCustomer = @idCustomerCancel
+        );
+      `;
+      const requestActualizarEstado = pool.request();
+      requestActualizarEstado.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
+      requestActualizarEstado.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+      await requestActualizarEstado.query(queryActualizarEstado);
+
+      console.log(`Se ha actualizado el estado del pedido a 'DEL' para el OrderNumber ${orderNumberCancel}.`);
+    } else {
+      console.error('Error al actualizar el estado en la base de datos:', error.message);
+    }
+  }
+}
+
+
+async function extraerOrderNumberDesdeJson(jsonData) {
+  try {
+    // Extraer el order number del JSON recibido
+    const orderNumber = jsonData.order_number;
+    // Devolver el order number
+    return orderNumber;
+  } catch (error) {
+    console.error('Error al extraer el order number:', error);
+    return null;
+  }
+}
+
+
+async function consultarIdCustomer(store) {
+  try {
+    const pool = await db.connectToDatabase();
+    const request = pool.request();
+
+    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+      .query('SELECT IdCustomer FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
+    
+    const idCustomer = result.recordset[0]?.UrlWebService;
+    return idCustomer;
+  } catch (error) {
+    logger.error('Error al obtener el idCustomer:', error);
+    throw error;
+  }
+}
+
+
+async function enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado) {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: 'mail.disnet.es',
+      port: 25,
+      secure: false,
+      ignoreTLS: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    let subject = '';
+    let text = '';
+
+    if (finalizado == "true") {
+      subject = `Error al cancelar un pedido de shopify`;
+      text = `No se ha podido cancelar el pedido ${orderNumberCancel} para el cliente ${idCustomerCancel} porque el albaran ya tiene el estado FIN`;
+    } else if(finalizado == "false"){
+      subject = `Error al cancelar un pedido de shopify`;
+      text = `No se ha podido cancelar el pedido ${orderNumberCancel} para el cliente ${idCustomerCancel} automaticamente, requiere accion manual.`;
+    } else if(finalizado == "correcto"){
+      subject = `Se ha cancelado el pedido de shopify`;
+      text = `Se ha cancelado el pedido ${orderNumberCancel} para el cliente ${idCustomerCancel} automaticamente. Hay que revisar si el stock es correcto.`;
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_2,
+      subject: subject,
+      text: text
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Correo electrónico enviado:', info.response);
+  } catch (error) {
+    console.log('Error en enviarCorreoIncidencia:', error);
+  }
+}
+
 
 
 //Exporta los modulos

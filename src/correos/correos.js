@@ -89,6 +89,7 @@ async function procesarArchivos() {
 
 
 async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
+    let IdOrder = null;
     try {
         const pool = await connectToDatabase();
         const queryConsultaIdOrder = `
@@ -106,7 +107,6 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             return;
         }
 
-        let IdOrder = null;
         if (resultConsultaIdOrder.recordset.length === 1) {
             IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
         } else {
