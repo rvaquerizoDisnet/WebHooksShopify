@@ -43,7 +43,6 @@ const executeQuery = async (query) => {
   const pool = await connectToDatabase();
   const request = pool.request();
   const result = await request.query(query);
-  await closeDatabaseConnection();
   return result;
 };
 

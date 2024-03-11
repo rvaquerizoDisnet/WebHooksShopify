@@ -3,12 +3,13 @@ const mssql = require('mssql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { pool, connectToDatabase } = require('../utils/database');
+const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
 
 const verificarExistenciaUsuario = async (username) => {
   try {
-    await connectToDatabase();
+    await connectToDatabase2();
 
-    const result = await pool
+    const result = await pool2
       .request()
       .input('username', mssql.VarChar, username)
       .query('SELECT * FROM MiddlewareUsuarios WHERE username = @username');
@@ -22,11 +23,11 @@ const verificarExistenciaUsuario = async (username) => {
 
 const registrarUsuario = async (username, password, rol = 'admin') => {
   try {
-    await connectToDatabase();
+    await connectToDatabase2();
 
     const hashContrasena = await bcrypt.hash(password, 10);
 
-    await pool
+    await pool2
       .request()
       .input('username', mssql.VarChar, username)
       .input('hashContrasena', mssql.VarChar, hashContrasena)
@@ -39,9 +40,9 @@ const registrarUsuario = async (username, password, rol = 'admin') => {
 
 const iniciarSesion = async (username, password) => {
   try {
-    await connectToDatabase();
+    await connectToDatabase2();
 
-    const result = await pool
+    const result = await pool2
       .request()
       .input('username', mssql.VarChar, username)
       .query('SELECT password, rol FROM MiddlewareUsuarios WHERE username = @username');

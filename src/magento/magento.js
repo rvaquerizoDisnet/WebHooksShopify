@@ -4,7 +4,7 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
-const db = require('../utils/database');
+const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
 const mssql = require('mssql');
 
 
@@ -85,8 +85,8 @@ function addToQueue(jobData) {
 // Añadir aqui el nombre de la tienda y su ruta asignada en la api
 async function initWebhooks(app, providedUrl) {
   try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
+    const pool2 = await connectToDatabase2();
+    const request = pool2.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
     const result = await request.query('SELECT NombreEndpoint FROM MiddlewareMagento');
@@ -110,8 +110,6 @@ async function initWebhooks(app, providedUrl) {
     // Establecer un intervalo para procesar la cola
     setInterval(processQueue, 1000);
 
-    // Cerrar la conexión a la base de datos después de configurar los webhooks
-    ////await db.closeDatabaseConnection(pool);
   } catch (error) {
     console.error('Error al inicializar los webhooks:', error);
     throw error;
@@ -152,8 +150,8 @@ async function enviarDatosAlWebService(xmlData, store) {
   try {
 
     console.log('XML Data:', xmlData);
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
+    const pool2 = await connectToDatabase2();
+    const request = pool2.request();
 
     // Hacer una consulta a la base de datos para obtener la URL del servicio web de la tienda
     // Cambiar urlwebservice por solo el nombre del webservice de abc y construir la ruta con la ip y la url
@@ -172,9 +170,6 @@ async function enviarDatosAlWebService(xmlData, store) {
     } else {
       console.error('No se encontró un UrlWebService en la base de datos.');
     }
-    
-    // Cerrar la conexión a la base de datos después de obtener la URL
-    ////await db.closeDatabaseConnection(pool);
     
     if (!urlWebServiceConVariableEntorno) {
       throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
@@ -331,8 +326,8 @@ async function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
   try {
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
+    const pool2 = await connectToDatabase2();
+    const request = pool2.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -341,9 +336,6 @@ async function obtenerCodigoSesionCliente(store) {
     
     const sessionCode = result.recordset[0]?.SessionCode;
 
-
-    // Cerrar la conexión a la base de datos después de obtener la información necesaria
-    //await db.closeDatabaseConnection(pool);
 
     if (!sessionCode) {
       console.log('No se ha podido obtener el SessionCode para la tienda:', store);

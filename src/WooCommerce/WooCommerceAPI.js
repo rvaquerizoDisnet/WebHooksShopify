@@ -1,6 +1,6 @@
 const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
 require('dotenv').config();
-const db = require('../utils/database');
+const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
 
 async function handleShipmentAdminApi({ req, res, store }) {
     let successMessage = 'Solicitud de envío procesada correctamente';
@@ -82,15 +82,14 @@ async function handleShipmentAdminApi({ req, res, store }) {
 
 async function obtenerNombreCompania(store) {
     try {
-        const pool = await db.connectToDatabase();
-        const request = pool.request();
+        const pool2 = await connectToDatabase2();
+        const request = pool2.request();
     
-        const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+        const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
             .query('SELECT TransportCompany FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
         
         const { TransportCompany } = result.recordset[0];
     
-        //await db.closeDatabaseConnection(pool);
     
         if (!TransportCompany) {
             console.log(`No se ha podido obtener la compañía de transporte para la tienda: ${store}`);
@@ -105,18 +104,16 @@ async function obtenerNombreCompania(store) {
 }
 async function obtenerApiKeyTienda(store) {
     try {
-      const pool = await db.connectToDatabase();
-      const request = pool.request();
+      const pool2 = await connectToDatabase2();
+      const request = pool2.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
-      const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+      const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
         .query('SELECT ApiKey FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
       
 
       const ApiKey = result.recordset[0]?.ApiKey;
   
-      // Cerrar la conexión a la base de datos después de obtener la información necesaria
-      //await db.closeDatabaseConnection(pool);
   
       if (!ApiKey) {
         console.log('No se ha podido obtener el ApiKey para la tienda:', store);
@@ -132,17 +129,15 @@ async function obtenerApiKeyTienda(store) {
 
   async function obtenerApiSecretTienda(store) {
     try {
-      const pool = await db.connectToDatabase();
-      const request = pool.request();
+      const pool2 = await connectToDatabase2();
+      const request = pool2.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
-      const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
+      const result = await request.input('NombreEndpoint', sql2.NVarChar, store)
         .query('SELECT ApiSecret FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
       
       const ApiSecret = result.recordset[0]?.ApiSecret;
   
-      // Cerrar la conexión a la base de datos después de obtener la información necesaria
-      //await db.closeDatabaseConnection(pool);
   
       if (!ApiSecret || !ApiKey) {
         console.log('No se ha podido obtener el ApiKey o el ApiSecret para la tienda:', store);

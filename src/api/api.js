@@ -7,6 +7,7 @@ const shopifyAPI = require('../shopify/shopifyAPI');
 const xmlparser = require('express-xml-bodyparser');
 const util = require('util');
 const db = require('../utils/database');
+const { pool2, sql2, connectToDatabase2 } = require('../utils/database2');
 const path = require('path')
 router.use(bodyParser.json());
 router.use(xmlparser());
@@ -78,13 +79,12 @@ async function obtenerCodigoSesionCliente(reqBody) {
   try {
     const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
 
-    const pool = await db.connectToDatabase();
-    const request = pool.request();
+    const pool2 = await connectToDatabase2();
+    const request = pool2.request();
 
     const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareShopify');
     const tiendas = result.recordset;
 
-    //await db.closeDatabaseConnection(pool);
 
     for (const idCustomer of idCustomerArray) {
       const tienda = tiendas.find(t => t.IdCustomer == idCustomer);

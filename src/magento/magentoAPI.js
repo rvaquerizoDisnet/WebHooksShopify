@@ -112,8 +112,8 @@ function wait(ms) {
 
 async function obtenerCodigoTransportista(store) {
     try {
-        const pool = await db.connectToDatabase();
-        const request = pool.request();
+        const pool2 = await connectToDatabase2();
+        const request = pool2.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
             .query('SELECT TransportCompany FROM MiddlewareMagento WHERE NombreEndpoint = @NombreEndpoint');
@@ -134,8 +134,8 @@ async function obtenerCodigoTransportista(store) {
 
 async function getAccessTokenFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
-        const request = pool.request();
+        const pool2 = await connectToDatabase2();
+        const request = pool2.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
             .query('SELECT AccessToken FROM MiddlewareMagento WHERE NombreEndpoint = @NombreEndpoint');
@@ -156,8 +156,8 @@ async function getAccessTokenFromDB(store) {
 
 async function getConsumerKeyFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
-        const request = pool.request();
+        const pool2 = await connectToDatabase2();
+        const request = pool2.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
             .query('SELECT ConsumerKey FROM MiddlewareMagento WHERE NombreEndpoint = @NombreEndpoint');
@@ -178,8 +178,8 @@ async function getConsumerKeyFromDB(store) {
 
 async function getUrlWebServiceFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
-        const request = pool.request();
+        const pool2 = await connectToDatabase2();
+        const request = pool2.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
             .query('SELECT UrlTienda FROM MiddlewareMagento WHERE NombreEndpoint = @NombreEndpoint');
@@ -200,8 +200,8 @@ async function getUrlWebServiceFromDB(store) {
 
 async function getAccessTokenSecretFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
-        const request = pool.request();
+        const pool2 = await connectToDatabase2();
+        const request = pool2.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
             .query('SELECT AccessTokenSecret FROM MiddlewareMagento WHERE NombreEndpoint = @NombreEndpoint');
@@ -222,8 +222,8 @@ async function getAccessTokenSecretFromDB(store) {
 
 async function getConsumerSecretFromDB(store) {
     try {
-        const pool = await db.connectToDatabase();
-        const request = pool.request();
+        const pool2 = await connectToDatabase();
+        const request = pool2.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
             .query('SELECT ConsumerSecret FROM MiddlewareMagento WHERE NombreEndpoint = @NombreEndpoint');
