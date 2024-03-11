@@ -445,6 +445,7 @@ async function obtenerAccessTokenTienda(store) {
 //Cancelacion de pedidos
 async function handleOrderWebhookCanceled(jsonData, store) {
   try {
+    console.log(store)
     let orderNumberCancel = await extraerOrderNumberDesdeJson(jsonData);
     let idCustomerCancel = await consultarIdCustomer(store);
     console.log(orderNumberCancel)
@@ -459,7 +460,7 @@ async function handleOrderWebhookCanceled(jsonData, store) {
 async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
   let finalizado = "false";
   try {
-    const pool = await connectToDatabase();
+    const pool = await db.connectToDatabase();
 
     // Consulta para obtener el estado actual de St_DeliverynoteHeader
     const queryEstadoActual = `
@@ -516,7 +517,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
       console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
       // Esperar un breve intervalo antes de reintentar la operación
       await new Promise(resolve => setTimeout(resolve, 5000)); 
-      const pool = await connectToDatabase();
+      const pool = await db.connectToDatabase();
       await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado)
       // Consulta para obtener el estado actual de St_DeliverynoteHeader
       const queryEstadoActual = `
