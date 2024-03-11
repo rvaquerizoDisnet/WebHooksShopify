@@ -37,19 +37,10 @@ function procesarArchivo(archivo) {
             ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
         });
 
-        fs.unlink(rutaArchivo, err => {
-            if (err) {
-                console.error('Error al eliminar el archivo:', err);
-                return;
-            }
-            console.log('Archivo eliminado:', archivo);
-        });
     });
 }
 
 async function procesarArchivos() {
-    const fechaActual = moment().startOf('day');
-
     try {
         const archivos = fs.readdirSync(carpeta);
 
@@ -58,15 +49,7 @@ async function procesarArchivos() {
         if (archivosTxt.length > 0) {
             console.log('Se encontraron los siguientes archivos .txt:', archivosTxt);
             archivosTxt.forEach(archivo => {
-                const stats = fs.statSync(`${carpeta}${archivo}`);
-                const fechaModificacion = moment(stats.mtime).startOf('day');
-                const fechaCreacion = moment(stats.birthtime).startOf('day');
-
-                if (fechaModificacion.isSame(fechaActual, 'day') || fechaCreacion.isSame(fechaActual, 'day')) {
-                    procesarArchivo(archivo);
-                } else {
-                    console.log(`El archivo ${archivo} no fue modificado hoy y será ignorado.`);
-                }
+                procesarArchivo(archivo);
             });
         } else {
             console.log('No se encontraron archivos .txt en la carpeta.');
@@ -75,6 +58,7 @@ async function procesarArchivos() {
         console.error('Error al leer la carpeta:', err);
     }
 }
+
 
 async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
     let IdOrder = null;

@@ -24,21 +24,12 @@ function procesarArchivo(archivo) {
             await ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
         })
         .on('end', () => {
-            // Elimina el archivo después de procesarlo
-            fs.unlink(rutaArchivo, err => {
-                if (err) {
-                    console.error('Error al eliminar el archivo:', err);
-                    return;
-                }
-                console.log('Archivo eliminado:', archivo);
-            });
         });
 }
 
 
 // Función para procesar todos los archivos en la carpeta
 async function procesarArchivos() {
-    const fechaActual = new Date();
     // Lee la lista de archivos en la carpeta
     fs.readdir(carpeta, (err, archivos) => {
         if (err) {
@@ -46,26 +37,15 @@ async function procesarArchivos() {
             return;
         }
 
-       // Filtra los archivos .csv y verifica la fecha de modificación o creación
-       for (const archivo of archivos) {
-        if (archivo.endsWith('.CSV')) {
-            const rutaArchivo = `${carpeta}/${archivo}`;
-            try {
-                const stats = fs.statSync(rutaArchivo);
-                // Obtiene la fecha de modificación y creación del archivo
-                const fechaModificacion = stats.mtime;
-                const fechaCreacion = stats.birthtime; // Cambiar a ctime si quieres la fecha de creación
-                // Compara las fechas para ver si el archivo fue modificado o creado hoy
-                if (moment(fechaModificacion).isSame(fechaActual, 'day') || moment(fechaCreacion).isSame(fechaActual, 'day')) {
-                    procesarArchivo(archivo);
-                }
-            } catch (error) {
-                console.error('Error al obtener información del archivo:', error);
+        // Filtra los archivos .csv
+        for (const archivo of archivos) {
+            if (archivo.endsWith('.CSV')) {
+                procesarArchivo(archivo);
             }
         }
-    }
-});
+    });
 }
+
 
 
 
