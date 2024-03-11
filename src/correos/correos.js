@@ -105,7 +105,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         }
 
         const query = `
-            UPDATE MiddlewareDNH
+            UPDATE DeliveryNoteHeader
             SET TrackingNumber = @Tracking
             WHERE IdOrder = @IdOrder;
         `;
@@ -120,7 +120,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             await new Promise(resolve => setTimeout(resolve, 5000));
             const pool = await connectToDatabase();
             const query = `
-                UPDATE MiddlewareDNH
+                UPDATE DeliveryNoteHeader
                 SET TrackingNumber = @Tracking
                 WHERE IdOrder = @IdOrder;
             `;
@@ -165,21 +165,6 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function cronCorreos(){
-    cron.schedule('00 14 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 6:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('55 9 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 10:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('55 13 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 14:55');
-        await procesarArchivos();
-    });
-
     cron.schedule('55 16 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 17:55');
         await procesarArchivos();

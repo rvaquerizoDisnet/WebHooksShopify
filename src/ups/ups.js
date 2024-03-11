@@ -8,7 +8,7 @@ const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
 function cronUPS(){
-    cron.schedule('58 13 * * *', async () => {
+    cron.schedule('35 5 * * *', async () => {
         console.log('Ejecutando consulta a UPS a las 6:35');
         await consultaUPS();
     });
@@ -79,7 +79,7 @@ async function actualizarTracking(NumeroAlbaran, TrackingNumber){
     try {
         const pool = await connectToDatabase();
         const query = `
-            UPDATE MiddlewareDNH
+            UPDATE DeliveryNoteHeader
             SET TrackingNumber = @TrackingNumber
             WHERE IdOrder = @NumeroAlbaran;
         `;
@@ -95,7 +95,7 @@ async function actualizarTracking(NumeroAlbaran, TrackingNumber){
             await new Promise(resolve => setTimeout(resolve, 5000)); 
             const pool = await connectToDatabase();
             const query = `
-                UPDATE MiddlewareDNH
+                UPDATE DeliveryNoteHeader
                 SET TrackingNumber = @TrackingNumber
                 WHERE IdOrder = @NumeroAlbaran;
             `;
