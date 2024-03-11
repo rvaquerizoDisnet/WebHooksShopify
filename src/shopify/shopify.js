@@ -648,4 +648,4 @@ async function enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, final
 
 
 //Exporta los modulos
-module.exports = { initWebhooks, handleWebhook, handleOrderWebhook, handleCanceledOrder, sendOrderToWebService, getUnfulfilledOrdersAndSendToWebService };
+module.exports = { initWebhooks, handleWebhook, handleOrderWebhook, sendOrderToWebService, getUnfulfilledOrdersAndSendToWebService };
