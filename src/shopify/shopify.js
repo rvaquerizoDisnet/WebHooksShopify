@@ -463,7 +463,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
     `;
     const requestEstadoActual = pool.request();
     requestEstadoActual.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
-    requestEstadoActual.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+    requestEstadoActual.input('idCustomerCancel', sql.Int, idCustomerCancel); 
     const resultEstadoActual = await requestEstadoActual.query(queryEstadoActual);
 
     if (resultEstadoActual.recordset.length === 0) {
@@ -496,7 +496,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
     `;
     const requestActualizarEstado = pool.request();
     requestActualizarEstado.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
-    requestActualizarEstado.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+    requestActualizarEstado.input('idCustomerCancel', sql.Int, idCustomerCancel); 
     await requestActualizarEstado.query(queryActualizarEstado);
     finalizado = "correcto";
     await enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, finalizado);
@@ -520,7 +520,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
       `;
       const requestEstadoActual = pool.request();
       requestEstadoActual.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
-      requestEstadoActual.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+      requestEstadoActual.input('idCustomerCancel', sql.Int, idCustomerCancel); 
       const resultEstadoActual = await requestEstadoActual.query(queryEstadoActual);
 
       if (resultEstadoActual.recordset.length === 0) {
@@ -553,7 +553,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
       `;
       const requestActualizarEstado = pool.request();
       requestActualizarEstado.input('orderNumberCancel', sql.NVarChar, orderNumberCancel.toString()); 
-      requestActualizarEstado.input('idCustomerCancel', sql.NVarChar, idCustomerCancel); 
+      requestActualizarEstado.input('idCustomerCancel', sql.Int, idCustomerCancel); 
       await requestActualizarEstado.query(queryActualizarEstado);
 
       console.log(`Se ha actualizado el estado del pedido a 'DEL' para el OrderNumber ${orderNumberCancel}.`);
