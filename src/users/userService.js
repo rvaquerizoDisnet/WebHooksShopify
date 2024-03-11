@@ -2,11 +2,11 @@
 const mssql = require('mssql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { connectToDatabase2 } = require('../utils/database2');
+const { pool, connectToDatabase } = require('../utils/database');
 
 const verificarExistenciaUsuario = async (username) => {
   try {
-    await connectToDatabase2();
+    await connectToDatabase();
 
     const result = await pool
       .request()
@@ -22,7 +22,7 @@ const verificarExistenciaUsuario = async (username) => {
 
 const registrarUsuario = async (username, password, rol = 'admin') => {
   try {
-    await connectToDatabase2();
+    await connectToDatabase();
 
     const hashContrasena = await bcrypt.hash(password, 10);
 
@@ -39,7 +39,7 @@ const registrarUsuario = async (username, password, rol = 'admin') => {
 
 const iniciarSesion = async (username, password) => {
   try {
-    await connectToDatabase2();
+    await connectToDatabase();
 
     const result = await pool
       .request()

@@ -1,13 +1,14 @@
-const { pool, sql, connectToDatabase2 } = require('../utils/database');
+const { pool, sql, connectToDatabase } = require('../utils/database');
 
 async function insertIntoDB(nombre, uid_cliente, departamento_exp) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
     INSERT INTO MiddlewareGLS (nombre, uid_cliente, departamento_exp)
     VALUES (@nombre, @uid_cliente, @departamento_exp)
     `;
+    console.log('Consulta SQL:', query);
     await request
       .input('nombre', sql.NVarChar, nombre)
       .input('uid_cliente', sql.UniqueIdentifier, uid_cliente)
@@ -22,12 +23,13 @@ async function insertIntoDB(nombre, uid_cliente, departamento_exp) {
 
 async function insertIntoDBCli(Departamento, Correo) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
     INSERT INTO MwClientesGLS (Departamento, Correo)
     VALUES (@Departamento, @Correo)
     `;
+    console.log('Consulta SQL:', query);
     await request
       .input('Departamento', sql.NVarChar, Departamento)
       .input('Correo', sql.NVarChar, Correo)
@@ -41,7 +43,7 @@ async function insertIntoDBCli(Departamento, Correo) {
 
 async function updateClientInDB(clientId, nombre, uid_cliente, departamento_exp) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
       UPDATE MiddlewareGLS 
@@ -66,7 +68,7 @@ async function updateClientInDB(clientId, nombre, uid_cliente, departamento_exp)
 
 async function deleteClientFromDB(clientId) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
       DELETE FROM MiddlewareGLS

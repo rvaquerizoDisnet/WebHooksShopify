@@ -1,10 +1,9 @@
-//Adaptar este codigo para que funcione correctamente con WooCommerce, ahora esta como si fuese shopify
 const xml2js = require('xml2js');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
-const { pool, sql, connectToDatabase2 } = require('../utils/database2');
+const db = require('../utils/database');
 
 require('dotenv').config();
 
@@ -82,7 +81,7 @@ function addToQueue(jobData) {
 
 async function initWebhooks(app, providedUrl) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await db.connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
@@ -107,6 +106,8 @@ async function initWebhooks(app, providedUrl) {
     // Establecer un intervalo para procesar la cola
     setInterval(processQueue, 1000);
 
+    // Cerrar la conexión a la base de datos después de configurar los webhooks
+    //await db.closeDatabaseConnection(pool);
   } catch (error) {
     console.error('Error al inicializar los webhooks:', error);
     throw error;
@@ -122,8 +123,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
         res.status(200).send('OK');
       }
       await handleOrderWebhook(req.body, store);
-    } else if (tipo === 'canceled') {
-      handleOrderWebhookCanceled(req.body, store);
+    } else if (tipo === 'shipments') {
     } else {
       console.error(`Tipo de webhook no reconocido: ${tipo}`);
     }
@@ -147,7 +147,7 @@ async function handleOrderWebhook(jsonData, store) {
 
 async function enviarDatosAlWebService(xmlData, store) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await db.connectToDatabase();
     const request = pool.request();
 
     const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -164,6 +164,8 @@ async function enviarDatosAlWebService(xmlData, store) {
       console.error('No se encontró un UrlWebService en la base de datos.');
     }
 
+    // Cerrar la conexión a la base de datos después de obtener la URL
+    //await db.closeDatabaseConnection(pool);
 
     if (!urlWebService) {
       throw new Error(`No se encontró la URL del servicio web para la tienda: ${store}`);
@@ -283,7 +285,7 @@ function mapJsonToXml(jsonData, store) {
           Email: jsonData.billing.email || 'No proporcionado',
         },
         Lineas: {
-          Linea: mappedLineItems,
+          Linea: lineas,
         },
       },
     },
@@ -297,14 +299,17 @@ function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await db.connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
-    const result = await request.input('NombreEndpoint', sql.NVarChar, store)
+    const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
       .query('SELECT SessionCode FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
     
     const sessionCode = result.recordset[0]?.SessionCode;
+
+    // Cerrar la conexión a la base de datos después de obtener la información necesaria
+    //await db.closeDatabaseConnection(pool);
 
     if (!sessionCode) {
       console.log('No se ha podido obtener el SessionCode para la tienda:', store);
@@ -377,15 +382,18 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
 
 async function obtenerSecretsTienda(store) {
     try {
-      const pool = await connectToDatabase2();
+      const pool = await db.connectToDatabase();
       const request = pool.request();
   
       // Hacer una consulta a la base de datos para obtener el Secrets de la tienda
-      const result = await request.input('NombreEndpoint', sql.NVarChar, store)
+      const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
         .query('SELECT ApiSecret, ApiKey FROM MiddlewareWooCommerce WHERE NombreEndpoint = @NombreEndpoint');
       
       const ApiSecret = result.recordset[0]?.ApiSecret;
       const ApiKey = result.recordset[0]?.ApiKey;
+  
+      // Cerrar la conexión a la base de datos después de obtener la información necesaria
+      //await db.closeDatabaseConnection(pool);
   
       if (!ApiSecret || !ApiKey) {
         console.log('No se ha podido obtener el ApiKey o el ApiSecret para la tienda:', store);
@@ -398,9 +406,9 @@ async function obtenerSecretsTienda(store) {
       throw error;
     }
   }
-  
 
-//Cancelacion de pedidos
+
+  //Cancelacion de pedidos
 async function handleOrderWebhookCanceled(jsonData, store) {
   try {
     console.log(store)
@@ -548,8 +556,8 @@ async function extraerOrderNumberDesdeJson(jsonData) {
 
 async function consultarIdCustomer(store) {
   try {
-    const pool = await connectToDatabase2();
-    const request = pool.request();
+    const pool2 = await connectToDatabase2();
+    const request = pool2.request();
 
     const result = await request.input('NombreEndpoint', sql.NVarChar, store)
       .query('SELECT IdCustomer FROM MiddlewareShopify WHERE NombreEndpoint = @NombreEndpoint');
@@ -605,6 +613,9 @@ async function enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, final
   }
 }
 
+
+
+  
 
 
 //Exporta los modulos

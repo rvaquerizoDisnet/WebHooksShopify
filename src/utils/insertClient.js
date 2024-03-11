@@ -1,14 +1,15 @@
 // insertClient.js
-const { pool, sql, connectToDatabase2 } = require('../utils/database');
+const { pool, sql, connectToDatabase } = require('../utils/database');
 
 async function insertIntoDB(nombreEndpoint, urlWebService, apiKey, apiSecret, accessToken, idCustomer, sessionCode, transportCompany) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
     INSERT INTO MiddlewareShopify (NombreEndpoint, UrlWebService, ApiKey, ApiSecret, AccessToken, IdCustomer, SessionCode, TransportCompany)
     VALUES (@nombreEndpoint, @urlWebService, @apiKey, @apiSecret, @accessToken, @idCustomer, @sessionCode, @transportCompany)
     `;
+    console.log('Consulta SQL:', query);
     await request
       .input('nombreEndpoint', sql.NVarChar, nombreEndpoint)
       .input('urlWebService', sql.NVarChar, urlWebService)
@@ -28,7 +29,7 @@ async function insertIntoDB(nombreEndpoint, urlWebService, apiKey, apiSecret, ac
 
 async function updateClientInDB(clientId, nombreEndpoint, urlWebService, idCustomer, sessionCode, transportCompany) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
       UPDATE MiddlewareShopify 
@@ -58,7 +59,7 @@ async function updateClientInDB(clientId, nombreEndpoint, urlWebService, idCusto
 
 async function deleteClientFromDB(clientId) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
       DELETE FROM MiddlewareShopify

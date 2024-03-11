@@ -6,7 +6,7 @@ const woocommerce = require('../WooCommerce/WooCommerceWB');
 const woocommerceAPI = require('../WooCommerce/WooCommerceAPI');
 const xmlparser = require('express-xml-bodyparser');
 const db = require('../utils/database');
-const { pool, sql, connectToDatabase2 } = require('../utils/database2');
+const { connectToDatabase } = require('../utils/database');
 const path = require('path');
 const { insertIntoDB, updateClientInDB, deleteClientFromDB } = require('../utils/insertClientWooCommerce');
 const { verificarToken } = require('../autenticacion/authenticationMiddleware');
@@ -46,7 +46,7 @@ router.post('/post', verificarToken, async (req, res) => {
 
 router.get('/clientes', verificarToken, async (req, res) => {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
       SELECT * FROM MiddlewareWooCommerce;
@@ -105,18 +105,6 @@ async function initDynamicEndpoints() {
       }
     });
 
-    // Configura el endpoint para manejar pedidos POST
-    router.post(`${webhookRoute}orders/canceled`, async (req, res) => {
-      try {
-        const jobData = { tipo: 'canceled', req, res, store: store.NombreEndpoint };
-        await woocommerce.handleWebhook(jobData);
-        res.status(200).send('OK');
-      } catch (error) {
-        console.error('Error al procesar el webhook:', error);
-        res.status(500).send('Internal Server Error');
-      }
-    });
-
     // Configurar el endpoint para obtener pedidos no cumplidos
     router.get(`${webhookRoute}orders/unfulfilled`, async (req, res) => {
         try {
@@ -128,8 +116,8 @@ async function initDynamicEndpoints() {
         }
         });
     
-      // Configurar el endpoint para manejar envíos POST
-      router.post(`${webhookRoute}shipments`, async (req, res) => {
+        // Configurar el endpoint para manejar envíos POST
+        router.post(`${webhookRoute}shipments`, async (req, res) => {
         try {
             const store = await obtenerCodigoSesionCliente(req.body);
             await woocommerceAPI.handleShipmentAdminApi({ tipo: 'shipments', req, res, store });
@@ -149,12 +137,13 @@ async function obtenerCodigoSesionCliente(reqBody) {
     try {
       const idCustomerArray = reqBody.pedidos?.pedido?.[0]?.idcustomer || [];
   
-      const pool = await connectToDatabase2();
+      const pool = await db.connectToDatabase();
       const request = pool.request();
   
       const result = await request.query('SELECT IdCustomer, NombreEndpoint FROM MiddlewareWooCommerce');
       const tiendas = result.recordset;
   
+      //await db.closeDatabaseConnection(pool);
   
       for (const idCustomer of idCustomerArray) {
         const tienda = tiendas.find(t => t.IdCustomer == idCustomer);

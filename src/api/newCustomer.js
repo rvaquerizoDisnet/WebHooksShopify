@@ -4,7 +4,6 @@ const path = require('path');
 const { insertIntoDB, updateClientInDB, deleteClientFromDB } = require('../utils/insertClient');
 const { verificarToken } = require('../autenticacion/authenticationMiddleware');
 const { connectToDatabase } = require('../utils/database');
-const { pool, sql, connectToDatabase2 } = require('../utils/database2');
 
 const router = express.Router();
 
@@ -34,7 +33,7 @@ router.post('/post', verificarToken, async (req, res) => {
 
 router.get('/clientes', verificarToken, async (req, res) => {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
     const query = `
       SELECT * FROM MiddlewareShopify;

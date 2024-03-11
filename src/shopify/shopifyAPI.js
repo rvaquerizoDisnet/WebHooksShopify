@@ -1,7 +1,6 @@
 const Shopify = require('shopify-api-node');
 require('dotenv').config();
 const db = require('../utils/database');
-const { pool, sql, connectToDatabase2 } = require('../utils/database2');
 const mssql = require('mssql');
 
 async function handleShipmentAdminApi({ req, res, store }) {
@@ -158,7 +157,7 @@ function wait(ms) {
 
 async function obtenerNombreCompania(store) {
     try {
-        const pool = await connectToDatabase2();
+        const pool = await db.connectToDatabase();
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -180,7 +179,7 @@ async function obtenerNombreCompania(store) {
 
 async function getAdminApiAccessTokenFromDB(store) {
     try {
-        const pool = await connectToDatabase2();
+        const pool = await db.connectToDatabase();
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -202,7 +201,7 @@ async function getAdminApiAccessTokenFromDB(store) {
 
 async function getApiKeyFromDB(store) {
     try {
-        const pool = await connectToDatabase2();
+        const pool = await db.connectToDatabase();
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)

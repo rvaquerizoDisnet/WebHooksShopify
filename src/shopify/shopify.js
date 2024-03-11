@@ -5,7 +5,6 @@ const nodemailer = require('nodemailer');
 const winston = require('winston');
 const path = require('path');
 const { pool, sql, connectToDatabase } = require('../utils/database');
-const { connectToDatabase2 } = require('../utils/database2');
 
 
 require('dotenv').config();
@@ -88,7 +87,7 @@ function addToQueue(jobData) {
 // Añadir aqui el nombre de la tienda y su ruta asignada en la api
 async function initWebhooks(app, providedUrl) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la información de las tiendas
@@ -152,7 +151,7 @@ async function handleOrderWebhook(jsonData, store) {
 
 async function enviarDatosAlWebService(xmlData, store) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener la URL del servicio web de la tienda
@@ -331,7 +330,7 @@ async function mapJsonToXml(jsonData, store) {
 // Si el codigoSesionCliente cambia en el ABC, tendremos que cambiar este tambien en el .env.
 async function obtenerCodigoSesionCliente(store) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el SessionCode de la tienda
@@ -408,7 +407,7 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
 // Función para obtener el AccessToken desde la base de datos por NombreEndpoint
 async function obtenerAccessTokenTienda(store) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     // Hacer una consulta a la base de datos para obtener el AccessToken de la tienda
@@ -580,7 +579,7 @@ async function extraerOrderNumberDesdeJson(jsonData) {
 
 async function consultarIdCustomer(store) {
   try {
-    const pool = await connectToDatabase2();
+    const pool = await connectToDatabase();
     const request = pool.request();
 
     const result = await request.input('NombreEndpoint', sql.NVarChar, store)
