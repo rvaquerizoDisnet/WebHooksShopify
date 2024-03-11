@@ -1,57 +1,42 @@
-const { execSync } = require('child_process');
 const fs = require('fs');
 const cron = require('node-cron');
-require('dotenv').config();
 const moment = require('moment');
-const csvParser = require('csv-parser');
 const { pool, sql, connectToDatabase } = require('../utils/database');
 
+const carpeta = '/home/admin81/shares/24UOC/Export/GECO/';
 
-const carpeta = 'C:\\Users\\RaulV\\Documents\\correos';
-
-
-// Función para procesar un archivo .txt
 function procesarArchivo(archivo) {
-    const rutaArchivo = `${carpeta}\\${archivo}`;
+    const rutaArchivo = `${carpeta}${archivo}`;
 
     let CustomerOrderNumber = null;
     let Tracking = null;
-    // Lee el contenido del archivo
+
     fs.readFile(rutaArchivo, 'utf8', (err, contenido) => {
         if (err) {
             console.error('Error al leer el archivo:', err);
             return;
         }
 
-        // Divide el contenido del archivo en líneas
         const lineas = contenido.split('\n');
-        let cont = 0;
-        // Itera sobre cada línea para extraer los datos
-        lineas.forEach(linea => {
-            cont++;
-            if (linea.trim() !== '') { // Verifica que la línea no esté vacía ni undefined
-                const campos = linea.split(/\t+/);
 
+        lineas.forEach(linea => {
+            if (linea.trim() !== '') {
+                const campos = linea.split(/\t+/);
                 Tracking = campos[5];
-                console.log("Tracking ", Tracking, " linea ", cont);
+
                 if (campos[19]) {
                     CustomerOrderNumber = campos[19];
                     if (CustomerOrderNumber.includes('@')) {
-                        CustomerOrderNumber = campos[20]
-                        console.log("CustomerOrderNumber:", CustomerOrderNumber, " linea ", cont);
-                    } else {
-                        console.log("CustomerOrderNumber ", CustomerOrderNumber, " linea ", cont);
+                        CustomerOrderNumber = campos[20];
                     }
                 } else {
                     console.log("CustomerOrderNumber no está definido para esta línea.");
                 }
             }
 
-            ActualizarBBDDTracking(CustomerOrderNumber, Tracking)
+            ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
         });
 
-        // Elimina el archivo después de procesarlo
-        
         fs.unlink(rutaArchivo, err => {
             if (err) {
                 console.error('Error al eliminar el archivo:', err);
@@ -62,34 +47,38 @@ function procesarArchivo(archivo) {
     });
 }
 
-
-// Función para procesar todos los archivos en la carpeta
 async function procesarArchivos() {
-    // Lee la lista de archivos en la carpeta
-    fs.readdir(carpeta, (err, archivos) => {
-        if (err) {
-            console.error('Error al leer la carpeta:', err);
-            return;
-        }
+    const fechaActual = moment().startOf('day');
 
-        // Filtra los archivos .txt
+    try {
+        const archivos = fs.readdirSync(carpeta);
+
         const archivosTxt = archivos.filter(archivo => archivo.endsWith('.txt'));
 
-        // Si hay al menos un archivo .txt
         if (archivosTxt.length > 0) {
             console.log('Se encontraron los siguientes archivos .txt:', archivosTxt);
             archivosTxt.forEach(archivo => {
-                procesarArchivo(archivo);
+                const stats = fs.statSync(`${carpeta}${archivo}`);
+                const fechaModificacion = moment(stats.mtime).startOf('day');
+                const fechaCreacion = moment(stats.birthtime).startOf('day');
+
+                if (fechaModificacion.isSame(fechaActual, 'day') || fechaCreacion.isSame(fechaActual, 'day')) {
+                    procesarArchivo(archivo);
+                } else {
+                    console.log(`El archivo ${archivo} no fue modificado hoy y será ignorado.`);
+                }
             });
         } else {
             console.log('No se encontraron archivos .txt en la carpeta.');
         }
-    });
+    } catch (err) {
+        console.error('Error al leer la carpeta:', err);
+    }
 }
-
 
 async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
     let IdOrder = null;
+
     try {
         const pool = await connectToDatabase();
         const queryConsultaIdOrder = `
@@ -99,9 +88,10 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         `;
 
         const requestConsultaIdOrder = pool.request();
-        requestConsultaIdOrder.input('CustomerOrderNumber', sql.NVarChar, CustomerOrderNumber.toString()); 
+        requestConsultaIdOrder.input('CustomerOrderNumber', sql.NVarChar, CustomerOrderNumber.toString());
 
         const resultConsultaIdOrder = await requestConsultaIdOrder.query(queryConsultaIdOrder);
+
         if (resultConsultaIdOrder.recordset.length === 0) {
             console.log('No se encontró el CustomerOrderNumber en la tabla OrderHeader.');
             return;
@@ -110,28 +100,27 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         if (resultConsultaIdOrder.recordset.length === 1) {
             IdOrder = resultConsultaIdOrder.recordset[0].IdOrder;
         } else {
-             await enviarCorreoIncidencia(CustomerOrderNumber, Tracking)
-             throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
-            }
+            await enviarCorreoIncidencia(CustomerOrderNumber, Tracking);
+            throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
+        }
 
         const query = `
-            UPDATE DeliveryNoteHeader
+            UPDATE MiddlewareDNH
             SET TrackingNumber = @Tracking
             WHERE IdOrder = @IdOrder;
         `;
+
         const request = pool.request();
         request.input('Tracking', sql.NVarChar, Tracking);
         request.input('IdOrder', sql.NVarChar, IdOrder.toString());
         await request.query(query);
-        console.log(`Se ha actualizado el campo TrackingNumber con el valor ${Tracking} y el IdOrder ${IdOrder}.`);
     } catch (error) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
-            // Esperar un breve intervalo antes de reintentar la operación
-            await new Promise(resolve => setTimeout(resolve, 5000)); 
+            await new Promise(resolve => setTimeout(resolve, 5000));
             const pool = await connectToDatabase();
             const query = `
-                UPDATE DeliveryNoteHeader
+                UPDATE MiddlewareDNH
                 SET TrackingNumber = @Tracking
                 WHERE IdOrder = @IdOrder;
             `;
@@ -139,12 +128,12 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             request.input('Tracking', sql.NVarChar, Tracking);
             request.input('IdOrder', sql.NVarChar, IdOrder.toString());
             await request.query(query);
-            console.log(`Se ha actualizado el campo TrackingNumber con el valor ${Tracking} y el IdOrder ${IdOrder}.`);
         } else {
             console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
         }
     }
 }
+
 
 async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
     try {
@@ -176,38 +165,38 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function cronCorreos(){
-    cron.schedule('43 10 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 6:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 9 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 10:45');
-        await procesarArchivos();
-    });
-
     cron.schedule('45 13 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 14:45');
+        console.log('Ejecutando consulta a Correos a las 6:55');
         await procesarArchivos();
     });
 
-    cron.schedule('45 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 17:45');
+    cron.schedule('55 9 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 10:55');
         await procesarArchivos();
     });
 
-    cron.schedule('45 17 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 18:45');
+    cron.schedule('55 13 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 14:55');
         await procesarArchivos();
     });
 
-    cron.schedule('45 18 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 19:45');
+    cron.schedule('55 16 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 17:55');
         await procesarArchivos();
     });
 
-    cron.schedule('45 19 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 20:45');
+    cron.schedule('55 17 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 18:55');
+        await procesarArchivos();
+    });
+
+    cron.schedule('55 18 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 19:55');
+        await procesarArchivos();
+    });
+
+    cron.schedule('55 19 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 20:55');
         await procesarArchivos();
     });
 }

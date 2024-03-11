@@ -454,7 +454,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
     // Consulta para obtener el estado actual de St_DeliverynoteHeader
     const queryEstadoActual = `
       SELECT St_DeliverynoteHeader
-      FROM MiddlewareDNH
+      FROM DeliveryNoteHeader
       WHERE IdOrder = (
           SELECT IdOrder
           FROM OrderHeader
@@ -486,7 +486,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
 
     // Consulta para actualizar el estado a 'DEL' en la base de datos
     const queryActualizarEstado = `
-      UPDATE MiddlewareDNH
+      UPDATE DeliveryNoteHeader
       SET St_DeliverynoteHeader = 'DEL'
       WHERE IdOrder = (
           SELECT IdOrder
@@ -511,7 +511,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
       // Consulta para obtener el estado actual de St_DeliverynoteHeader
       const queryEstadoActual = `
         SELECT St_DeliverynoteHeader
-        FROM MiddlewareDNH
+        FROM DeliveryNoteHeader
         WHERE IdOrder = (
             SELECT IdOrder
             FROM OrderHeader
@@ -543,7 +543,7 @@ async function cambiarEstadoBBDD(orderNumberCancel, idCustomerCancel) {
 
       // Consulta para actualizar el estado a 'DEL' en la base de datos
       const queryActualizarEstado = `
-        UPDATE MiddlewareDNH
+        UPDATE DeliveryNoteHeader
         SET St_DeliverynoteHeader = 'DEL'
         WHERE IdOrder = (
             SELECT IdOrder
@@ -635,7 +635,6 @@ async function enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, final
     console.log('Error en enviarCorreoIncidencia:', error);
   }
 }
-
 
 
 //Exporta los modulos

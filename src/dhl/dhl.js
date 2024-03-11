@@ -7,7 +7,7 @@ const csvParser = require('csv-parser');
 const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
-const carpeta = 'C:\\Users\\RaulV\\Documents\\dhl';
+const carpeta = '/home/admin81/shares/DHL/TRAKING/';
 
 
 // Función para procesar un archivo .csv
@@ -25,7 +25,7 @@ function procesarArchivo(archivo) {
             console.log('Tracking:', Tracking);
             // Procesa los datos y actualiza la base de datos
             await ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
-        })/*
+        })
         .on('end', () => {
             // Elimina el archivo después de procesarlo
             fs.unlink(rutaArchivo, err => {
@@ -35,12 +35,13 @@ function procesarArchivo(archivo) {
                 }
                 console.log('Archivo eliminado:', archivo);
             });
-        });*/
+        });
 }
 
 
 // Función para procesar todos los archivos en la carpeta
 async function procesarArchivos() {
+    const fechaActual = new Date();
     // Lee la lista de archivos en la carpeta
     fs.readdir(carpeta, (err, archivos) => {
         if (err) {
@@ -48,24 +49,31 @@ async function procesarArchivos() {
             return;
         }
 
-        // Filtra los archivos .csv
-        const archivoscsv = archivos.filter(archivo => archivo.endsWith('.CSV'));
-
-        // Si hay al menos un archivo .csv
-        if (archivoscsv.length > 0) {
-            console.log('Se encontraron los siguientes archivos .csv:', archivoscsv);
-            archivoscsv.forEach(archivo => {
-                procesarArchivo(archivo);
-            });
-        } else {
-            console.log('No se encontraron archivos .csv en la carpeta.');
+       // Filtra los archivos .csv y verifica la fecha de modificación o creación
+       for (const archivo of archivos) {
+        if (archivo.endsWith('.CSV')) {
+            const rutaArchivo = `${carpeta}/${archivo}`;
+            try {
+                const stats = fs.statSync(rutaArchivo);
+                // Obtiene la fecha de modificación y creación del archivo
+                const fechaModificacion = stats.mtime;
+                const fechaCreacion = stats.birthtime; // Cambiar a ctime si quieres la fecha de creación
+                // Compara las fechas para ver si el archivo fue modificado o creado hoy
+                if (moment(fechaModificacion).isSame(fechaActual, 'day') || moment(fechaCreacion).isSame(fechaActual, 'day')) {
+                    procesarArchivo(archivo);
+                }
+            } catch (error) {
+                console.error('Error al obtener información del archivo:', error);
+            }
         }
-    });
+    }
+});
 }
 
 
+
 async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
-    let IdOrder = null; // Declare IdOrder outside the try block
+    let IdOrder = null;
 
     try {
         const pool = await connectToDatabase();
@@ -154,23 +162,8 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function crondhl(){
-    cron.schedule('52 9 * * *', async () => {
+    cron.schedule('41 13 * * *', async () => {
         console.log('Ejecutando consulta a dhl a las 6:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 9 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 10:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 13 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 14:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 16 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 17:45');
         await procesarArchivos();
     });
 

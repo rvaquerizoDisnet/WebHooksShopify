@@ -112,10 +112,10 @@ cronGLS();
 consultarIncidenciasYPesos();
 
 //UPS
-//cronUPS();
+cronUPS();
 
 //Correos
-//cronCorreos();
+cronCorreos();
 
 //DHL
-//crondhl();
+crondhl();

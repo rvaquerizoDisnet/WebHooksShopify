@@ -8,7 +8,7 @@ const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
 function cronUPS(){
-    cron.schedule('25 12 * * *', async () => {
+    cron.schedule('42 13 * * *', async () => {
         console.log('Ejecutando consulta a UPS a las 6:35');
         await consultaUPS();
     });
@@ -48,7 +48,7 @@ async function consultaUPS() {
     try {
         const fechaHoy = moment().format('YYYYMMDD');
 
-        const csvFilePath = 'C:\\Users\\RaulV\\Documents\\correos\\ups\\UPSTracking.csv';
+        const csvFilePath = '/home/admin81/shares/UPS/Tracking/UPSTracking.csv/';
         const rows = [];
 
         fs.createReadStream(csvFilePath)
@@ -57,7 +57,6 @@ async function consultaUPS() {
             const fechaCSV = row[3];
             if (fechaCSV == fechaHoy) {
                 rows.push(row);
-                console.log('Coincide la fecha:', row);
             }
         })
         .on('end', () => {
