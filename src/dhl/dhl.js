@@ -18,11 +18,8 @@ function procesarArchivo(archivo) {
     fs.createReadStream(rutaArchivo)
         .pipe(csvParser({ separator: ',', headers: false }))
         .on('data', async (row) => {
-            console.log('Row Data:', row);
             const CustomerOrderNumber = row[0];
             const Tracking = row[1];
-            console.log('CustomerOrderNumber:', CustomerOrderNumber);
-            console.log('Tracking:', Tracking);
             // Procesa los datos y actualiza la base de datos
             await ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
         })
@@ -162,7 +159,7 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function crondhl(){
-    cron.schedule('50 13 * * *', async () => {
+    cron.schedule('59 13 * * *', async () => {
         console.log('Ejecutando consulta a dhl a las 6:45');
         await procesarArchivos();
     });
