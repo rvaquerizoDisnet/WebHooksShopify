@@ -8,7 +8,7 @@ const { pool, sql, connectToDatabase } = require('../utils/database');
 
 
 function cronUPS(){
-    cron.schedule('48 13 * * *', async () => {
+    cron.schedule('51 13 * * *', async () => {
         console.log('Ejecutando consulta a UPS a las 6:35');
         await consultaUPS();
     });
@@ -48,7 +48,7 @@ async function consultaUPS() {
     try {
         const fechaHoy = moment().format('YYYYMMDD');
 
-        const csvFilePath = '/home/admin81/shares/UPS/Tracking/UPSTracking.csv/';
+        const csvFilePath = '/home/admin81/shares/UPS/Tracking/UPSTracking.csv';
         const rows = [];
 
         fs.createReadStream(csvFilePath)
