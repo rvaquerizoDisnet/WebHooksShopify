@@ -28,10 +28,6 @@ async function handleShipmentAdminApi({ req, res, store }) {
         });
 
         for (const pedido of pedidos) {
-            if (!pedido.customerordernumber || !pedido.trackingnumber) {
-                console.error('Error de validación: OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.');
-                return res.status(400).json({ error: 'OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.' });
-            }
         
             const orderNumber = pedido.customerordernumber[0];
             const trackingNumber = pedido.trackingnumber[0] + "";
