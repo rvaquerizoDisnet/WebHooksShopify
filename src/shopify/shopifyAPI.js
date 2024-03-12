@@ -37,7 +37,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const orderNumber = pedido.ordernumber[0];
             const trackingNumber = pedido.trackingnumber[0] + "";
         
-            let yearOrderNumber = orderNumber;
+            let yearOrderNumber = `#${orderNumber}`;
             const currentYear = new Date().getFullYear();
             yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
         
