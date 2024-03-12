@@ -8,9 +8,10 @@ const generarToken = (usuario) => {
 const verificarToken = (req, res, next) => {
   const token = req.cookies.token;
   const errorMessage = encodeURIComponent('Se requiere iniciar sesión para acceder a esta ruta.');
-  const errorMessage2 = encodeURIComponent('Su sesión a expirado, vuelva a iniciar sesión.');
+  const errorMessage2 = encodeURIComponent('Su sesión ha expirado, vuelva a iniciar sesión.');
+  
   if (!token) {
-    res.redirect(`/users/login?error=${errorMessage}`);
+    return res.redirect(`/users/login?error=${errorMessage}`);
   }
 
   try {
@@ -18,8 +19,22 @@ const verificarToken = (req, res, next) => {
     req.usuario = decoded.usuario;
     next();
   } catch (error) {
-    res.redirect(`/users/login?error=${errorMessage2}`);
+    if (error.name === 'TokenExpiredError') {
+      return redirectToLogin(res, errorMessage2); // Usamos una función externa para redireccionar
+    } else {
+      console.error('Error de autenticación:', error.message);
+      return res.status(401).send('Error de autenticación');
+    }
   }
 };
+
+// Función externa para redireccionar en caso de token expirado
+const redirectToLogin = (res, errorMessage) => {
+  return res.redirect(`/users/login?error=${errorMessage}`);
+};
+
+module.exports = { generarToken, verificarToken };
+
+
 
 module.exports = { generarToken, verificarToken };
