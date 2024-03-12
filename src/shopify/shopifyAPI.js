@@ -39,10 +39,10 @@ async function handleShipmentAdminApi({ req, res, store }) {
         
             let yearOrderNumber = `#${orderNumber}`;
             const currentYear = new Date().getFullYear();
-            yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
+            yearOrderNumber = `#${currentYear}${yearOrderNumber.slice(1)}`;
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
-            const ordersByOrderNumber = await makeDelayedRequest(() => shopify.order.list({ name: orderNumber, status: 'any' }));
+            const ordersByOrderNumber = await makeDelayedRequest(() => shopify.order.list({ name: yearOrderNumber, status: 'any' }));
             const ordersByYearAndOrderNumber = await makeDelayedRequest(() => shopify.order.list({ name: yearOrderNumber, status: 'any' }));
             const orders = ordersByOrderNumber.concat(ordersByYearAndOrderNumber);
 
