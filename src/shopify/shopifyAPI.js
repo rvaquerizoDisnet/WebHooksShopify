@@ -34,7 +34,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
                 return res.status(400).json({ error: 'OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.' });
             }
         
-            const orderNumber = pedido.customerordernumber[0];
+            const orderNumber = pedido.ordernumber[0];
             const trackingNumber = pedido.trackingnumber[0] + "";
         
             let yearOrderNumber = orderNumber;
