@@ -22,3 +22,5 @@ cada dia se generan varios informes.
 
 Ubicaciones y barcodes:
 Aplicacion que leyendo una ubicacion, todos los siguientes lecturas que el codigo que empieze por 07 sea un barcode asigando a esa ubicacion, y cuando lea el siguiente ubicacion cambie de linea y empieze un registro nuevo.
+
+Crear una nueva base de datos independiente a la de ABC

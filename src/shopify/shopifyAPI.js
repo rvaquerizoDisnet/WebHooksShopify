@@ -9,9 +9,8 @@ async function handleShipmentAdminApi({ req, res, store }) {
     try {
         // Guardamos el XML que recibimos a través del endpoint /shopify/shipments/
         const xmlData = req.body;
-        const pedidos = xmlData?.pedidos?.pedido;
-
         console.log(xmlData)
+        const pedidos = xmlData?.pedidos?.pedido;
 
         if (!pedidos || !Array.isArray(pedidos)) {
             console.error('Error de validación: Pedidos no encontrados o no es una lista en los datos XML.');
@@ -29,17 +28,17 @@ async function handleShipmentAdminApi({ req, res, store }) {
         });
 
         for (const pedido of pedidos) {
-            if (!pedido.ordernumber || !pedido.trackingnumber) {
+            if (!pedido.customerordernumber || !pedido.trackingnumber) {
                 console.error('Error de validación: OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.');
                 return res.status(400).json({ error: 'OrderNumber y TrackingNumber son necesarios en los datos XML del pedido.' });
             }
         
-            const orderNumber = pedido.ordernumber[0];
+            const orderNumber = pedido.customerordernumber[0];
             const trackingNumber = pedido.trackingnumber[0] + "";
         
             let yearOrderNumber = orderNumber;
             const currentYear = new Date().getFullYear();
-            yearOrderNumber = `#${currentYear}${orderNumber}`;
+            yearOrderNumber = `#${currentYear}${orderNumber.slice(1)}`;
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
             const ordersByOrderNumber = await makeDelayedRequest(() => shopify.order.list({ name: orderNumber, status: 'any' }));
@@ -159,7 +158,7 @@ function wait(ms) {
 
 async function obtenerNombreCompania(store) {
     try {
-        const pool = await db.connectToDatabase(2);
+        const pool = await db.connectToDatabase();
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -181,7 +180,7 @@ async function obtenerNombreCompania(store) {
 
 async function getAdminApiAccessTokenFromDB(store) {
     try {
-        const pool = await db.connectToDatabase(2);
+        const pool = await db.connectToDatabase();
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
@@ -203,7 +202,7 @@ async function getAdminApiAccessTokenFromDB(store) {
 
 async function getApiKeyFromDB(store) {
     try {
-        const pool = await db.connectToDatabase(2);
+        const pool = await db.connectToDatabase();
         const request = pool.request();
     
         const result = await request.input('NombreEndpoint', mssql.NVarChar, store)
