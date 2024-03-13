@@ -3,17 +3,17 @@
 -Hacer archivo insertClientMagento------
 -Funcion que envie Mail a info y al cliente cuando haya una incidencia-----
 
--Correos Tracking automatico ruta L:\CLIENTS FITXERS\24UOC\Export\GECO
+-Correos Tracking automatico ruta L:\CLIENTS FITXERS\24UOC\Export\GECO 16:50
 PQ43DN2500230680115008T TrackingNumber //  0001469696 CustomerOrderNumber
 cada dia se generan 1 informes.
 
--UPS Tracking L:\TTE\FITXERS\UPS\Tracking 
+-UPS Tracking L:\TTE\FITXERS\UPS\Tracking 16:35
 PaqueteReferencia1;PaqueteReferencia2;PaqueteN�merodeseguimiento
 OrderNumber;DeliveryNoteNumber;TrackingNumber;fecha
 "0137488199";"347436";"1Z961V726850375931";"20240301"
 archivo autoincremental
 
--DHL
+-DHL 17:45
 L:\TTE\FITXERS\DHL\TRAKING
 "0137488201","0835421240"
 CustomerOrderNumber;TrackingNumber
