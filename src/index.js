@@ -103,7 +103,7 @@ process.on('SIGTERM', () => {
 });
 
 //generarExcel();
-
+shopify.getUnfulfilledOrdersAndSendToWebService('#20247724')
 // Llamada a las tareas automaticas por Cron 
 
 //GLS

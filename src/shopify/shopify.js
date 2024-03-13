@@ -311,7 +311,7 @@ async function mapJsonToXml(jsonData, store) {
           CodigoDestinatario: jsonData.number || '-',
           Phone: destinatario.phone || '-',
           Mobile: destinatario.phone || '-',
-          Email: jsonData.email || '-',
+          Email: jsonData.email,
         },
         Lineas: {
           Linea: lineas,
@@ -374,7 +374,7 @@ async function getUnfulfilledOrdersAndSendToWebService(store) {
     const adminApiAccessToken = await obtenerAccessTokenTienda(store);
 
     const response = await axios.get(
-      `https://${store}.myshopify.com/admin/api/2024-01/orders.json?status=unfulfilled`,
+      `https://${store}.myshopify.com/admin/api/2024-01/orders/${orderNumber}.json`,
       {
         headers: {
           'Content-Type': 'application/json',
