@@ -40,7 +40,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
             let OrderNumber2 = orderNumber;
             console.log("OrderNumber2", OrderNumber2)
             const currentYear = new Date().getFullYear();
-            let yearOrderNumber = `#${currentYear}${yearOrderNumber.slice(1)}`;
+            let yearOrderNumber = `#${currentYear}${OrderNumber2.slice(1)}`;
             console.log("yearOrderNumber", yearOrderNumber)
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
