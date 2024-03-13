@@ -87,7 +87,7 @@ async function actualizarTracking(NumeroAlbaran, TrackingNumber){
         request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran);
         request.input('TrackingNumber', sql.NVarChar, TrackingNumber);
         await request.query(query);
-        console.log("Tracking Number actualizado")
+        console.log("Tracking Number actualizado de ", NumeroAlbaran)
     } catch (error) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');

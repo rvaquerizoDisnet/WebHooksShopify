@@ -9,7 +9,6 @@ async function handleShipmentAdminApi({ req, res, store }) {
     try {
         // Guardamos el XML que recibimos a través del endpoint /shopify/shipments/
         const xmlData = req.body;
-        console.log(JSON.stringify(xmlData, null, 2));
 
         const pedidos = xmlData?.pedidos?.pedido;
 
@@ -38,10 +37,8 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const trackingNumber = pedido.trackingnumber[0] + "";
 
             let OrderNumber2 = orderNumber;
-            console.log("OrderNumber2", OrderNumber2)
             const currentYear = new Date().getFullYear();
             let yearOrderNumber = `#${currentYear}${OrderNumber2.slice(1)}`;
-            console.log("yearOrderNumber", yearOrderNumber)
         
             // Realizar la búsqueda en Shopify por el orderNumber normal y por el orderNumber con el año
             const ordersByOrderNumber = await makeDelayedRequest(() => shopify.order.list({ name: OrderNumber2, status: 'any' }));

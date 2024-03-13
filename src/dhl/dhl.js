@@ -85,6 +85,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
         request.input('Tracking', sql.NVarChar, Tracking);
         request.input('IdOrder', sql.NVarChar, IdOrder.toString());
         await request.query(query);
+        console.log("Tracking actualizado para ", IdOrder)
     } catch (error) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
@@ -100,6 +101,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             request.input('Tracking', sql.NVarChar, Tracking);
             request.input('IdOrder', sql.NVarChar, IdOrder.toString());
             await request.query(query);
+            console.log("Tracking actualizado para ", IdOrder)
         } else {
             console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
         }
