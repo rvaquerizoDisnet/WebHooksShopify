@@ -5,7 +5,7 @@ const { pool, connectToDatabase } = require('../utils/database');
 const sql = require('mssql');
 const carpeta = '/home/admin81/shares/24UOC/Export/GECO/';
 
-function procesarArchivo(archivo) {
+async function procesarArchivo(archivo) {
     const rutaArchivo = `${carpeta}${archivo}`;
 
     let CustomerOrderNumber = null;
@@ -37,6 +37,13 @@ function procesarArchivo(archivo) {
             ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
         });
 
+         // Eliminar el archivo después de procesarlo
+         try {
+            fs.promises.unlink(rutaArchivo);
+            console.log(`Archivo ${archivo} eliminado correctamente.`);
+        } catch (error) {
+            console.error(`Error al intentar eliminar el archivo ${archivo}:`, error);
+        }
     });
 }
 
@@ -155,6 +162,12 @@ function cronCorreos(){
         console.log('Ejecutando consulta a Correos a las 15:55');
         await procesarArchivos();
     });
+
+    cron.schedule('20 15 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 15:55');
+        await procesarArchivos();
+    });
+
 
     cron.schedule('55 14 * * *', async () => {
         console.log('Ejecutando consulta a Correos a las 15:55');
