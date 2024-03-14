@@ -48,7 +48,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [destinatarioCorreo],
+                to: [destinatarioCorreo, EMAIL_3],
                 subject: `Incidencia en un pedido de GLS`,
                 text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
@@ -81,7 +81,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [process.env.EMAIL_2, destinatarioCorreo],
+                to: [process.env.EMAIL_2, destinatarioCorreo, EMAIL_3],
                 subject: `Solucion a Incidencia en un pedido de GLS`,
                 text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
             };
@@ -98,7 +98,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('37 16 * * *', async () => {
+    cron.schedule('45 16 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 17:25');
         await consultaAGls();
     });
