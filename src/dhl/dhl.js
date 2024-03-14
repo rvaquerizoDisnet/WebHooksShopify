@@ -97,7 +97,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             const query = `
                 UPDATE DeliveryNoteHeader
                 SET TrackingNumber = @Tracking
-                WHERE IdOrder = @IdOrder;
+                WHERE IdOrder = @IdOrder and St_DeliverynoteHeader = 'FIN';
             `;
             const request = pool.request();
             request.input('Tracking', sql.NVarChar, Tracking);

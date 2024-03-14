@@ -86,7 +86,7 @@ async function actualizarTracking(NumeroAlbaran, TrackingNumber){
         const query = `
             UPDATE DeliveryNoteHeader
             SET TrackingNumber = @TrackingNumber
-            WHERE IdOrder = @NumeroAlbaran;
+            WHERE IdOrder = @NumeroAlbaran and St_DeliverynoteHeader = 'FIN';
         `;
         const request = pool.request();
         request.input('NumeroAlbaran', sql.NVarChar, NumeroAlbaran);
