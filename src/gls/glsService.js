@@ -98,7 +98,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('04 16 * * *', async () => {
+    cron.schedule('50 16 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 17:25');
         await consultaAGls();
     });
