@@ -637,5 +637,35 @@ async function enviarCorreoIncidencia(orderNumberCancel, idCustomerCancel, final
 }
 
 
-//Exporta los modulos
+async function importOrderById(orderNumber, store) {
+  try {
+    const adminApiAccessToken = await obtenerAccessTokenTienda(store);
+
+    const response = await axios.get(
+      `https://${store}.myshopify.com/admin/api/2024-01/orders.json?status=any&order_number=${orderNumber}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': adminApiAccessToken,
+        },
+      }
+    );
+
+    const order = response.data.orders[0]; // Tomamos el primer pedido, ya que debería ser único
+    console.log(order)
+    if (!order) {
+      throw new Error(`No se encontró ningún pedido con el número de orden ${orderNumber}`);
+    }
+
+    // Envía el pedido al webservice
+    await sendOrderToWebService(order, store);
+
+    return order;
+  } catch (error) {
+    console.error('Error al importar pedido por número de orden:', error);
+    throw error;
+  }
+}
+
+
 module.exports = { initWebhooks, handleWebhook, handleOrderWebhook, sendOrderToWebService, getUnfulfilledOrdersAndSendToWebService };

@@ -24,3 +24,40 @@ Ubicaciones y barcodes:
 Aplicacion que leyendo una ubicacion, todos los siguientes lecturas que el codigo que empieze por 07 sea un barcode asigando a esa ubicacion, y cuando lea el siguiente ubicacion cambie de linea y empieze un registro nuevo.
 
 Crear una nueva base de datos independiente a la de ABC
+
+
+Bixoto EANS:
+1 posibilidad, es que por cada ean generen 1 linea mas 
+
+
+Eliminar archivos:
+en un windows, y me gustaria crear una aplicacion que trabajase en segundo plano como un servicio y que cada dia haga la comprobacion de que si en esa carpeta hay algun archivo mas antiguo de 1 mes lo elimine
+
+
+
+FICHAJE:
+-En hikvision recibir los datos de cuando una persona entra, y pasa la tarjeta por el escaner, se inicie automaticamente la jornada laboral en el erp.
+-En el ERP hacer que tanto los clientes como las tareas, salgan por el orden de mas usados en los ultimos 7 dias
+
+
+
+Acceso hikvision:
+Para capturar el evento de que se ha pasado una tarjeta de acceso por un dispositivo Hikvision, generalmente necesitarás configurar el sistema de acuerdo con las opciones proporcionadas por el propio dispositivo. 
+Aquí te doy una guía general sobre cómo hacerlo:
+
+Acceso al panel de configuración: Accede al panel de configuración del dispositivo Hikvision. Esto generalmente se hace a través de un navegador web ingresando la dirección IP del dispositivo.
+
+Inicio de sesión: Inicia sesión en el panel de administración utilizando las credenciales adecuadas (nombre de usuario y contraseña).
+
+Configuración de eventos: Busca la sección de configuración relacionada con eventos o alarmas. Puede tener diferentes nombres dependiendo del modelo específico del dispositivo.
+
+Configuración de eventos de tarjeta de acceso: Dentro de la sección de eventos, busca las opciones relacionadas con el lector de tarjetas de acceso. Deberías encontrar configuraciones para eventos como 
+"Acceso autorizado" o "Acceso denegado".
+
+Activación y configuración: Activa la opción para registrar eventos de tarjeta de acceso y configura cómo deseas que se notifiquen estos eventos. Puedes optar por recibir notificaciones por correo electrónico, 
+almacenar registros en el dispositivo, o enviar alertas a través de otras formas de comunicación.
+
+Guardar la configuración: Asegúrate de guardar los cambios realizados en la configuración antes de salir del panel de administración.
+
+Una vez que hayas configurado correctamente el dispositivo Hikvision para capturar eventos de tarjeta de acceso, podrás monitorear los registros de eventos para ver cuándo se han pasado tarjetas de acceso por el 
+lector. Esto te permitirá mantener un registro de quién ha accedido a las áreas protegidas por el sistema de control de acceso.

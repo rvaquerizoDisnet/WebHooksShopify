@@ -7,4 +7,9 @@ node_modules/
 # Archivos de registro y salida
 *.log
 
+*.xml
+*.txt
+*.xlsx
+
 # Dependiendo de tu entorno y configuración, puedes agregar más patrones según sea necesario.
+preentradas/

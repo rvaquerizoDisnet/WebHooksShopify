@@ -21,6 +21,30 @@ router.get('/clientes/', verificarToken, (req, res) => {
 });
 
 
+// Configurar el endpoint para obtener pedidos por OrderNumber
+router.post('orders/import', verificarToken, async (req, res) => {
+  try {
+    // Extrae los parámetros del cuerpo de la solicitud
+    const { tienda, orderNumber } = req.body;
+    console.log("tienda", tienda)
+    console.log("orderNumber", orderNumber)
+    // Verifica si los parámetros requeridos están presentes
+    if (!tienda || !orderNumber) {
+      return res.status(400).json({ error: 'Faltan parámetros requeridos: store y orderNumber.' });
+    }
+
+    // Llama a la función correspondiente para importar el pedido por número de orden
+    //const result = await shopify.importOrderById(tienda, orderNumber);
+
+    // Envía la respuesta con el resultado de la operación
+    res.json({ message: `Pedido con número de orden ${orderNumber} importado correctamente.` });
+  } catch (error) {
+    // Maneja los errores y envía una respuesta de error al cliente
+    console.error('Error al importar el pedido:', error);
+    res.status(500).json({ error: 'Se produjo un error al importar el pedido.' });
+  }
+});
+
 
 async function initDynamicEndpoints() {
   const stores = await obtenerConfiguracionesTiendas();
@@ -37,9 +61,9 @@ async function initDynamicEndpoints() {
 
     // Configurar el endpoint para obtener pedidos no cumplidos
     router.get(`${rutaWebhook}orders/unfulfilled`, verificarToken, async (req, res) => {
-      console.log("unfulfilled")
       await shopify.getUnfulfilledOrdersAndSendToWebService(store.NombreEndpoint);
     });
+    
 
     // Configurar el endpoint para obtener pedidos no cumplidos
     router.post(`${rutaWebhook}orders/canceled`, async (req, res) => {
