@@ -179,19 +179,19 @@ function cronCorreos(){
     });
 
 
-    cron.schedule('35 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 17:35');
+    cron.schedule('28 16 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 17:25');
         await procesarArchivos();
     });
 
-    cron.schedule('30 15 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 16:35');
+    cron.schedule('25 15 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 16:25');
         await procesarArchivos();
     });
 
 
-    cron.schedule('35 14 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 15:35');
+    cron.schedule('25 14 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 15:25');
         await procesarArchivos();
     });
 

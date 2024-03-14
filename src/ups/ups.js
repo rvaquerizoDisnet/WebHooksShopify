@@ -23,6 +23,11 @@ function cronUPS(){
         await consultaUPS();
     });
 
+    cron.schedule('35 15 * * *', async () => {
+        console.log('Ejecutando consulta a UPS a las 14:35');
+        await consultaUPS();
+    });
+
     cron.schedule('35 16 * * *', async () => {
         console.log('Ejecutando consulta a UPS a las 17:35');
         await consultaUPS();
