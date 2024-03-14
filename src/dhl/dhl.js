@@ -24,6 +24,8 @@ function procesarArchivo(archivo) {
             await ActualizarBBDDTracking(CustomerOrderNumber, Tracking);
         })
         .on('end', () => {
+            fs.promises.unlink(rutaArchivo);
+            console.log(`Archivo ${archivo} eliminado correctamente.`);
         });
 }
 
