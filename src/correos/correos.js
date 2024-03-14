@@ -158,13 +158,17 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function cronCorreos(){
+    cron.schedule('55 11 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 17:55');
+        await procesarArchivos();
+    });
     cron.schedule('55 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 15:55');
+        console.log('Ejecutando consulta a Correos a las 17:55');
         await procesarArchivos();
     });
 
-    cron.schedule('20 15 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 15:55');
+    cron.schedule('55 15 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 16:55');
         await procesarArchivos();
     });
 
@@ -175,20 +179,22 @@ function cronCorreos(){
     });
 
 
-    cron.schedule('55 17 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 18:55');
+    cron.schedule('35 16 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 17:35');
         await procesarArchivos();
     });
 
-    cron.schedule('55 18 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 19:55');
+    cron.schedule('30 15 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 16:35');
         await procesarArchivos();
     });
 
-    cron.schedule('55 19 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 20:55');
+
+    cron.schedule('35 14 * * *', async () => {
+        console.log('Ejecutando consulta a Correos a las 15:35');
         await procesarArchivos();
     });
+
 }
 
 
