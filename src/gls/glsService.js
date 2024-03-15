@@ -48,9 +48,9 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [destinatarioCorreo, process.env.EMAIL_3],
+                to: [destinatarioCorreo],
                 subject: `Incidencia en un pedido de GLS`,
-                text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
+                text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
 
             const info = await transporter.sendMail(mailOptions);
@@ -81,9 +81,9 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [process.env.EMAIL_2, destinatarioCorreo, process.env.EMAIL_3],
+                to: [process.env.EMAIL_2, destinatarioCorreo],
                 subject: `Solucion a Incidencia en un pedido de GLS`,
-                text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nAlbarán: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
+                text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
             };
 
             const info = await transporter.sendMail(mailOptions);
@@ -98,7 +98,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('34 8 * * *', async () => {
+    cron.schedule('49 8 * * *', async () => {
         console.log('Ejecutando consulta a GLS a las 17:25');
         await consultaAGls();
     });
@@ -190,7 +190,8 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         const weightDisplacement = await leerWeightDisplacement(OrderNumber.toString());
 
         const estadoPedido = await consultarEstadoPedido(xmlData);
-        if (!(estadoPedido == 'INCIDENCIA')){
+        const existeBD  = await verificarAlbaranExistenteIncidencia(OrderNumber.toString())
+        if (!(estadoPedido == 'INCIDENCIA') && !existeBD){
             await actualizarBaseDeDatos(OrderNumber.toString(), peso, volumen);
             const { Weight, Displacement, IdOrder } = weightDisplacement;
             await insertarEnOrderHeader(IdOrder, Weight, Displacement)
