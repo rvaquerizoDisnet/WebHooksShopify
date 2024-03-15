@@ -52,10 +52,8 @@ function cronUPS(){
 async function consultaUPS() {
     try {
         const fechaHoy = moment().format('YYYYMMDD');
-
         const csvFilePath = '/home/admin81/shares/UPS/Tracking/UPSTracking.csv';
         const rows = [];
-
         fs.createReadStream(csvFilePath)
         .pipe(csvParser({ separator: ';', headers: false }))
         .on('data', (row) => {
@@ -71,8 +69,6 @@ async function consultaUPS() {
             }
             console.log(`Consultados y actualizados pedidos de UPS`);
         });
-
-
     } catch (error) {
         console.error('Error al ejecutar la consulta a UPS:', error);
     }
@@ -96,7 +92,6 @@ async function actualizarTracking(NumeroAlbaran, TrackingNumber){
     } catch (error) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
-            // Esperar un breve intervalo antes de reintentar la operación
             await new Promise(resolve => setTimeout(resolve, 5000)); 
             const pool = await connectToDatabase(1);
             const query = `

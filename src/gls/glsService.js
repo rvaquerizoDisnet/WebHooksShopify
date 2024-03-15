@@ -49,7 +49,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
             const mailOptions = {
                 from: process.env.EMAIL_USER,
                 to: [destinatarioCorreo, process.env.EMAIL_3],
-                subject: `Incidencia en un pedido de GLS`,
+                subject: `INC ${departamento} GLS`,
                 text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
 
@@ -64,7 +64,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 }
 
 
-async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha) {
+async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst) {
     try {
         const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
         if (destinatarioCorreo) {
@@ -82,8 +82,8 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
             const mailOptions = {
                 from: process.env.EMAIL_USER,
                 to: [process.env.EMAIL_2, destinatarioCorreo, process.env.EMAIL_3],
-                subject: `Solucion a Incidencia en un pedido de GLS`,
-                text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
+                subject: `INC ${departamento} SOL GLS`,
+                text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
 
             const info = await transporter.sendMail(mailOptions);
@@ -216,6 +216,7 @@ async function consultarPedidoGLS(uidCliente, OrderNumber, codigo) {
         throw error;
     }
 }
+
 
 
 async function leerWeightDisplacement(OrderNumber) {
@@ -401,7 +402,7 @@ async function consultarEstadoPedido(xmlData) {
                     // Ejecutar la consulta
                     const pool = await connectToDatabase(2);
                     const result = await pool.request().query(query);
-                    await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst);
+                    await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst );
                     console.log("Información del pedido guardada en la base de datos.");
                 } else if(codigo != codigoAlbaran){
 
@@ -412,8 +413,7 @@ async function consultarEstadoPedido(xmlData) {
                     `;
                     const pool = await connectToDatabase(2);
                     const result = await pool.request().query(query);
-                    await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha);
-               
+                    await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst);
                } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
@@ -424,7 +424,7 @@ async function consultarEstadoPedido(xmlData) {
 
                 // Si el albarán existe, eliminar la línea correspondiente
                 if (existeAlbaranIncidencia) {
-                    await enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha);
+                    await enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst);
                     await eliminarAlbaran(albaran);
                 } else if (existeAlbaranPesado){
                     await eliminarAlbaranPesado(albaran)
@@ -441,17 +441,13 @@ async function consultarEstadoPedido(xmlData) {
                         INSERT INTO MwGLSNoPesado (Albaran, CodExp, Departamento, Departamento2)
                         VALUES ('${albaran}', '${codexp}', '${departamento}', '${departamento2}')
                     `;
-
                     const pool = await connectToDatabase(2);
                     const result = await pool.request().query(query);
-
                     console.log("Información del pedido guardada en la base de datos.");
                 } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
             }
-
-            
             return tipoUltimoTracking;
         } else {
             console.error('La estructura del objeto parsedData no es la esperada. No se pudo encontrar la propiedad "tracking_list".');
@@ -505,7 +501,6 @@ async function verificarAlbaranExistentePesado(albaran) {
         const result = await pool.request()
             .input('albaran', sql.VarChar, albaran)
             .query('SELECT COUNT(*) AS Count FROM MwGLSNoPesado WHERE Albaran = @albaran');
-
         return result.recordset[0].Count > 0;
     } catch (error) {
         console.error('Error al verificar la existencia del albarán en la base de datos:', error);

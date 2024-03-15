@@ -35,7 +35,7 @@ const config2 = {
     idleTimeoutMillis: 30000,
   },
 };
-
+//TODO Hacer migracion de la bbdd
 const pool1 = new mssql.ConnectionPool(config1);
 const pool2 = new mssql.ConnectionPool(config2);
 

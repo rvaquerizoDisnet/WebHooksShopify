@@ -22,7 +22,7 @@ const { convertTableToCSV, deleteCSVFile} = require('./gls/convertMDBinSQLite');
 const { cronUPS } = require('./ups/ups');
 const { crondhl } = require('./dhl/dhl');
 const { cronCorreos } = require('./correos/correos');
-//const { generarExcel } = require('./preentradas/preentradasBAY');
+//const { generarExcel } = require('./preentradas/preentradasBAY'); //TODO Descomentar esto
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -101,7 +101,7 @@ process.on('SIGTERM', () => {
   }
 });
 
-//generarExcel();
+//generarExcel(); // TODO Generar preentrada esta tarde a las 18:00
 // Llamada a las tareas automaticas por Cron 
 
 //GLS
