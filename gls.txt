@@ -2,7 +2,7 @@
 -Crear tabla de Magento-----
 -Hacer archivo insertClientMagento------
 -Funcion que envie Mail a info y al cliente cuando haya una incidencia-----
-
+--Mirar porque ocurre el error en GLS.
 -Correos Tracking automatico ruta L:\CLIENTS FITXERS\24UOC\Export\GECO 16:50
 PQ43DN2500230680115008T TrackingNumber //  0001469696 CustomerOrderNumber
 cada dia se generan 1 informes.
