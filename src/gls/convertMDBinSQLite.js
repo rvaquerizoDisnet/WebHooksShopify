@@ -6,7 +6,17 @@ const mdbFilePath = '/home/admin81/shares/GLS/data/expediciones.mdb';
 const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
 
 function convertTableToCSV() {
-    cron.schedule('48 8 * * *', () => {
+
+    cron.schedule('03 13 * * *', () => {
+        try {
+            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
+            execSync(exportToCSVCommand);
+            console.log('Tabla expediciones exportada a CSV correctamente.');
+        } catch (error) {
+            console.error('Error al exportar la tabla expediciones a CSV:', error);
+        }
+    });
+    cron.schedule('03 16 * * *', () => {
         try {
             const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
             execSync(exportToCSVCommand);
@@ -46,6 +56,16 @@ function convertTableToCSV() {
         }
     });
 
+    cron.schedule('03 19 * * *', () => {
+        try {
+            const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
+            execSync(exportToCSVCommand);
+            console.log('Tabla expediciones exportada a CSV correctamente.');
+        } catch (error) {
+            console.error('Error al exportar la tabla expediciones a CSV:', error);
+        }
+    });
+
     cron.schedule('14 19 * * *', () => {
         try {
             const exportToCSVCommand = `mdb-export ${mdbFilePath} expediciones > ${csvFilePath}`;
@@ -59,7 +79,17 @@ function convertTableToCSV() {
 
 
 function deleteCSVFile() {
-    cron.schedule('52 8 * * *', () => {
+
+    cron.schedule('06 13 * * *', () => {
+        const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+        try {
+            fs.unlinkSync(csvFilePath);
+            console.log('Archivo CSV eliminado.');
+        } catch (error) {
+            console.error('Error al eliminar el archivo CSV:', error);
+        }
+    });
+    cron.schedule('06 16 * * *', () => {
         const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
         try {
             fs.unlinkSync(csvFilePath);
@@ -91,6 +121,16 @@ function deleteCSVFile() {
 
     
     cron.schedule('20 18 * * *', () => {
+        const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+        try {
+            fs.unlinkSync(csvFilePath);
+            console.log('Archivo CSV eliminado.');
+        } catch (error) {
+            console.error('Error al eliminar el archivo CSV:', error);
+        }
+    });
+
+    cron.schedule('06 19 * * *', () => {
         const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
         try {
             fs.unlinkSync(csvFilePath);

@@ -48,7 +48,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [destinatarioCorreo],
+                to: [destinatarioCorreo, process.env.EMAIL_3],
                 subject: `Incidencia en un pedido de GLS`,
                 text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
@@ -81,7 +81,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [process.env.EMAIL_2, destinatarioCorreo],
+                to: [process.env.EMAIL_2, destinatarioCorreo, process.env.EMAIL_3],
                 subject: `Solucion a Incidencia en un pedido de GLS`,
                 text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}`
             };
@@ -98,8 +98,18 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
 
 function cronGLS(){
-    cron.schedule('49 8 * * *', async () => {
-        console.log('Ejecutando consulta a GLS a las 17:25');
+    cron.schedule('04 16 * * *', async () => {
+        console.log('Ejecutando consulta a GLS a las 17:04');
+        await consultaAGls();
+    });
+
+    cron.schedule('04 13 * * *', async () => {
+        console.log('Ejecutando consulta a GLS a las 14:04');
+        await consultaAGls();
+    });
+
+    cron.schedule('04 19 * * *', async () => {
+        console.log('Ejecutando consulta a GLS a las 20:04');
         await consultaAGls();
     });
 }
@@ -750,7 +760,12 @@ function consultarIncidenciasYPesos() {
     });
 
     // Consulta a las 14:00
-    cron.schedule('50 11 * * *', async () => {
+    cron.schedule('05 11 * * *', async () => {
+        await ejecutarConsulta();
+    });
+
+    // Consulta a las 14:00
+    cron.schedule('05 14 * * *', async () => {
         await ejecutarConsulta();
     });
 
