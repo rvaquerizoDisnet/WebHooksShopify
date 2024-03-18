@@ -72,6 +72,7 @@
       <button type="button" class="btn btn-primary" onclick="redirectToGLS()"">GLS</button>
       <button type="button" class="btn btn-primary" onclick="redirectToMagento()"">Magento</button>
       <button type="button" class="btn btn-primary" onclick="redirectToWooCommerce()"">WooCommerce</button>
+      <button type="button" class="btn btn-primary" onclick="redirectToConfig()"">Config</button>
     </div>
   </div>
     <footer>
@@ -172,6 +173,27 @@
     function redirectToLogin() {
       window.location.href = '/users/login/';
     }
+
+    function redirectToConfig() {
+      const token = getCookie2('token');
+        fetch("/config/", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/config/';
+          } else {
+            console.error('Hubo un problema al acceder a la ruta:', response.statusText);
+          }
+        })
+        .catch(error => {
+          console.error('Error al realizar la solicitud:', error);
+        });
+    }
+
 
   function getCookie2(name) {
     const value = `; ${document.cookie}`;

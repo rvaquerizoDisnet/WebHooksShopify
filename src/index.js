@@ -12,6 +12,7 @@ const woocommerceRouter = require('./api/ApiWooCommerce');
 const magentoRouter = require('./api/apiMagento');
 const magento = require('./magento/magento');
 const newCustomerRouter = require('./api/newCustomer');
+const configRouter = require('./api/apiConfig')
 const { errorHandlingMiddleware } = require('./autenticacion/errorHandlingMiddleware');
 require('dotenv').config();
 const app = express();
@@ -39,6 +40,7 @@ app.use('/users', usersRouter);
 app.use('/', homeRouter);
 app.use('/nuevo-cliente', newCustomerRouter);
 app.use('/woocommerce', woocommerceRouter.router)
+app.use('/config', configRouter.router)
 //app.use('/magento', magentoRouter.router)
 
 app.use((err, req, res, next) => {

@@ -94,7 +94,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
                 from: process.env.EMAIL_USER,
                 to: [...destinatarios, process.env.EMAIL_3],
                 subject: `INC ${departamento} SOL GLS`,
-                text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
+                text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nLocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
 
             const info = await transporter.sendMail(mailOptions);

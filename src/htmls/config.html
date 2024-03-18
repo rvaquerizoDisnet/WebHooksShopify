@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    body {
+        background-color: #ffffff; /* Blanco */
+        color: #000000; /* Negro */
+        padding-top: 56px; /* Altura del navbar para evitar que el contenido se superponga */
+    }
+    h1 {
+        color: #007bff; /* Azul */
+    }
+    .container {
+        margin-top: 20px;
+    }
+    .btn-group {
+        margin-top: 20px;
+        display: flex; /* Hace que los botones se distribuyan horizontalmente */
+        justify-content: space-between; /* Añade espacio entre los botones */
+    }
+    .btn {
+        width: 100px;
+        margin: 5px; /* Añade margen entre los botones */
+    }
+    .logout{
+        width: 100%;
+    }
+    footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: #f8f9fa; /* Gris claro */
+        text-align: center;
+        padding: 10px;
+    }
+    /* Estilo para la tabla */
+    .table-container {
+      overflow-x: auto; /* Hace que el contenedor sea horizontalmente desplazable */
+      max-width: 100%; /* Establece un ancho máximo para el contenedor */
+      display: block; /* Cambia la visualización a bloque para que el contenedor ocupe el ancho máximo disponible */
+      white-space: nowrap; /* Evita que el contenido de la tabla se ajuste automáticamente al ancho del contenedor */
+    }
+
+    .btn-show-hide {
+        margin-left: 5px;
+    }
+
+    .newclient{
+        width: 130px !important;
+    }
+
+    .import-orders{
+        width: 230px;
+    }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <a class="navbar-brand" href="/">Disnet</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+        <!-- Agrega aquí los enlaces a otros endpoints GET del middleware -->
+        </ul>
+    </div>
+    <form action="/users/logout" method="post" id="logoutForm">
+        <input type="hidden" name="token" id="logoutToken" value="">
+        <button type="submit" class="btn btn-danger logout" id="btnLogout">Logout</button>
+    </form>
+</nav>
+
+<div class="container justify-content-between">
+    <h1>Configuración</h1>
+    <div id="clientsTableContainer" class="container">
+        <div class="table-container">
+            <form id="configForm">
+                <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nave</th>
+                        <th>Pedidos Pendientes</th>
+                        <th>Reubicaciones</th>
+                        <th>Mensaje Adicional</th>
+                    </tr>
+                </thead>
+                <tbody id="configTableBody">
+                    <!-- Los datos de la tabla se llenarán dinámicamente aquí -->
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-primary" onclick="guardarConfiguracion()">Guardar</button>
+            </form>
+        </div>
+    </div>        
+</div>
+
+<footer>
+    <p>Disnet - Todos los derechos reservados</p>
+</footer>
+
+<script>
+// Función para cargar los datos de configuración desde la base de datos
+async function cargarConfiguracion() {
+    try {
+        const response = await fetch('/configuracion', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const configTableBody = document.getElementById('configTableBody');
+            configTableBody.innerHTML = ''; // Limpiamos el contenido previo de la tabla
+            // Iteramos sobre los datos y creamos las filas de la tabla
+            data.forEach(config => {
+                const row = `
+                    <tr>
+                        <td>${config.Nave}</td>
+                        <td><input type="checkbox" ${config.Pedidos ? 'checked' : ''} disabled></td>
+                        <td><input type="checkbox" ${config.Reubicaciones ? 'checked' : ''} disabled></td>
+                        <td><input type="text" value="${config.Mensaje}"></td>
+                    </tr>
+                `;
+                configTableBody.innerHTML += row;
+            });
+        } else {
+            console.error('Error al cargar la configuración:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error al cargar la configuración:', error);
+    }
+}
+
+// Llamamos a la función para cargar los datos al cargar la página
+window.onload = cargarConfiguracion;
+
+// Función para guardar la configuración
+async function guardarConfiguracion() {
+    try {
+        const form = document.getElementById('configForm');
+        const formData = new FormData(form);
+        const response = await fetch('/configuracion', {
+            method: 'POST',
+            body: formData
+        });
+        if (response.ok) {
+            console.log('Configuración guardada correctamente.');
+            // Llamamos a la función para volver a cargar los datos después de guardar la configuración
+            cargarConfiguracion();
+        } else {
+            console.error('Error al guardar la configuración:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error al guardar la configuración:', error);
+    }
+}
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
