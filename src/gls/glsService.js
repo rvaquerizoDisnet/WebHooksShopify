@@ -11,7 +11,7 @@ const nodemailer = require('nodemailer');
 const sql = require('mssql');
 
 
-async function obtenerCorreoDepartamento(departamento) {
+async function obtenerCorreosDepartamento(departamento) {
     try {
         const pool = await connectToDatabase(2); 
         const query = `
@@ -21,7 +21,8 @@ async function obtenerCorreoDepartamento(departamento) {
         `;
         const result = await pool.request().query(query);
         if (result.recordset.length > 0) {
-            return result.recordset[0].Correo; 
+            const correos = result.recordset.map(record => record.Correo);
+            return correos; 
         } else {
             return null;
         }
@@ -33,8 +34,13 @@ async function obtenerCorreoDepartamento(departamento) {
 
 async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst) {
     try {
-        const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
-        if (destinatarioCorreo) {
+        const destinatariosCorreo = await obtenerCorreosDepartamento(departamento);
+        if (destinatariosCorreo) {
+            let destinatarios = destinatariosCorreo;
+            if (!Array.isArray(destinatariosCorreo)) {
+                destinatarios = [destinatariosCorreo];
+            }
+
             const transporter = nodemailer.createTransport({
                 host: 'mail.disnet.es',
                 port: 25,
@@ -48,7 +54,7 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [destinatarioCorreo, process.env.EMAIL_3],
+                to: [...destinatarios, process.env.EMAIL_3],
                 subject: `INC ${departamento} GLS`,
                 text: `Se ha registrado una incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es: ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
@@ -66,8 +72,13 @@ async function enviarCorreoIncidencia(albaran, departamento, codexp, evento, fec
 
 async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst) {
     try {
-        const destinatarioCorreo = await obtenerCorreoDepartamento(departamento);
-        if (destinatarioCorreo) {
+        const destinatariosCorreo = await obtenerCorreosDepartamento(departamento);
+        if (destinatariosCorreo) {
+            let destinatarios = destinatariosCorreo;
+            if (!Array.isArray(destinatariosCorreo)) {
+                destinatarios = [destinatariosCorreo];
+            }
+
             const transporter = nodemailer.createTransport({
                 host: 'mail.disnet.es',
                 port: 25,
@@ -81,7 +92,7 @@ async function enviarCorreoSolucion(albaran, departamento, codexp, evento, fecha
 
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: [process.env.EMAIL_2, destinatarioCorreo, process.env.EMAIL_3],
+                to: [...destinatarios, process.env.EMAIL_3],
                 subject: `INC ${departamento} SOL GLS`,
                 text: `Se ha registrado una solución para la incidencia en el pedido con los siguientes detalles:\n\nNumero de pedido: ${albaran}\nCodExp: ${codexp}\nSu estado es ${evento}\nFecha: ${fecha}\n\nDetalles del destinatario:\nNombre: ${nombre_dst}\nTelefono: ${tfno_dst}\nEmail: ${email_dst}\nCalle: ${calle_dst}\nlocalidad: ${localidad_dst}\nCodigo Postal: ${cp_dst}`
             };
