@@ -63,7 +63,6 @@ async function consultaUPS() {
             }
         })
         .on('end', () => {
-            // Iterar sobre los registros filtrados
             for (const pedido of rows) {
                 actualizarTracking(pedido[1], pedido[2]);
             }

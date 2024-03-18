@@ -22,22 +22,22 @@ CustomerOrderNumber;TrackingNumber
 cada dia se generan varios informes.
 
 
-Ubicaciones y barcodes:
+Ubicaciones y barcodes: //TODO Hacer preentrada de BAY
 Aplicacion que leyendo una ubicacion, todos los siguientes lecturas que el codigo que empieze por 07 sea un barcode asigando a esa ubicacion, y cuando lea el siguiente ubicacion cambie de linea y empieze un registro nuevo.
 
-Crear una nueva base de datos independiente a la de ABC
+Crear una nueva base de datos independiente a la de ABC //POS Migracion de la base de datos
 
 
 Bixoto EANS:
 1 posibilidad, es que por cada ean generen 1 linea mas 
 
 
-Eliminar archivos:
+Eliminar archivos: //POS Aplicacion para eliminar los archivos automaticamente
 en un windows, y me gustaria crear una aplicacion que trabajase en segundo plano como un servicio y que cada dia haga la comprobacion de que si en esa carpeta hay algun archivo mas antiguo de 1 mes lo elimine
 
 
 
-FICHAJE:
+FICHAJE: //POS FICHAJE
 -En hikvision recibir los datos de cuando una persona entra, y pasa la tarjeta por el escaner, se inicie automaticamente la jornada laboral en el erp.
 -En el ERP hacer que tanto los clientes como las tareas, salgan por el orden de mas usados en los ultimos 7 dias
 
