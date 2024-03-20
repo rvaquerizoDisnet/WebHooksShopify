@@ -159,7 +159,7 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 function cronCorreos(){
     cron.schedule('55 11 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 17:55');
+        console.log('Ejecutando consulta a Correos a las 12:55');
         await procesarArchivos();
     });
     cron.schedule('55 16 * * *', async () => {

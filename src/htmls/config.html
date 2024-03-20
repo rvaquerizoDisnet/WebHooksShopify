@@ -48,6 +48,9 @@
     .btn-show-hide {
         margin-left: 5px;
     }
+    td, tr {
+        text-align: center; /* Centra el texto horizontalmente dentro de las celdas */
+    }
 
     .newclient{
         width: 130px !important;
@@ -93,7 +96,8 @@
             <button type="button" class="btn btn-primary" onclick="guardarConfiguracion()">Guardar</button>
             </form>
         </div>
-    </div>        
+    </div>
+    <div id="messageContainer"></div>       
 </div>
 
 <footer>
@@ -104,7 +108,7 @@
 // Función para cargar los datos de configuración desde la base de datos
 async function cargarConfiguracion() {
     try {
-        const response = await fetch('/configuracion', {
+        const response = await fetch('/config/configuracion', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -117,12 +121,12 @@ async function cargarConfiguracion() {
             // Iteramos sobre los datos y creamos las filas de la tabla
             data.forEach(config => {
                 const row = `
-                    <tr>
-                        <td>${config.Nave}</td>
-                        <td><input type="checkbox" ${config.Pedidos ? 'checked' : ''} disabled></td>
-                        <td><input type="checkbox" ${config.Reubicaciones ? 'checked' : ''} disabled></td>
-                        <td><input type="text" value="${config.Mensaje}"></td>
-                    </tr>
+                <tr>
+                    <td>${config.Nave}</td>
+                    <td><input type="checkbox" ${config.Pedidos ? 'checked' : ''}></td>
+                    <td><input type="checkbox" ${config.Reubicaciones ? 'checked' : ''}></td>
+                    <td><input type="text" value="${config.Mensaje}"></td>
+                </tr>
                 `;
                 configTableBody.innerHTML += row;
             });
@@ -140,16 +144,36 @@ window.onload = cargarConfiguracion;
 // Función para guardar la configuración
 async function guardarConfiguracion() {
     try {
-        const form = document.getElementById('configForm');
-        const formData = new FormData(form);
-        const response = await fetch('/configuracion', {
-            method: 'POST',
-            body: formData
+        const configTableBody = document.getElementById('configTableBody');
+        const rows = configTableBody.querySelectorAll('tr');
+        const data = [];
+        rows.forEach(row => {
+            const nave = row.cells[0].innerText;
+            const pedidos = row.cells[1].querySelector('input[type="checkbox"]').checked;
+            const reubicaciones = row.cells[2].querySelector('input[type="checkbox"]').checked;
+            const mensaje = row.cells[3].querySelector('input[type="text"]').value;
+            data.push({ nave, pedidos, reubicaciones, mensaje });
         });
+
+        const response = await fetch('/config/configuracion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
         if (response.ok) {
             console.log('Configuración guardada correctamente.');
             // Llamamos a la función para volver a cargar los datos después de guardar la configuración
             cargarConfiguracion();
+            // Mostrar mensaje de éxito
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = '<div class="alert alert-success" role="alert">Configuración guardada correctamente.</div>';
+            // Eliminar el mensaje después de 5 segundos
+            setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 3000);
         } else {
             console.error('Error al guardar la configuración:', response.statusText);
         }
@@ -157,6 +181,7 @@ async function guardarConfiguracion() {
         console.error('Error al guardar la configuración:', error);
     }
 }
+
 </script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>

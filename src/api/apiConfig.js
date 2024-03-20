@@ -22,40 +22,14 @@ router.get('/', verificarToken, (req, res) => {
 });
 
 
-router.post('/', verificarToken, async (req, res) => {
+router.get('/configuracion', verificarToken, async (req, res) => {
     try {
-        const { nave, pedidos, reubicaciones, mensaje } = req.body;
-
-        // Llama a la función para actualizar la configuración en la base de datos
-        await updateConfigDB(nave, pedidos, reubicaciones, mensaje);
-
-        // Redirecciona al usuario a la página de configuración después de guardar la configuración
-        res.redirect('/');
-
-    } catch (error) {
-        console.error('Error al actualizar la configuración:', error);
-        res.status(500).send('Error interno del servidor.');
-    }
-});
-
-
-// Ruta PUT para editar un cliente
-router.put('/:id/edit', verificarToken, async (req, res) => {
-  const clientId = req.params.id;
-  const { NombreEndpoint, UrlWebService, IdCustomer, SessionCode, TransportCompany } = req.body;
-  try {
-    await updateConfigDB(clientId, NombreEndpoint, UrlWebService, IdCustomer, SessionCode, TransportCompany);
-    res.send('Cliente actualizado correctamente');
-  } catch (error) {
-    console.error('Error al editar el cliente:', error);
-    res.status(500).send('Error interno del servidor.');
-  }
-});
-
-// Ruta GET para obtener la configuración desde la base de datos
-router.get('/configuracion', async (req, res) => {
-    try {
-        const queryResult = await db.query('SELECT * FROM MWPantallas');
+        // Establece una conexión a la base de datos
+        const pool = await connectToDatabase(2);
+        // Crea un nuevo objeto de solicitud utilizando la conexión
+        const request = pool.request();
+        // Ejecuta la consulta utilizando la solicitud
+        const queryResult = await request.query('SELECT * FROM MWDashboard');
         res.json(queryResult.recordset); // Enviar los datos obtenidos como respuesta
     } catch (error) {
         console.error('Error al obtener la configuración:', error);
@@ -63,12 +37,14 @@ router.get('/configuracion', async (req, res) => {
     }
 });
 
-// Ruta POST para guardar la configuración en la base de datos
-router.post('/configuracion', async (req, res) => {
+router.post('/configuracion', verificarToken, async (req, res) => {
     try {
-        const { nave, pedidos, reubicaciones, mensaje } = req.body;
-
-        // Realizar las operaciones necesarias para guardar la configuración en la base de datos
+        const configData = req.body;
+        // Itera sobre los datos recibidos y actualiza la base de datos para cada registro
+        for (const config of configData) {
+            const { nave, pedidos, reubicaciones, mensaje } = config;
+            await updateConfigDB(nave, pedidos, reubicaciones, mensaje);
+        }
 
         res.sendStatus(200); // Enviar respuesta exitosa
     } catch (error) {
@@ -76,6 +52,7 @@ router.post('/configuracion', async (req, res) => {
         res.status(500).send('Error interno del servidor.');
     }
 });
+
 
 
 module.exports = { router };

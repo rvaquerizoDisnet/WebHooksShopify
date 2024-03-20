@@ -775,6 +775,11 @@ function consultarIncidenciasYPesos() {
         await ejecutarConsulta();
     });
 
+    // Consulta a las 14:00
+    cron.schedule('37 15 * * *', async () => {
+        await ejecutarConsulta();
+    });
+
     // Consulta a las 18:00
     cron.schedule('05 17 * * *', async () => {
         await ejecutarConsulta();
