@@ -16,7 +16,7 @@ OrderNumber;DeliveryNoteNumber;TrackingNumber;fecha
 archivo autoincremental
 
 -DHL 17:45
-L:\TTE\FITXERS\DHL\TRAKING // POS Hacer que las rutas de DHL, UPS y correos se consulten en la BBDD.
+L:\TTE\FITXERS\DHL\TRAKING
 "0137488201","0835421240"
 CustomerOrderNumber;TrackingNumber
 cada dia se generan varios informes.
@@ -32,7 +32,7 @@ Bixoto EANS:
 1 posibilidad, es que por cada ean generen 1 linea mas 
 
 
-Eliminar archivos: //POS Aplicacion para eliminar los archivos automaticamente
+Eliminar archivos: //POS Aplicacion para eliminar los archivos automaticamente, Añadir a Correos
 en un windows, y me gustaria crear una aplicacion que trabajase en segundo plano como un servicio y que cada dia haga la comprobacion de que si en esa carpeta hay algun archivo mas antiguo de 1 mes lo elimine
 
 

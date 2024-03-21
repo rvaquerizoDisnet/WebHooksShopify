@@ -15,7 +15,7 @@ const config1 = {
   pool: {
     min: 0,
     max: 10,
-    idleTimeoutMillis: 30000,
+    idleTimeoutMillis: 60000,
   },
 };
 
@@ -32,30 +32,33 @@ const config2 = {
   pool: {
     min: 0,
     max: 10,
-    idleTimeoutMillis: 30000,
+    idleTimeoutMillis: 60000,
   },
 };
 //TODO Hacer migracion de la bbdd
 const pool1 = new mssql.ConnectionPool(config1);
 const pool2 = new mssql.ConnectionPool(config2);
 
-const connectToDatabase = async (databaseNumber) => {
+const connectToDatabase = async (databaseNumber, options = {}) => {
   try {
+    let config;
     if (databaseNumber === 1) {
-      await pool1.connect();
-      return pool1;
+      config = { ...config1, ...options };
     } else if (databaseNumber === 2) {
-      await pool2.connect();
-      return pool2;
+      config = { ...config2, ...options };
     } else {
-      await pool1.connect();
-      return pool1;
+      config = { ...config1, ...options };
     }
+
+    const pool = new mssql.ConnectionPool(config);
+    await pool.connect();
+    return pool;
   } catch (error) {
     console.error('Error al conectar a la base de datos:', error.message);
     throw error;
   }
 };
+
 
 const executeQuery = async (query, databaseNumber) => {
   const pool = await connectToDatabase(databaseNumber);

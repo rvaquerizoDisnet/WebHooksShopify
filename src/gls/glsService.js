@@ -154,34 +154,34 @@ async function consultarPedidosGLSYActualizar(uidCliente, departamentoExp) {
         //const fechaInicioMes = '03/01/2024';
         //const fechaFinMes = '03/08/2024'; 
 
-         // Leer el archivo CSV
-         const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
-         const rows = [];
+        // Leer el archivo CSV
+        const csvFilePath = '/home/admin81/shares/GLS/data/expediciones.csv';
+        const rows = [];
 
-         fs.createReadStream(csvFilePath)
-         .pipe(csvParser())
-         .on('data', (row) => {
+        fs.createReadStream(csvFilePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
              // Filtrar los registros del día anterior con el departamento_exp correspondiente
-             if (
+            if (
                 //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaInicioMes, 'MM/DD/YYYY')) &&
                 //moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaFinMes, 'MM/DD/YYYY').add(1, 'days')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isSameOrAfter(moment(fechaAyerStr, 'MM/DD/YYYY')) &&
                 moment(row.fechaTransmision_exp, 'MM/DD/YYYY HH:mm:ss').isBefore(moment(fechaAyerStr, 'MM/DD/YYYY').add(1, 'days')) && 
                 row.departamento_exp === departamentoExp
-             ) {
-                 rows.push(row);
-             }
-         })
-         .on('end', () => {
+            ){
+                rows.push(row);
+            }
+        })
+        .on('end', () => {
              // Iterar sobre los registros filtrados
-             for (const pedido of rows) {
-                 consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
-             }
-             console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
-         });
- } catch (error) {
-     console.error('Error al consultar pedidos y actualizar la base de datos:', error);
- }
+            for (const pedido of rows) {
+                consultarPedidoGLS(uidCliente, pedido.referencia_exp, pedido.identificador_exp);
+            }
+            console.log(`Consultados y actualizados los pedidos de GLS para el departamento ${departamentoExp}.`);
+        });
+} catch (error) {
+    console.error('Error al consultar pedidos y actualizar la base de datos:', error);
+}
 }
 
 
@@ -425,7 +425,7 @@ async function consultarEstadoPedido(xmlData) {
                     const pool = await connectToDatabase(2);
                     const result = await pool.request().query(query);
                     await enviarCorreoIncidencia(albaran, departamento, codexp, evento, fecha, nombre_dst, localidad_dst, cp_dst, tfno_dst, email_dst, calle_dst);
-               } else {
+                } else {
                     console.log("El albarán ya existe en la base de datos. No se realizará la inserción.");
                 }
             } else if (tipoUltimoTracking == 'ESTADO' || tipoUltimoTracking == 'ENTREGA' || tipoUltimoTracking == 'POD' || tipoUltimoTracking == 'SOLUCION' || tipoUltimoTracking == 'URLPARTNER') {

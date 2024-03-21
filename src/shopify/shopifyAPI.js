@@ -65,7 +65,7 @@ async function handleShipmentAdminApi({ req, res, store }) {
             const zipCode = shippingAddress.zip;
             const countryCode = shippingAddress.country_code;
 
-            if (countryCode != 'ES') {
+            if (countryCode != 'ES' && countryCode != 'IT') {
                 console.log(`Pedido con OrderNumber ${orderNumber} o ${yearOrderNumber} no se cerrará porque no es un pedido nacional.`);
                 continue;
             }

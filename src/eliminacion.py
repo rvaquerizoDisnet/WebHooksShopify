@@ -27,16 +27,17 @@ def calcular_proxima_ejecucion(hora_deseada):
     return tiempo_hasta_ejecucion.total_seconds()
 
 def main():
-    ruta_carpeta = r'L:\TTE\FITXERS\DHL\TRAKING'  # TODO Añadir a GECO
-    dias_limite = 5 
-    hora_deseada = 11
+    rutas_carpetas = [r'L:\TTE\FITXERS\DHL\TRAKING', r'L:\CLIENTS FITXERS\24UOC\Export\GECO']  # Lista de rutas de carpetas a revisar
+    dias_limite = 4 
+    hora_deseada = 18
     
     while True:
-        tiempo_hasta_ejecucion = calcular_proxima_ejecucion(hora_deseada)
-        print(f"Próxima ejecución en {tiempo_hasta_ejecucion / 3600} horas...")
-        time.sleep(tiempo_hasta_ejecucion)
-        limpiar_carpeta(ruta_carpeta, dias_limite)
-        print("Limpieza completada.")
+        for ruta_carpeta in rutas_carpetas:
+            tiempo_hasta_ejecucion = calcular_proxima_ejecucion(hora_deseada)
+            print(f"Próxima ejecución en {tiempo_hasta_ejecucion / 3600} horas para la carpeta {ruta_carpeta}...")
+            time.sleep(tiempo_hasta_ejecucion)
+            limpiar_carpeta(ruta_carpeta, dias_limite)
+            print("Limpieza completada para la carpeta", ruta_carpeta)
 
 if __name__ == "__main__":
     main()

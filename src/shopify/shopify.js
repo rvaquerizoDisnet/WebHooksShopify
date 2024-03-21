@@ -126,7 +126,7 @@ async function handleWebhook({ tipo, req, res, store }, retryCount = 0) {
       }
       await handleOrderWebhook(req.body, store);
     } else if (tipo === 'cancel') {
-       await handleOrderWebhookCanceled(req.body, store);
+        await handleOrderWebhookCanceled(req.body, store);
     } else {
       console.error(`Tipo de webhook no reconocido: ${tipo}`);
     }
@@ -142,7 +142,6 @@ async function handleOrderWebhook(jsonData, store) {
 
     const response = await enviarDatosAlWebService(xmlData, store);
 
-    console.log(`Respuesta del servicio web para orders:`, response.data);
   } catch (error) {
     logger.error('Error al procesar el webhook de orders:', error);
     throw error;
@@ -199,7 +198,6 @@ async function convertirJSToXML(data, store) {
     const xmlObject = await mapJsonToXml(data, store);
     const builder = new xml2js.Builder();
     const xml = builder.buildObject(xmlObject);
-    console.log('XML convertido:', xml);
     return xml;
   } catch (error) {
     logger.error('Error al convertir JS a XML:', error);
