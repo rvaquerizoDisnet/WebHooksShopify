@@ -29,7 +29,7 @@ def calcular_proxima_ejecucion(hora_deseada):
 def main():
     rutas_carpetas = [r'L:\TTE\FITXERS\DHL\TRAKING', r'L:\CLIENTS FITXERS\24UOC\Export\GECO']  # Lista de rutas de carpetas a revisar
     dias_limite = 4 
-    hora_deseada = 18
+    hora_deseada = 12
     
     while True:
         for ruta_carpeta in rutas_carpetas:

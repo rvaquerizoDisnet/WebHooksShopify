@@ -786,7 +786,7 @@ function consultarIncidenciasYPesos() {
     });
 
     // Consulta a las 20:00
-    cron.schedule('05 19 * * *', async () => {
+    cron.schedule('55 18 * * *', async () => {
         await ejecutarConsulta();
     });
 }

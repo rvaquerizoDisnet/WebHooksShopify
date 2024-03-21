@@ -49,7 +49,6 @@ async function procesarArchivos() {
 }
 
 
-
 async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
     let IdOrder = null;
 
@@ -140,6 +139,20 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function crondhl(){
+    cron.schedule('45 12 * * *', async () => {
+        console.log('Ejecutando consulta a dhl a las 16:45');
+        await procesarArchivos();
+    });
+
+    cron.schedule('45 13 * * *', async () => {
+        console.log('Ejecutando consulta a dhl a las 16:45');
+        await procesarArchivos();
+    });
+
+    cron.schedule('45 14 * * *', async () => {
+        console.log('Ejecutando consulta a dhl a las 16:45');
+        await procesarArchivos();
+    });
 
     cron.schedule('45 15 * * *', async () => {
         console.log('Ejecutando consulta a dhl a las 16:45');
