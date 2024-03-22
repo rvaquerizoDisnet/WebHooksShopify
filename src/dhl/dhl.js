@@ -8,11 +8,19 @@ const { pool, connectToDatabase } = require('../utils/database');
 const sql = require('mssql');
 
 const carpeta = '/home/admin81/shares/DHL/TRAKING/';
+const blacklistPath = '/home/admin81/shares/DHL/TRAKING/blacklist.csv';
 
 
 // Función para procesar un archivo .csv
 function procesarArchivo(archivo) {
     const rutaArchivo = `${carpeta}/${archivo}`;
+
+    // Verificar si el archivo está en la blacklist
+    const fileName = archivo.split('.')[0];
+    if (estaEnBlacklist(fileName)) {
+        console.log(`El archivo ${archivo} está en la blacklist. No se procesará.`);
+        return;
+    }
 
     // Lee el contenido del archivo CSV
     fs.createReadStream(rutaArchivo)
@@ -26,7 +34,22 @@ function procesarArchivo(archivo) {
         .on('end', () => {
             fs.promises.unlink(rutaArchivo);
             console.log(`Archivo ${archivo} eliminado correctamente.`);
+            // Añadir el nombre del archivo a la blacklist
+            agregarABlacklist(fileName);
         });
+}
+
+// Función para verificar si un archivo está en la blacklist
+function estaEnBlacklist(fileName) {
+    if (!fs.existsSync(blacklistPath)) return false;
+
+    const blacklist = fs.readFileSync(blacklistPath, 'utf-8').split('\n');
+    return blacklist.includes(fileName);
+}
+
+// Función para añadir un archivo a la blacklist
+function agregarABlacklist(fileName) {
+    fs.appendFileSync(blacklistPath, `${fileName}\n`);
 }
 
 
@@ -139,42 +162,8 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function crondhl(){
-    cron.schedule('45 12 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 16:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 13 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 16:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 14 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 16:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 15 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 16:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 16 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 17:45');
-        await procesarArchivos();
-    });
-    cron.schedule('45 17 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 18:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 18 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 19:45');
-        await procesarArchivos();
-    });
-
-    cron.schedule('45 19 * * *', async () => {
-        console.log('Ejecutando consulta a dhl a las 20:45');
+    cron.schedule('*/2 * * * *', async () => {
+        console.log('Ejecutando consulta a dhl cada 2 minutos');
         await procesarArchivos();
     });
 }
