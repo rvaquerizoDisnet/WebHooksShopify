@@ -99,37 +99,45 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             throw new Error('Hay múltiples IdOrder con TrackingNumber NULL.');
         }
 
-        const query = `
+        const queryDeliveryNoteHeader = `
             UPDATE DeliveryNoteHeader
             SET TrackingNumber = @Tracking
             WHERE IdOrder = @IdOrder;
         `;
-        const request = pool.request();
-        request.input('Tracking', sql.NVarChar, Tracking);
-        request.input('IdOrder', sql.NVarChar, IdOrder.toString());
-        await request.query(query);
+        const requestDeliveryNoteHeader = pool.request();
+        requestDeliveryNoteHeader.input('Tracking', sql.NVarChar, Tracking);
+        requestDeliveryNoteHeader.input('IdOrder', sql.NVarChar, IdOrder.toString());
+        await requestDeliveryNoteHeader.query(queryDeliveryNoteHeader);
         console.log("Tracking actualizado para ", IdOrder)
+
+        // Ejecutar la segunda consulta para actualizar el TrackingNumber en la tabla PackingList
+        const queryPackingList = `
+            UPDATE PL
+            SET PL.TrackingNumber = @Tracking
+            FROM PackingList PL
+            INNER JOIN DeliveryNoteLinesLocations DNL ON PL.IdDeliveryNotesLinesLocations = DNL.IdDeliveryNotesLinesLocations
+            INNER JOIN DeliveryNoteLines DNLN ON DNL.IdDeliveryNotesLines = DNLN.IdDeliveryNotesLines
+            INNER JOIN DeliveryNoteHeader DN ON DNLN.IdDeliveryNote = DN.IdDeliveryNote
+            WHERE DN.IdOrder = @IdOrder;
+        `;
+        const requestPackingList = pool.request();
+        requestPackingList.input('Tracking', sql.NVarChar, Tracking);
+        requestPackingList.input('IdOrder', sql.NVarChar, IdOrder.toString());
+        await requestPackingList.query(queryPackingList);
+        console.log("Tracking actualizado en PackingList para ", IdOrder);
+        
     } catch (error) {
         if (error.message.includes('deadlocked')) {
             console.error('Se produjo un deadlock. Reintentando la operación en unos momentos...');
             // Esperar un breve intervalo antes de reintentar la operación
             await new Promise(resolve => setTimeout(resolve, 5000)); 
-            const pool = await connectToDatabase(1);
-            const query = `
-                UPDATE DeliveryNoteHeader
-                SET TrackingNumber = @Tracking
-                WHERE IdOrder = @IdOrder and St_DeliverynoteHeader = 'FIN';
-            `;
-            const request = pool.request();
-            request.input('Tracking', sql.NVarChar, Tracking);
-            request.input('IdOrder', sql.NVarChar, IdOrder.toString());
-            await request.query(query);
-            console.log("Tracking actualizado para ", IdOrder)
+            ActualizarBBDDTracking(CustomerOrderNumber, Tracking)
         } else {
             console.error('Error al insertar en OrderHeader:', IdOrder, error.message);
         }
     }
 }
+
 
 
 async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
