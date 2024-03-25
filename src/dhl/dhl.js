@@ -115,7 +115,7 @@ async function ActualizarBBDDTracking(CustomerOrderNumber, Tracking) {
             UPDATE PL
             SET PL.TrackingNumber = @Tracking
             FROM PackingList PL
-            INNER JOIN DeliveryNoteLinesLocations DNL ON PL.IdDeliveryNotesLinesLocations = DNL.IdDeliveryNotesLinesLocations
+            INNER JOIN DeliveryNoteLinesLocations DNL ON PL.IdDeliveryNoteLinesLocations = DNL.IdDeliveryNoteLinesLocations
             INNER JOIN DeliveryNoteLines DNLN ON DNL.IdDeliveryNotesLines = DNLN.IdDeliveryNotesLines
             INNER JOIN DeliveryNoteHeader DN ON DNLN.IdDeliveryNote = DN.IdDeliveryNote
             WHERE DN.IdOrder = @IdOrder;
