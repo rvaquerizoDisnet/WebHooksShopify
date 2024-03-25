@@ -162,8 +162,8 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 function crondhl(){
-    cron.schedule('*/2 * * * *', async () => {
-        console.log('Ejecutando consulta a dhl cada 2 minutos');
+    // Cron para ejecutar cada 15 minutos a partir de las 14:00 hasta las 19:00
+    cron.schedule('0 11-19/1 * * *', async () => {
         await procesarArchivos();
     });
 }
