@@ -163,7 +163,7 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 function crondhl(){
     // Cron para ejecutar cada 15 minutos a partir de las 14:00 hasta las 19:00
-    cron.schedule('0 11-19/1 * * *', async () => {
+    cron.schedule('0 9-19/1 * * *', async () => {
         await procesarArchivos();
     });
 }
