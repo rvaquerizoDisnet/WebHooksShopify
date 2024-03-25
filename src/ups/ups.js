@@ -8,42 +8,12 @@ const { pool, connectToDatabase } = require('../utils/database');
 const sql = require('mssql');
 
 function cronUPS(){
-    cron.schedule('35 5 * * *', async () => {
-        console.log('Ejecutando consulta a UPS a las 6:35');
-        await consultaUPS();
-    });
-
-    cron.schedule('35 9 * * *', async () => {
-        console.log('Ejecutando consulta a UPS a las 10:35');
-        await consultaUPS();
-    });
-
-    cron.schedule('35 13 * * *', async () => {
-        console.log('Ejecutando consulta a UPS a las 14:35');
-        await consultaUPS();
-    });
-
-    cron.schedule('35 15 * * *', async () => {
-        console.log('Ejecutando consulta a UPS a las 14:35');
-        await consultaUPS();
-    });
-
-    cron.schedule('35 16 * * *', async () => {
-        console.log('Ejecutando consulta a UPS a las 17:35');
-        await consultaUPS();
-    });
-
-    cron.schedule('35 17 * * *', async () => {
-        console.log('Ejecutando consulta a UPS a las 18:35');
-        await consultaUPS();
-    });
-
-    cron.schedule('35 18 * * *', async () => {
-        console.log('Ejecutando consulta a UPS a las 19:35');
+    // Cron para ejecutar cada 12 minutos a partir de las 5:35 hasta las 18:35
+    cron.schedule('35 5-18/1 * * *', async () => {
+        console.log('Ejecutando consulta a UPS');
         await consultaUPS();
     });
 }
-
 async function consultaUPS() {
     try {
         const fechaHoy = moment().format('YYYYMMDD');
