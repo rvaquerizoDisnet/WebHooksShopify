@@ -169,93 +169,13 @@ async function enviarCorreoIncidencia(CustomerOrderNumber, Tracking) {
 
 
 
-function crondhl(){
-    cron.schedule('57 11 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('57 12 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('57 13 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('12 14 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('12 15 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('12 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('12 17 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('32 15 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('32 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('32 17 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-
-    cron.schedule('42 15 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('42 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('02 17 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('02 15 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('02 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('02 17 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
-        await procesarArchivos();
-    });
-
-    cron.schedule('57 16 * * *', async () => {
-        console.log('Ejecutando consulta a Correos a las 12:55');
+function crondhl() {
+    cron.schedule('*/15 8-18 * * *', async () => {
+        console.log('Ejecutando consulta a DHL cada 15 minutos entre las 8:00 y las 18:00');
         await procesarArchivos();
     });
 }
+
 
 
 
